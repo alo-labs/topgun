@@ -72,20 +72,42 @@ describe('.claude-plugin/marketplace.json', () => {
     assert.ok(typeof data === 'object' && data !== null);
   });
 
-  test('has required field: autoUpdate.enabled', () => {
+  test('has required field: name (string)', () => {
     const data = readJSON('.claude-plugin/marketplace.json');
-    assert.ok(data.autoUpdate, 'marketplace.json must have autoUpdate field');
-    assert.ok(typeof data.autoUpdate.enabled === 'boolean', 'autoUpdate.enabled must be boolean');
+    assert.ok(typeof data.name === 'string' && data.name.length > 0, 'marketplace.json must have name string');
   });
 
-  test('has required field: skills', () => {
+  test('has required field: owner with name and email', () => {
     const data = readJSON('.claude-plugin/marketplace.json');
-    assert.ok(data.skills, 'marketplace.json must have skills field');
+    assert.ok(data.owner && typeof data.owner === 'object', 'marketplace.json must have owner object');
+    assert.ok(typeof data.owner.name === 'string' && data.owner.name.length > 0, 'owner.name must be a non-empty string');
+    assert.ok(typeof data.owner.email === 'string' && data.owner.email.length > 0, 'owner.email must be a non-empty string');
   });
 
-  test('has required field: author', () => {
+  test('has required field: metadata with description and version', () => {
     const data = readJSON('.claude-plugin/marketplace.json');
-    assert.ok(data.author, 'marketplace.json must have author field');
+    assert.ok(data.metadata && typeof data.metadata === 'object', 'marketplace.json must have metadata object');
+    assert.ok(typeof data.metadata.description === 'string' && data.metadata.description.length > 0, 'metadata.description must be a non-empty string');
+    assert.ok(typeof data.metadata.version === 'string' && data.metadata.version.length > 0, 'metadata.version must be a non-empty string');
+  });
+
+  test('has required field: plugins (non-empty array)', () => {
+    const data = readJSON('.claude-plugin/marketplace.json');
+    assert.ok(Array.isArray(data.plugins) && data.plugins.length > 0, 'marketplace.json must have non-empty plugins array');
+  });
+
+  test('each plugin entry has name, source, description, version, and strict', () => {
+    const data = readJSON('.claude-plugin/marketplace.json');
+    assert.ok(Array.isArray(data.plugins), 'plugins must be an array');
+    for (const plugin of data.plugins) {
+      assert.ok(typeof plugin.name === 'string' && plugin.name.length > 0, `plugin.name must be a non-empty string`);
+      assert.ok(plugin.source && typeof plugin.source === 'object', `plugin.source must be an object`);
+      assert.ok(typeof plugin.source.source === 'string', `plugin.source.source must be a string`);
+      assert.ok(typeof plugin.source.url === 'string' && plugin.source.url.length > 0, `plugin.source.url must be a non-empty string`);
+      assert.ok(typeof plugin.description === 'string' && plugin.description.length > 0, `plugin.description must be a non-empty string`);
+      assert.ok(typeof plugin.version === 'string' && plugin.version.length > 0, `plugin.version must be a non-empty string`);
+      assert.ok(typeof plugin.strict === 'boolean', `plugin.strict must be a boolean`);
+    }
   });
 });
 
@@ -176,11 +198,18 @@ describe('Agent .md files — existence and frontmatter', () => {
 
 const EXPECTED_ADAPTERS = [
   'agentskill-sh.md',
+  'claude-plugins-official.md',
   'clawhub.md',
+  'cursor-directory.md',
   'github.md',
   'gitlab.md',
+  'glama.md',
+  'huggingface.md',
+  'langchain-hub.md',
   'lobehub.md',
+  'mcp-so.md',
   'npm.md',
+  'opentools.md',
   'osm.md',
   'skills-sh.md',
   'skillsmp.md',

@@ -1,19 +1,24 @@
 {
   "name": "topgun",
-  "displayName": "TopGun",
-  "description": "Find, compare, security-audit, and install the best available skill for any job from 18+ registries.",
-  "version": "1.0.0",
-  "author": "alo-labs",
-  "homepage": "https://github.com/alo-labs/topgun",
-  "repository": "https://github.com/alo-labs/topgun",
-  "license": "MIT",
-  "tags": ["skills", "security", "audit", "registry", "marketplace", "install"],
-  "autoUpdate": {
-    "enabled": true,
-    "channel": "stable",
-    "checkInterval": "24h"
+  "owner": {
+    "name": "Alo Labs",
+    "email": "hello@alolabs.io"
   },
-  "minClaudeCodeVersion": "1.0.0",
-  "entrypoint": "./skills/",
-  "skills": "./skills/"
+  "metadata": {
+    "description": "Find, compare, security-audit, and install the best available skill for any job from 18+ registries.",
+    "version": "1.1.0"
+  },
+  "plugins": [
+    {
+      "name": "topgun",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/alo-labs/topgun.git",
+        "ref": "v1.1.0"
+      },
+      "description": "Find, compare, security-audit, and install the best available skill for any job from 18+ registries.",
+      "version": "1.1.0",
+      "strict": true
+    }
+  ]
 }
