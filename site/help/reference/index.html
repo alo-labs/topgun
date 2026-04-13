@@ -72,7 +72,7 @@ nav .nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;ju
 .flag-name{font-family:var(--font-mono);font-size: 1rem;font-weight:700;color:var(--amber);margin-bottom:4px}
 .flag-signature{font-family:var(--font-mono);font-size: 1rem;color:var(--text-dim);margin-bottom:10px}
 .flag-desc{font-size:.875rem;color:var(--text-secondary);line-height:1.7;margin-bottom:0}
-.flag-example{margin-top:10px;font-family:var(--font-mono);font-size:.87rem;color:var(--text-dim);background:var(--bg-code);border-radius:6px;padding:8px 12px}
+.flag-example{margin-top:10px;font-family:var(--font-mono);font-size:1rem;color:var(--text-dim);background:var(--bg-code);border-radius:6px;padding:8px 12px}
 .flag-example .cmd{color:var(--amber)}
 .flag-example .flag{color:var(--cyan)}
 .flag-example .string{color:var(--green)}
@@ -167,14 +167,14 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
       <div class="flag-entry">
         <div class="flag-name">--offline</div>
         <div class="flag-signature">--offline</div>
-        <p class="flag-desc">Skip all live registry queries. TopGun uses only previously cached results from <code style="font-family:var(--font-mono);font-size:.9em">~/.topgun/cache/</code>. Useful when working without internet access or when you want to re-run a pipeline on already-fetched candidates without hitting rate limits.</p>
+        <p class="flag-desc">Skip all live registry queries. TopGun uses only previously cached results from <code style="font-family:var(--font-mono);font-size:1em">~/.topgun/cache/</code>. Useful when working without internet access or when you want to re-run a pipeline on already-fetched candidates without hitting rate limits.</p>
         <div class="flag-example"><span class="cmd">/topgun</span> <span class="string">deployment skill</span> <span class="flag">--offline</span></div>
       </div>
 
       <div class="flag-entry">
         <div class="flag-name">--reset</div>
         <div class="flag-signature">--reset</div>
-        <p class="flag-desc">Discard any saved pipeline state (<code style="font-family:var(--font-mono);font-size:.9em">~/.topgun/state.json</code>) and start the pipeline from scratch. Without this flag, an interrupted pipeline will resume from its last completed stage.</p>
+        <p class="flag-desc">Discard any saved pipeline state (<code style="font-family:var(--font-mono);font-size:1em">~/.topgun/state.json</code>) and start the pipeline from scratch. Without this flag, an interrupted pipeline will resume from its last completed stage.</p>
         <div class="flag-example"><span class="cmd">/topgun</span> <span class="string">code review skill</span> <span class="flag">--reset</span></div>
       </div>
 
@@ -188,7 +188,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
       <div class="flag-entry">
         <div class="flag-name">--auto-approve</div>
         <div class="flag-signature">--auto-approve</div>
-        <p class="flag-desc">Skip the manual approval gate and automatically install the winning skill after a successful 2-pass SENTINEL audit. The full audit manifest is still written to <code style="font-family:var(--font-mono);font-size:.9em">~/.topgun/audit-manifest.json</code> for review after the fact. Use with care in automated workflows.</p>
+        <p class="flag-desc">Skip the manual approval gate and automatically install the winning skill after a successful 2-pass SENTINEL audit. The full audit manifest is still written to <code style="font-family:var(--font-mono);font-size:1em">~/.topgun/audit-manifest.json</code> for review after the fact. Use with care in automated workflows.</p>
         <div class="flag-example"><span class="cmd">/topgun</span> <span class="string">linting skill</span> <span class="flag">--auto-approve</span></div>
       </div>
 
@@ -200,11 +200,11 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
       <div class="divider"></div>
 
       <h2 id="output-files">Output Files</h2>
-      <p>TopGun writes all pipeline artifacts to <code style="font-family:var(--font-mono);font-size:.9em">~/.topgun/</code>. These files are useful for debugging, audit trails, and pipeline resume.</p>
+      <p>TopGun writes all pipeline artifacts to <code style="font-family:var(--font-mono);font-size:1em">~/.topgun/</code>. These files are useful for debugging, audit trails, and pipeline resume.</p>
 
       <div class="file-entry">
         <div class="file-name">state.json</div>
-        <div class="file-desc">Current pipeline state. Written after each stage completes. Used by resume logic to skip already-completed stages. Deleted on successful install or when <code style="font-family:var(--font-mono);font-size:.9em">--reset</code> is passed.</div>
+        <div class="file-desc">Current pipeline state. Written after each stage completes. Used by resume logic to skip already-completed stages. Deleted on successful install or when <code style="font-family:var(--font-mono);font-size:1em">--reset</code> is passed.</div>
       </div>
       <div class="file-entry">
         <div class="file-name">candidates.json</div>
@@ -220,7 +220,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
       </div>
       <div class="file-entry">
         <div class="file-name">cache/</div>
-        <div class="file-desc">Directory of cached registry responses and audit results, keyed by contentSha. Files older than 24 hours are ignored. Can be cleared manually or by running <code style="font-family:var(--font-mono);font-size:.9em">topgun-tools clear-cache</code>.</div>
+        <div class="file-desc">Directory of cached registry responses and audit results, keyed by contentSha. Files older than 24 hours are ignored. Can be cleared manually or by running <code style="font-family:var(--font-mono);font-size:1em">topgun-tools clear-cache</code>.</div>
       </div>
 
       <div class="divider"></div>
@@ -229,7 +229,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
       <p>TopGun stores registry auth tokens in the <strong>macOS Keychain</strong> (or the OS credential store on Linux/Windows). Tokens are never written to disk in plaintext.</p>
 
       <h3>Configuring tokens</h3>
-      <p>Use the <code style="font-family:var(--font-mono);font-size:.9em">topgun-tools set-token</code> command to store a token:</p>
+      <p>Use the <code style="font-family:var(--font-mono);font-size:1em">topgun-tools set-token</code> command to store a token:</p>
 
       <div class="code-label">topgun-tools</div>
       <div class="code-block"><span class="comment"># GitHub personal access token (read:public_repo scope)</span>
@@ -256,7 +256,7 @@ node topgun-tools.cjs set-token gitlab &lt;your-token&gt;</div>
       <div class="divider"></div>
 
       <h2 id="tools">topgun-tools.cjs</h2>
-      <p><code style="font-family:var(--font-mono);font-size:.9em">topgun-tools.cjs</code> is a CLI utility bundled with TopGun for managing tokens, cache, and pipeline state outside of Claude Code.</p>
+      <p><code style="font-family:var(--font-mono);font-size:1em">topgun-tools.cjs</code> is a CLI utility bundled with TopGun for managing tokens, cache, and pipeline state outside of Claude Code.</p>
 
       <table class="tools-table">
         <thead>
@@ -277,7 +277,7 @@ node topgun-tools.cjs set-token gitlab &lt;your-token&gt;</div>
           </tr>
           <tr>
             <td>clear-cache</td>
-            <td>Delete all files in <code style="font-size:.85em">~/.topgun/cache/</code></td>
+            <td>Delete all files in <code>~/.topgun/cache/</code></td>
           </tr>
           <tr>
             <td>clear-cache --older-than &lt;hours&gt;</td>
@@ -285,15 +285,15 @@ node topgun-tools.cjs set-token gitlab &lt;your-token&gt;</div>
           </tr>
           <tr>
             <td>reset-state</td>
-            <td>Delete <code style="font-size:.85em">~/.topgun/state.json</code> — equivalent to <code style="font-size:.85em">--reset</code> flag</td>
+            <td>Delete <code>~/.topgun/state.json</code> — equivalent to <code>--reset</code> flag</td>
           </tr>
           <tr>
             <td>show-manifest</td>
-            <td>Pretty-print the most recent <code style="font-size:.85em">audit-manifest.json</code></td>
+            <td>Pretty-print the most recent <code>audit-manifest.json</code></td>
           </tr>
           <tr>
             <td>show-install-log</td>
-            <td>Print all entries from <code style="font-size:.85em">install-log.json</code> in a readable table</td>
+            <td>Print all entries from <code>install-log.json</code> in a readable table</td>
           </tr>
           <tr>
             <td>list-registries</td>

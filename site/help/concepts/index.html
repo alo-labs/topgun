@@ -157,42 +157,42 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
     <main class="doc-content">
 
       <h2 id="pipeline">The Pipeline</h2>
-      <p>Every <code style="font-family:var(--font-mono);font-size:.9em">/topgun</code> invocation runs a deterministic four-stage pipeline. Stages execute in order; no stage is skipped.</p>
+      <p>Every <code style="font-family:var(--font-mono);font-size:1em">/topgun</code> invocation runs a deterministic four-stage pipeline. Stages execute in order; no stage is skipped.</p>
 
       <div class="pipeline-flow">
         <div class="pipeline-step">
           <div class="ps-num">1</div>
           <div class="ps-body">
             <h4>FindSkills — Discover</h4>
-            <p>Queries all enabled registries in parallel. Each registry adapter normalizes its results to a unified candidate schema. Candidates with identical <code style="font-family:var(--font-mono);font-size:.85em">contentSha</code> values (SHA-256 of skill content) are deduplicated to a single entry.</p>
+            <p>Queries all enabled registries in parallel. Each registry adapter normalizes its results to a unified candidate schema. Candidates with identical <code style="font-family:var(--font-mono);font-size:1em">contentSha</code> values (SHA-256 of skill content) are deduplicated to a single entry.</p>
           </div>
         </div>
         <div class="pipeline-step">
           <div class="ps-num">2</div>
           <div class="ps-body">
             <h4>CompareSkills — Rank</h4>
-            <p>Each unique candidate receives a composite score based on four weighted dimensions. The highest-scoring candidate advances to the audit stage. Scores and all candidate metadata are written to <code style="font-family:var(--font-mono);font-size:.85em">~/.topgun/candidates.json</code>.</p>
+            <p>Each unique candidate receives a composite score based on four weighted dimensions. The highest-scoring candidate advances to the audit stage. Scores and all candidate metadata are written to <code style="font-family:var(--font-mono);font-size:1em">~/.topgun/candidates.json</code>.</p>
           </div>
         </div>
         <div class="pipeline-step">
           <div class="ps-num">3</div>
           <div class="ps-body">
             <h4>SecureSkills — Audit</h4>
-            <p>Invokes <code style="font-family:var(--font-mono);font-size:.85em">/audit-security-of-skill</code> (SENTINEL) on the top candidate. Requires two consecutive clean passes. Findings are auto-fixed between passes when possible. SHA-256 is re-verified before each pass.</p>
+            <p>Invokes <code style="font-family:var(--font-mono);font-size:1em">/audit-security-of-skill</code> (SENTINEL) on the top candidate. Requires two consecutive clean passes. Findings are auto-fixed between passes when possible. SHA-256 is re-verified before each pass.</p>
           </div>
         </div>
         <div class="pipeline-step">
           <div class="ps-num">4</div>
           <div class="ps-body">
             <h4>InstallSkills — Install</h4>
-            <p>Presents the full audit manifest (scores, findings history, SHA-256, registry source) for user approval. On approval, installs via <code style="font-family:var(--font-mono);font-size:.85em">/plugin install</code>. Falls back to local-copy installation if the plugin system has a known bug.</p>
+            <p>Presents the full audit manifest (scores, findings history, SHA-256, registry source) for user approval. On approval, installs via <code style="font-family:var(--font-mono);font-size:1em">/plugin install</code>. Falls back to local-copy installation if the plugin system has a known bug.</p>
           </div>
         </div>
       </div>
 
       <div class="callout callout-info">
         <span class="callout-icon"><i data-lucide="info"></i></span>
-        <div class="callout-body">The pipeline state is checkpointed after each stage to <code style="font-family:var(--font-mono);font-size:.9em">~/.topgun/state.json</code>. If the pipeline is interrupted, it can resume from the last completed stage. See <a href="#state" style="color:var(--accent-light)">State &amp; Resume</a>.</div>
+        <div class="callout-body">The pipeline state is checkpointed after each stage to <code style="font-family:var(--font-mono);font-size:1em">~/.topgun/state.json</code>. If the pipeline is interrupted, it can resume from the last completed stage. See <a href="#state" style="color:var(--accent-light)">State &amp; Resume</a>.</div>
       </div>
 
       <div class="divider"></div>
@@ -279,7 +279,7 @@ composite = (capability × 0.40)
       <div class="divider"></div>
 
       <h2 id="sentinel">SENTINEL Audit</h2>
-      <p>SENTINEL is Alo Labs' <code style="font-family:var(--font-mono);font-size:.9em">/audit-security-of-skill</code> skill. TopGun invokes it as a sub-skill during the SecureSkills stage.</p>
+      <p>SENTINEL is Alo Labs' <code style="font-family:var(--font-mono);font-size:1em">/audit-security-of-skill</code> skill. TopGun invokes it as a sub-skill during the SecureSkills stage.</p>
 
       <h3>The 2-pass requirement</h3>
       <p>TopGun requires <strong>two consecutive clean passes</strong> — not just one — before a skill is eligible for installation. This guards against a class of attacks where a first-pass fix introduces a new vulnerability.</p>
@@ -297,7 +297,7 @@ composite = (capability × 0.40)
 
       <div class="callout callout-stop">
         <span class="callout-icon"><i data-lucide="x-circle"></i></span>
-        <div class="callout-body"><strong>There is no --skip-audit flag.</strong> The SENTINEL requirement cannot be bypassed. If you need to install a skill without an audit, use <code style="font-family:var(--font-mono);font-size:.9em">/plugin install</code> directly — TopGun will not do it for you.</div>
+        <div class="callout-body"><strong>There is no --skip-audit flag.</strong> The SENTINEL requirement cannot be bypassed. If you need to install a skill without an audit, use <code style="font-family:var(--font-mono);font-size:1em">/plugin install</code> directly — TopGun will not do it for you.</div>
       </div>
 
       <div class="divider"></div>
@@ -315,7 +315,7 @@ composite = (capability × 0.40)
       <div class="divider"></div>
 
       <h2 id="state">State and Resume</h2>
-      <p>TopGun writes pipeline state to <code style="font-family:var(--font-mono);font-size:.9em">~/.topgun/state.json</code> after each stage completes. If the pipeline is interrupted (Claude Code crash, network loss, Ctrl-C), you can resume it by running the same <code style="font-family:var(--font-mono);font-size:.9em">/topgun</code> command again.</p>
+      <p>TopGun writes pipeline state to <code style="font-family:var(--font-mono);font-size:1em">~/.topgun/state.json</code> after each stage completes. If the pipeline is interrupted (Claude Code crash, network loss, Ctrl-C), you can resume it by running the same <code style="font-family:var(--font-mono);font-size:1em">/topgun</code> command again.</p>
 
       <div class="code-label">~/.topgun/state.json structure</div>
       <div class="code-block">{
@@ -328,7 +328,7 @@ composite = (capability × 0.40)
 }</div>
 
       <p>TopGun resumes from the last completed stage, not from the beginning. If FindSkills and CompareSkills already completed, resuming skips those stages and continues with SecureSkills.</p>
-      <p>Use <code style="font-family:var(--font-mono);font-size:.9em">--reset</code> to discard the state and restart the pipeline from scratch.</p>
+      <p>Use <code style="font-family:var(--font-mono);font-size:1em">--reset</code> to discard the state and restart the pipeline from scratch.</p>
 
       <div class="divider"></div>
 
@@ -339,15 +339,15 @@ composite = (capability × 0.40)
       <ul>
         <li>Registry results are cached by <strong>contentSha</strong> (not by skill name), so the same content from different registries is not re-fetched.</li>
         <li>Cache TTL is <strong>24 hours</strong>. After 24 hours, registry queries run fresh.</li>
-        <li>Use <code style="font-family:var(--font-mono);font-size:.9em">--force-audit</code> to bypass the cache and re-audit even if a clean result exists.</li>
-        <li>Use <code style="font-family:var(--font-mono);font-size:.9em">--offline</code> to use only cached results and skip all live registry queries.</li>
+        <li>Use <code style="font-family:var(--font-mono);font-size:1em">--force-audit</code> to bypass the cache and re-audit even if a clean result exists.</li>
+        <li>Use <code style="font-family:var(--font-mono);font-size:1em">--offline</code> to use only cached results and skip all live registry queries.</li>
       </ul>
 
       <h3>Audit cache</h3>
       <ul>
         <li>A clean SENTINEL result is cached against the skill's <strong>contentSha</strong>.</li>
         <li>If the same contentSha is encountered again within 24 hours, the cached clean result is used and SENTINEL is not re-invoked.</li>
-        <li><code style="font-family:var(--font-mono);font-size:.9em">--force-audit</code> bypasses the audit cache and always runs fresh SENTINEL passes.</li>
+        <li><code style="font-family:var(--font-mono);font-size:1em">--force-audit</code> bypasses the audit cache and always runs fresh SENTINEL passes.</li>
       </ul>
 
       <div class="page-nav-bottom">

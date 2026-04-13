@@ -154,7 +154,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
 
       <div class="callout callout-tip">
         <span class="callout-icon"><i data-lucide="check-circle"></i></span>
-        <div class="callout-body"><strong>Quick diagnosis:</strong> run <code style="font-family:var(--font-mono);font-size:.9em">node topgun-tools.cjs list-registries</code> to see the current status of all adapters, and <code style="font-family:var(--font-mono);font-size:.9em">node topgun-tools.cjs show-manifest</code> to inspect the last audit result.</div>
+        <div class="callout-body"><strong>Quick diagnosis:</strong> run <code style="font-family:var(--font-mono);font-size:1em">node topgun-tools.cjs list-registries</code> to see the current status of all adapters, and <code style="font-family:var(--font-mono);font-size:1em">node topgun-tools.cjs show-manifest</code> to inspect the last audit result.</div>
       </div>
 
       <!-- REGISTRY UNAVAILABLE -->
@@ -173,10 +173,10 @@ TopGun › ✓ Found 3 candidates across 2 registries (reduced coverage)</div>
         <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:16px">One or more registry adapters did not respond within the 10-second timeout. This is typically a temporary network issue or registry downtime. TopGun continues with the adapters that succeeded.</p>
         <div class="issue-section-label">Fix</div>
         <ul class="fix-steps">
-          <li><strong>Wait and retry.</strong> Most registry outages are brief. Run the same <code style="font-family:var(--font-mono);font-size:.85em">/topgun</code> command again in a few minutes.</li>
-          <li><strong>Check your internet connection.</strong> Confirm you can reach <code style="font-family:var(--font-mono);font-size:.85em">skills.sh</code> and <code style="font-family:var(--font-mono);font-size:.85em">github.com</code> from a browser.</li>
-          <li><strong>Use --offline with cached results.</strong> If you ran a similar query recently, <code style="font-family:var(--font-mono);font-size:.85em">/topgun &lt;task&gt; --offline</code> uses cached registry data and skips all live requests.</li>
-          <li><strong>Restrict to reachable registries.</strong> Use <code style="font-family:var(--font-mono);font-size:.85em">--registries</code> to target only the registries that are online: <code style="font-family:var(--font-mono);font-size:.85em">/topgun &lt;task&gt; --registries npm,smithery</code>.</li>
+          <li><strong>Wait and retry.</strong> Most registry outages are brief. Run the same <code style="font-family:var(--font-mono);font-size:1em">/topgun</code> command again in a few minutes.</li>
+          <li><strong>Check your internet connection.</strong> Confirm you can reach <code style="font-family:var(--font-mono);font-size:1em">skills.sh</code> and <code style="font-family:var(--font-mono);font-size:1em">github.com</code> from a browser.</li>
+          <li><strong>Use --offline with cached results.</strong> If you ran a similar query recently, <code style="font-family:var(--font-mono);font-size:1em">/topgun &lt;task&gt; --offline</code> uses cached registry data and skips all live requests.</li>
+          <li><strong>Restrict to reachable registries.</strong> Use <code style="font-family:var(--font-mono);font-size:1em">--registries</code> to target only the registries that are online: <code style="font-family:var(--font-mono);font-size:1em">/topgun &lt;task&gt; --registries npm,smithery</code>.</li>
         </ul>
       </div>
 
@@ -195,12 +195,12 @@ TopGun › ✓ Found 3 candidates across 2 registries (reduced coverage)</div>
 TopGun › Cannot invoke /audit-security-of-skill — skill not found
 TopGun › Pipeline aborted at SecureSkills stage</div>
         <div class="issue-section-label" style="margin-top:16px">Cause</div>
-        <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:16px">TopGun requires Alo Labs' <code style="font-family:var(--font-mono);font-size:.85em">audit-security-of-skill</code> skill to perform the SENTINEL audit. If this skill is not installed in Claude Code, the SecureSkills stage cannot run and the pipeline aborts.</p>
+        <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:16px">TopGun requires Alo Labs' <code style="font-family:var(--font-mono);font-size:1em">audit-security-of-skill</code> skill to perform the SENTINEL audit. If this skill is not installed in Claude Code, the SecureSkills stage cannot run and the pipeline aborts.</p>
         <div class="issue-section-label">Fix</div>
         <ul class="fix-steps">
-          <li><strong>Install the audit skill first.</strong> Run <code style="font-family:var(--font-mono);font-size:.85em">/plugin install alo-labs/audit-security-of-skill</code> in Claude Code, then retry your <code style="font-family:var(--font-mono);font-size:.85em">/topgun</code> command.</li>
-          <li><strong>Verify installation.</strong> After installing, confirm the skill is active by checking <code style="font-family:var(--font-mono);font-size:.85em">/plugin list</code> — you should see <code style="font-family:var(--font-mono);font-size:.85em">audit-security-of-skill</code> in the output.</li>
-          <li><strong>Check plugin system health.</strong> If <code style="font-family:var(--font-mono);font-size:.85em">/plugin install</code> itself fails, see the <a href="#install-failure" style="color:var(--accent-light)">Install Failure</a> section below.</li>
+          <li><strong>Install the audit skill first.</strong> Run <code style="font-family:var(--font-mono);font-size:1em">/plugin install alo-labs/audit-security-of-skill</code> in Claude Code, then retry your <code style="font-family:var(--font-mono);font-size:1em">/topgun</code> command.</li>
+          <li><strong>Verify installation.</strong> After installing, confirm the skill is active by checking <code style="font-family:var(--font-mono);font-size:1em">/plugin list</code> — you should see <code style="font-family:var(--font-mono);font-size:1em">audit-security-of-skill</code> in the output.</li>
+          <li><strong>Check plugin system health.</strong> If <code style="font-family:var(--font-mono);font-size:1em">/plugin install</code> itself fails, see the <a href="#install-failure" style="color:var(--accent-light)">Install Failure</a> section below.</li>
         </ul>
       </div>
 
@@ -219,13 +219,13 @@ TopGun › Pipeline aborted at SecureSkills stage</div>
 TopGun › Falling back to local-copy install method…
 TopGun › ✓ Skill installed via local-copy fallback</div>
         <div class="issue-section-label" style="margin-top:16px">Cause</div>
-        <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:16px">There is a known intermittent bug in the Claude Code plugin system where <code style="font-family:var(--font-mono);font-size:.85em">/plugin install</code> fails silently or returns an error for valid plugin manifests. TopGun detects this and automatically falls back to a <strong>local-copy install</strong>: it copies the audited SKILL.md directly to the Claude Code skills directory.</p>
+        <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:16px">There is a known intermittent bug in the Claude Code plugin system where <code style="font-family:var(--font-mono);font-size:1em">/plugin install</code> fails silently or returns an error for valid plugin manifests. TopGun detects this and automatically falls back to a <strong>local-copy install</strong>: it copies the audited SKILL.md directly to the Claude Code skills directory.</p>
         <div class="issue-section-label">Fix</div>
         <ul class="fix-steps">
           <li><strong>Trust the fallback.</strong> The local-copy fallback installs the same audited skill content. The SENTINEL audit result applies equally to both install methods. If you see "installed via local-copy fallback", the skill is functional.</li>
-          <li><strong>Verify the skill is active.</strong> After a local-copy install, the skill should appear in <code style="font-family:var(--font-mono);font-size:.85em">/plugin list</code>. If it doesn't, run <code style="font-family:var(--font-mono);font-size:.85em">/topgun &lt;task&gt; --reset</code> to retry the full pipeline.</li>
-          <li><strong>Update Claude Code.</strong> The plugin system bug is tracked upstream. Updating to the latest Claude Code version may resolve it: <code style="font-family:var(--font-mono);font-size:.85em">npm update -g @anthropic/claude-code</code>.</li>
-          <li><strong>Check install-log.json.</strong> Run <code style="font-family:var(--font-mono);font-size:.85em">node topgun-tools.cjs show-install-log</code> to see exactly what was installed, when, and via which method.</li>
+          <li><strong>Verify the skill is active.</strong> After a local-copy install, the skill should appear in <code style="font-family:var(--font-mono);font-size:1em">/plugin list</code>. If it doesn't, run <code style="font-family:var(--font-mono);font-size:1em">/topgun &lt;task&gt; --reset</code> to retry the full pipeline.</li>
+          <li><strong>Update Claude Code.</strong> The plugin system bug is tracked upstream. Updating to the latest Claude Code version may resolve it: <code style="font-family:var(--font-mono);font-size:1em">npm update -g @anthropic/claude-code</code>.</li>
+          <li><strong>Check install-log.json.</strong> Run <code style="font-family:var(--font-mono);font-size:1em">node topgun-tools.cjs show-install-log</code> to see exactly what was installed, when, and via which method.</li>
         </ul>
       </div>
 
@@ -243,11 +243,11 @@ TopGun › ✓ Skill installed via local-copy fallback</div>
         <div class="issue-symptom">TopGun › Resuming from state.json (stage: CompareSkills)
 TopGun › Query: "git automation" — but I asked for "test runner"</div>
         <div class="issue-section-label" style="margin-top:16px">Cause</div>
-        <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:16px">TopGun's resume logic checks for any existing <code style="font-family:var(--font-mono);font-size:.85em">state.json</code> at startup. If a previous pipeline was interrupted and never completed, it will resume — even if your new query is different.</p>
+        <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:16px">TopGun's resume logic checks for any existing <code style="font-family:var(--font-mono);font-size:1em">state.json</code> at startup. If a previous pipeline was interrupted and never completed, it will resume — even if your new query is different.</p>
         <div class="issue-section-label">Fix</div>
         <ul class="fix-steps">
-          <li><strong>Use --reset to start fresh.</strong> Run <code style="font-family:var(--font-mono);font-size:.85em">/topgun &lt;your task&gt; --reset</code> to discard the stale state and run a new pipeline from the beginning.</li>
-          <li><strong>Or clear state manually.</strong> Run <code style="font-family:var(--font-mono);font-size:.85em">node topgun-tools.cjs reset-state</code> to delete <code style="font-family:var(--font-mono);font-size:.85em">state.json</code>, then run your <code style="font-family:var(--font-mono);font-size:.85em">/topgun</code> command normally.</li>
+          <li><strong>Use --reset to start fresh.</strong> Run <code style="font-family:var(--font-mono);font-size:1em">/topgun &lt;your task&gt; --reset</code> to discard the stale state and run a new pipeline from the beginning.</li>
+          <li><strong>Or clear state manually.</strong> Run <code style="font-family:var(--font-mono);font-size:1em">node topgun-tools.cjs reset-state</code> to delete <code style="font-family:var(--font-mono);font-size:1em">state.json</code>, then run your <code style="font-family:var(--font-mono);font-size:1em">/topgun</code> command normally.</li>
         </ul>
       </div>
 
@@ -260,10 +260,10 @@ TopGun › Query: "git automation" — but I asked for "test runner"</div>
         <div class="issue-symptom">TopGun › Resuming from state.json (stage: SecureSkills)
 TopGun › Skipping FindSkills and CompareSkills — already completed</div>
         <div class="issue-section-label" style="margin-top:16px">Cause</div>
-        <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:16px">This is expected behavior. When resuming, TopGun skips completed stages. If you added a new registry token or want to search with updated coverage, use <code style="font-family:var(--font-mono);font-size:.85em">--reset</code> to run fresh.</p>
+        <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:16px">This is expected behavior. When resuming, TopGun skips completed stages. If you added a new registry token or want to search with updated coverage, use <code style="font-family:var(--font-mono);font-size:1em">--reset</code> to run fresh.</p>
         <div class="issue-section-label">Fix</div>
         <ul class="fix-steps">
-          <li>If you want fresh registry results (e.g. after adding a GitHub token), run with <code style="font-family:var(--font-mono);font-size:.85em">--reset</code>.</li>
+          <li>If you want fresh registry results (e.g. after adding a GitHub token), run with <code style="font-family:var(--font-mono);font-size:1em">--reset</code>.</li>
           <li>If you're happy to continue auditing the previously selected winner, let the resume proceed — it will run SENTINEL from where it left off.</li>
         </ul>
       </div>
@@ -285,7 +285,7 @@ TopGun › ⚠ GitHub results may be incomplete</div>
         <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:16px">The GitHub adapter uses the unauthenticated API by default, which is limited to 60 requests per hour. In heavy use, this limit is quickly exhausted.</p>
         <div class="issue-section-label">Fix</div>
         <ul class="fix-steps">
-          <li><strong>Add a GitHub token.</strong> Create a personal access token with <code style="font-family:var(--font-mono);font-size:.85em">read:public_repo</code> scope at <a href="https://github.com/settings/tokens" style="color:var(--accent-light)" target="_blank" rel="noopener">github.com/settings/tokens</a>, then store it: <code style="font-family:var(--font-mono);font-size:.85em">node topgun-tools.cjs set-token github &lt;token&gt;</code>.</li>
+          <li><strong>Add a GitHub token.</strong> Create a personal access token with <code style="font-family:var(--font-mono);font-size:1em">read:public_repo</code> scope at <a href="https://github.com/settings/tokens" style="color:var(--accent-light)" target="_blank" rel="noopener">github.com/settings/tokens</a>, then store it: <code style="font-family:var(--font-mono);font-size:1em">node topgun-tools.cjs set-token github &lt;token&gt;</code>.</li>
           <li><strong>Authenticated limit is 5,000 req/hr</strong> — sufficient for any TopGun usage pattern.</li>
         </ul>
       </div>
@@ -302,9 +302,9 @@ TopGun › ⚠ GitHub results may be incomplete</div>
         <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:16px">The token may have been stored under a different key, or the Keychain entry was created by a different user account. TopGun reads tokens at pipeline start — restarting Claude Code after setting a token is required.</p>
         <div class="issue-section-label">Fix</div>
         <ul class="fix-steps">
-          <li><strong>Verify the token is stored correctly.</strong> Run <code style="font-family:var(--font-mono);font-size:.85em">node topgun-tools.cjs get-token github</code> — you should see a masked token value ending in the last 4 characters.</li>
+          <li><strong>Verify the token is stored correctly.</strong> Run <code style="font-family:var(--font-mono);font-size:1em">node topgun-tools.cjs get-token github</code> — you should see a masked token value ending in the last 4 characters.</li>
           <li><strong>Restart Claude Code</strong> after setting a token. TopGun reads credentials at startup; a running instance won't pick up new tokens without a restart.</li>
-          <li><strong>Re-set the token.</strong> If <code style="font-family:var(--font-mono);font-size:.85em">get-token</code> returns nothing, run <code style="font-family:var(--font-mono);font-size:.85em">set-token</code> again and confirm the Keychain permission dialog if one appears.</li>
+          <li><strong>Re-set the token.</strong> If <code style="font-family:var(--font-mono);font-size:1em">get-token</code> returns nothing, run <code style="font-family:var(--font-mono);font-size:1em">set-token</code> again and confirm the Keychain permission dialog if one appears.</li>
         </ul>
       </div>
 

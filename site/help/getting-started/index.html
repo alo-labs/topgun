@@ -191,7 +191,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
 
       <div class="callout callout-info">
         <span class="callout-icon"><i data-lucide="info"></i></span>
-        <div class="callout-body"><strong>SENTINEL</strong> is Alo Labs' security audit skill (<code style="font-family:var(--font-mono);font-size:.9em">/audit-security-of-skill</code>). It must be installed separately before TopGun can perform security audits. See the prerequisites below.</div>
+        <div class="callout-body"><strong>SENTINEL</strong> is Alo Labs' security audit skill (<code style="font-family:var(--font-mono);font-size:1em">/audit-security-of-skill</code>). It must be installed separately before TopGun can perform security audits. See the prerequisites below.</div>
       </div>
 
       <div class="divider"></div>
@@ -212,7 +212,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
           <div class="prereq-icon"><i data-lucide="shield-check"></i></div>
           <div>
             <h4>Alo Labs Audit Skill <span class="tag tag-required">Required</span></h4>
-            <p>SENTINEL depends on <code style="font-family:var(--font-mono);font-size:.85em">audit-security-of-skill</code> being locally available.</p>
+            <p>SENTINEL depends on <code style="font-family:var(--font-mono);font-size:1em">audit-security-of-skill</code> being locally available.</p>
             <div class="install-cmd">/plugin install alo-labs/audit-security-of-skill</div>
           </div>
         </div>
@@ -220,7 +220,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
 
       <div class="callout callout-warn">
         <span class="callout-icon"><i data-lucide="alert-triangle"></i></span>
-        <div class="callout-body"><strong>Install order matters.</strong> Install <code style="font-family:var(--font-mono);font-size:.9em">audit-security-of-skill</code> before TopGun. If SENTINEL is missing when TopGun tries to run the SecureSkills stage, the pipeline will abort. See <a href="../troubleshooting/#sentinel-missing" style="color:var(--accent-light)">Troubleshooting: SENTINEL not found</a>.</div>
+        <div class="callout-body"><strong>Install order matters.</strong> Install <code style="font-family:var(--font-mono);font-size:1em">audit-security-of-skill</code> before TopGun. If SENTINEL is missing when TopGun tries to run the SecureSkills stage, the pipeline will abort. See <a href="../troubleshooting/#sentinel-missing" style="color:var(--accent-light)">Troubleshooting: SENTINEL not found</a>.</div>
       </div>
 
       <div class="divider"></div>
@@ -231,11 +231,11 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
       <div class="code-label">Claude Code terminal</div>
       <div class="code-block"><span class="cmd">/plugin install</span> <span class="string">alo-labs/topgun</span></div>
 
-      <p>Claude Code will fetch the plugin, verify the manifest, and register the <code style="font-family:var(--font-mono);font-size:.9em">/topgun</code> slash command. No configuration needed — TopGun works out of the box with sensible defaults.</p>
+      <p>Claude Code will fetch the plugin, verify the manifest, and register the <code style="font-family:var(--font-mono);font-size:1em">/topgun</code> slash command. No configuration needed — TopGun works out of the box with sensible defaults.</p>
 
       <div class="callout callout-tip">
         <span class="callout-icon"><i data-lucide="check-circle"></i></span>
-        <div class="callout-body"><strong>Verify the install</strong> by typing <code style="font-family:var(--font-mono);font-size:.9em">/topgun --help</code> in Claude Code. You should see the TopGun banner and available flags.</div>
+        <div class="callout-body"><strong>Verify the install</strong> by typing <code style="font-family:var(--font-mono);font-size:1em">/topgun --help</code> in Claude Code. You should see the TopGun banner and available flags.</div>
       </div>
 
       <div class="divider"></div>
@@ -254,7 +254,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
 <span class="cmd">/topgun</span> <span class="string">deployment pipeline skill</span> <span class="flag">--auto-approve</span>
 <span class="cmd">/topgun</span> <span class="string">test runner skill</span> <span class="flag">--registries</span> <span class="string">skills.sh,npm</span></div>
 
-      <p>After you run a <code style="font-family:var(--font-mono);font-size:.9em">/topgun</code> command, the pipeline executes automatically:</p>
+      <p>After you run a <code style="font-family:var(--font-mono);font-size:1em">/topgun</code> command, the pipeline executes automatically:</p>
 
       <ol class="step-list">
         <li>
@@ -282,7 +282,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
           <div class="step-num">4</div>
           <div class="step-body">
             <h4>InstallSkills — you approve, then it installs</h4>
-            <p>TopGun presents the full audit manifest. You review and approve. The skill is installed via <code style="font-family:var(--font-mono);font-size:.85em">/plugin install</code>.</p>
+            <p>TopGun presents the full audit manifest. You review and approve. The skill is installed via <code style="font-family:var(--font-mono);font-size:1em">/plugin install</code>.</p>
           </div>
         </li>
       </ol>
