@@ -1,72 +1,72 @@
 # Adapter: agentskill.sh
 
 **Registry:** agentskill.sh  
-**Method:** Bash CLI (`ags` command)  
+**Method:** WebFetch GET (primary) / Bash CLI `ags` (fallback)  
 **Timeout:** 8 seconds
 
 ---
 
-## Pre-flight Check
+## Step 1 — WebFetch (primary)
 
-Before running the search, verify `ags` is available:
+```
+GET https://agentskill.sh/api/skills?q={query}&limit=20
+```
+
+- URL-encode the query string.
+- No authentication required.
+- Enforce 8-second timeout.
+
+### Response Parsing
+
+Expected shape: `{ data: [...], total, page, totalPages }`.
+
+| Response field | Unified schema field |
+|----------------|----------------------|
+| `name` | `name` |
+| `description` or `seoSummary` | `description` |
+| `repositoryUrl` | `install_url` |
+| `contentSha` or `githubSha` | `content_sha` |
+| `githubStars` | `stars` |
+| `updatedAt` | `last_updated` |
+| `installCount` | `install_count` |
+| *(whole object)* | `raw_metadata` |
+
+Set `source_registry: "agentskill.sh"` on every result.
+
+### Timeout + Retry
+
+- On HTTP 429: wait 1s, retry; wait 2s, retry; wait 4s, retry. After 3 retries return `status: "unavailable"`, `reason: "rate limited by agentskill.sh"`.
+- On timeout or HTTP 5xx: fall through to Step 2 (CLI fallback).
+
+---
+
+## Step 2 — CLI Fallback
+
+Only attempt if Step 1 fails (timeout, 5xx, or network error). Skip if Step 1 returned 4xx (not a transient failure).
 
 ```bash
 which ags 2>/dev/null
 ```
 
-If the command returns no output (exit code non-zero or empty), return immediately:
+If `ags` not found, return immediately:
 
 ```json
 {
   "registry": "agentskill.sh",
   "status": "unavailable",
-  "reason": "ags CLI not found",
+  "reason": "WebFetch failed and ags CLI not found",
   "results": [],
   "latency_ms": 0
 }
 ```
 
-Do NOT attempt to install `ags` automatically.
-
----
-
-## Request
+If `ags` found:
 
 ```bash
 ags search "{query}" --json
 ```
 
-- Shell-quote the query string.
-- Enforce an 8-second timeout on this Bash call.
-
----
-
-## Timeout + Retry
-
-- On timeout: return `status: "unavailable"`, `reason: "ags search timed out"`.
-- On non-zero exit code: return `status: "error"`, `reason: "<stderr output>"`.
-- On HTTP 429 from underlying ags call (if surfaced in output): wait 1s, retry;
-  wait 2s, retry; wait 4s, retry. After 3 retries return `status: "unavailable"`,
-  `reason: "rate limited by agentskill.sh"`.
-
----
-
-## Response Parsing
-
-Parse the JSON output from stdout. Expected shape is an array of skill objects.
-Extract the following fields from each entry (use `null` if absent):
-
-| Response field | Unified schema field |
-|----------------|----------------------|
-| `name` | `name` |
-| `description` | `description` |
-| `install_url` or `url` | `install_url` |
-| `contentSha` or `ecosystem.contentSha` | `content_sha` |
-| `stars` | `stars` |
-| `updated_at` | `last_updated` |
-| *(whole object)* | `raw_metadata` |
-
-Set `source_registry: "agentskill.sh"` on every result.
+Shell-quote the query string. Enforce 8-second timeout. Parse the JSON array output using the same field mapping as Step 1.
 
 ---
 

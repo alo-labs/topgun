@@ -41,7 +41,7 @@ The `/topgun` orchestrator dispatches four sub-skills in sequence:
 |------|-------|--------------|
 | 1 | `find-skills` | Federated search across 18+ registries in parallel |
 | 2 | `compare-skills` | Multi-factor ranking: capability, security posture, popularity, recency |
-| 3 | `secure-skills` | Alo Labs Sentinel audit — 2 consecutive clean passes required |
+| 3 | `secure-skills` | Bundled SENTINEL v2.3.0 audit — 2 consecutive clean passes required |
 | 4 | `install-skills` | Installs the approved skill and writes the audit trail |
 
 Security is a gate, not a step. A skill that fails Sentinel is never presented for installation.
@@ -57,7 +57,7 @@ Security is a gate, not a step. A skill that fails Sentinel is never presented f
 
 ## Security Model
 
-TopGun uses **Sentinel** — the Alo Labs `/audit-security-of-skill` skill — to audit every candidate before installation.
+TopGun uses **SENTINEL v2.3.0** — bundled directly in the plugin — to audit every candidate before installation. No external dependencies required.
 
 - **Structural envelope check**: validates skill file layout and manifest integrity
 - **2-clean-pass requirement**: Sentinel must return a clean result on two independent runs before a skill is considered safe
@@ -66,7 +66,6 @@ TopGun uses **Sentinel** — the Alo Labs `/audit-security-of-skill` skill — t
 ### Requirements
 
 - Claude Code with plugin support
-- Alo Labs `/audit-security-of-skill` installed locally (Sentinel dependency)
 
 ## License
 

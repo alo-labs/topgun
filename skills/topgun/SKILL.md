@@ -391,7 +391,7 @@ Display the header with actual values:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  Skill:    {skill_name} ({source_registry})
  Score:    capability={X} / security={X} / popularity={X} / recency={X}
- Secured:  2 clean Sentinel passes (Alo Labs /audit-security-of-skill)
+ Secured:  2 clean Sentinel passes (bundled SENTINEL v2.3.0)
  Installed: {plugin | local ~/.claude/skills/}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```

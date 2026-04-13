@@ -35,7 +35,7 @@ Search locally installed skills **before** querying any external registry.
 ## Step 2: Parse Registries Filter
 
 Read `registries` from `~/.topgun/state.json`. If the field is absent or empty,
-default to all registries: `["skills-sh", "agentskill-sh", "smithery", "github", "gitlab"]`.
+default to all registries: `["skills-sh", "agentskill-sh", "smithery", "github", "gitlab", "npm", "lobehub", "osm", "vskill", "skillsmp", "clawhub", "glama", "huggingface", "langchain-hub", "claude-plugins-official", "cursor-directory", "mcp-so", "opentools"]`.
 
 ---
 
@@ -45,7 +45,7 @@ For each enabled registry, execute its adapter by following the corresponding
 instruction file at `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/{registry}.md`.
 
 **Concurrency cap: process at most 5 adapters simultaneously (batch of 5).**
-Since there are exactly 5 Tier-1 registries, all 5 may run in the same batch.
+With 18 registries, dispatch in 4 batches of 5, 5, 5, 3.
 
 Each adapter must return the following contract object:
 
@@ -98,13 +98,26 @@ being placed in context. See topgun-finder.md for the envelope format.
 
 ## Adapter Instruction Files
 
-| Registry | File |
-|----------|------|
-| skills.sh | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/skills-sh.md` |
-| agentskill.sh | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/agentskill-sh.md` |
-| Smithery | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/smithery.md` |
-| GitHub | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/github.md` |
-| GitLab | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/gitlab.md` |
+| Registry | File | Tier |
+|----------|------|------|
+| skills.sh | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/skills-sh.md` | 1 |
+| agentskill.sh | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/agentskill-sh.md` | 1 — WebFetch primary, CLI fallback |
+| Smithery | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/smithery.md` | 1 |
+| GitHub | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/github.md` | 1 |
+| GitLab | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/gitlab.md` | 1 |
+| npm | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/npm.md` | 2 |
+| LobeHub | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/lobehub.md` | 2 |
+| OSM | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/osm.md` | 2 |
+| vSkill | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/vskill.md` | 2 |
+| SkillsMP | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/skillsmp.md` | 2 |
+| ClawHub | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/clawhub.md` | 2 — skip (no API) |
+| Glama.ai | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/glama.md` | 3 — confirmed REST API |
+| Hugging Face | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/huggingface.md` | 3 — confirmed REST API |
+| LangChain Hub | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/langchain-hub.md` | 3 — confirmed REST API |
+| Claude Plugins Official | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/claude-plugins-official.md` | 3 — static manifest |
+| Cursor Directory | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/cursor-directory.md` | 3 — GitHub Contents API |
+| MCP.so | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/mcp-so.md` | 3 — best-guess, graceful skip |
+| OpenTools.ai | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/opentools.md` | 3 — best-guess, graceful skip |
 
 ---
 
