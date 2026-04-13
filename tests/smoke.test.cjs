@@ -64,6 +64,23 @@ describe('.claude-plugin/plugin.json', () => {
     const data = readJSON('.claude-plugin/plugin.json');
     assert.ok(data.skills, 'plugin.json must have skills field');
   });
+
+  test('has required field: agents (non-empty array of paths)', () => {
+    const data = readJSON('.claude-plugin/plugin.json');
+    assert.ok(Array.isArray(data.agents) && data.agents.length > 0, 'plugin.json must have non-empty agents array');
+    for (const agentPath of data.agents) {
+      assert.ok(typeof agentPath === 'string' && agentPath.length > 0, 'each agent entry must be a non-empty string path');
+    }
+  });
+
+  test('all declared agent files exist on disk', () => {
+    const data = readJSON('.claude-plugin/plugin.json');
+    assert.ok(Array.isArray(data.agents), 'agents must be an array');
+    for (const agentPath of data.agents) {
+      const resolved = agentPath.startsWith('./') ? agentPath.slice(2) : agentPath;
+      assert.ok(fs.existsSync(path.join(ROOT, resolved)), `agent file declared in plugin.json not found: ${agentPath}`);
+    }
+  });
 });
 
 describe('.claude-plugin/marketplace.json', () => {
