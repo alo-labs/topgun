@@ -381,3 +381,20 @@ Display the header with actual values:
 Immediately after the header, display the disclaimer:
 
 > 2 clean Sentinel passes = no automated findings. Not a guarantee of zero vulnerabilities.
+
+Write the lock entry for pipeline reproducibility (REQ-23):
+
+```bash
+QUERY_HASH=$(node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" sha256 "<task_description>" | node -e "process.stdin.resume();let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>console.log(JSON.parse(d).hash))")
+
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" lock-write "$QUERY_HASH" '{
+  "skill_name": "{skill_name}",
+  "source_registry": "{source_registry}",
+  "content_sha": "{content_sha from audit JSON}",
+  "audit_hash": "{audit_hash from audit JSON}",
+  "installed_at": "{approved_at from state}",
+  "install_method": "{install_method from state}"
+}'
+```
+
+This writes `~/.topgun/topgun-lock.json` so the exact skill version and audit result can be reproduced.
