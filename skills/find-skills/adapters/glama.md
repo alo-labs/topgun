@@ -38,7 +38,7 @@ Expected shape: `{ servers: [...], pageInfo: { endCursor, hasNextPage } }`.
 | Response field | Unified schema field |
 |----------------|----------------------|
 | `name` | `name` |
-| `description` | `description` |
+| `description` (truncate to 500 chars, strip markdown/HTML tags before storing) | `description` |
 | `url` | `install_url` |
 | `attributes.githubStars` | `stars` |
 | `attributes.updatedAt` | `last_updated` |

@@ -26,7 +26,7 @@ If found, include `Authorization: Bearer {token}` for higher rate limits. Never 
 
 ## Filtering
 
-Client-side filter: include directory entries where `name` contains any word from the query string.
+Client-side filter: include directory entries where `name` contains **any word** from the query string (intentionally broader than substring match — cursor rules use hyphenated slugs like `react-typescript-nextjs` so word-level matching improves recall).
 
 For each matching directory, construct the install URL:
 

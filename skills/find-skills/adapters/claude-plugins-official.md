@@ -20,10 +20,14 @@ No authentication required.
 
 The manifest contains all ~133 plugins. Filter client-side: include entries where `name`, `description`, `keywords`, or `tags` contain the query string (case-insensitive substring match).
 
+## Degradation Notice
+
+The manifest URL (`https://raw.githubusercontent.com/anthropics/claude-plugins-official/main/.claude-plugin/marketplace.json`) is based on the standard Anthropic plugin convention. If the repo does not exist or the path differs, the adapter will receive a 404 and return `status: "unavailable"` — this is expected and handled gracefully.
+
 ## Timeout + Retry
 
-- On timeout or 5xx: return `status: "unavailable"`.
-- No retry — static file; failure is likely a network issue.
+- On HTTP 4xx (including 404): return `status: "unavailable"`, `reason: "manifest not found — HTTP <status code>"`. Do NOT retry.
+- On timeout or HTTP 5xx: return `status: "unavailable"`, `reason: "<error detail>"`. Do NOT retry — static file; failure is likely a network issue.
 
 ## Response Parsing
 

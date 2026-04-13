@@ -68,6 +68,18 @@ ags search "{query}" --json
 
 Shell-quote the query string. Enforce 8-second timeout. Parse the JSON array output using the same field mapping as Step 1.
 
+If `ags` output is not valid JSON or is empty, return:
+
+```json
+{
+  "registry": "agentskill.sh",
+  "status": "error",
+  "reason": "ags CLI returned non-JSON output",
+  "results": [],
+  "latency_ms": 0
+}
+```
+
 ---
 
 ## Return Value
