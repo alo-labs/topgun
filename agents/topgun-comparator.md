@@ -79,20 +79,90 @@ Numeric fields (`install_count`, `stars`, `security_score`) are NOT wrapped — 
 
 This structural envelope ensures no metadata field can break out of its designated context boundary and inject instructions into agent processing.
 
-## Step 4 — Scoring (Phase 3 — to be finalized in Plan 03-03)
+## Step 4 — Score each candidate across four dimensions
 
-Scoring rubric not yet implemented. After envelope wrapping, write a stub comparison output:
+For each candidate that passed the pre-filter and structural envelope, compute four dimension scores (each 0-100).
 
-```bash
-echo '{"compared_at":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","input_hash":"stub","candidates":[],"winner":null}' > ~/.topgun/comparison-stub.json
+### 4a. Capability Match (weight: 0.40)
+
+Compare candidate `name` + `description` against the user's original task query (from state).
+
+1. Extract keywords from user query: split on spaces, remove stopwords (`the`, `a`, `an`, `for`, `to`, `of`, `in`, `and`, `or`, `with`)
+2. Count keyword hits in candidate `name` + `description` (case-insensitive)
+3. `capability_match = min(100, (hits / total_keywords) * 100)`
+4. If 0 keywords match, `capability_match = 0`
+
+### 4b. Security Posture (weight: 0.25)
+
+- Use `security_score` directly if present (field is already 0-100 scale)
+- If `security_score` is null, default to `50` (unknown = neutral)
+- If `security_score < 30`: set `security_warning: true` on the candidate and log:
+  ```
+  SECURITY WARNING: {name} has security_score {score} (< 30 threshold)
+  ```
+
+### 4c. Popularity (weight: 0.20)
+
+```
+popularity = min(100, ((stars || 0) * 2 + (install_count || 0) / 10))
 ```
 
-Update state:
+Cap at 100. If both `stars` and `install_count` are null, `popularity = 0`.
+
+### 4d. Recency (weight: 0.15)
+
+Parse `last_updated` as ISO 8601 date. Compute `days_ago = (now - last_updated)` in days.
+
+| Condition | recency score |
+|-----------|--------------|
+| days_ago <= 30 | 100 |
+| days_ago <= 90 | 80 |
+| days_ago <= 365 | 50 |
+| days_ago > 365 | 20 |
+| last_updated is null | 10 |
+
+## Step 5 — Compute weighted composite score
+
+```
+composite = (capability_match * 0.40) + (security_posture * 0.25) + (popularity * 0.20) + (recency * 0.15)
+```
+
+Round `composite` to 2 decimal places.
+
+**Determinism guarantee:** Sort candidates by `composite` DESC. On tie, sort by `name` ASC (lexicographic). This ensures identical input always produces identical ranking.
+
+## Step 6 — Write comparison output
+
+Construct output with all scored candidates and the winner (index 0 after sorting):
 
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write comparison_path "~/.topgun/comparison-stub.json"
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write comparison_path "~/.topgun/comparison-{hash}.json"
+```
+
+Write to `~/.topgun/comparison-{hash}.json`:
+
+```json
+{
+  "compared_at": "<ISO 8601 timestamp>",
+  "input_hash": "<hash from found-skills filename>",
+  "query": "<original user task query>",
+  "candidates": [
+    {
+      "name": "...",
+      "composite": 74.50,
+      "capability_match": 80,
+      "security_posture": 60,
+      "popularity": 70,
+      "recency": 50,
+      "security_warning": false,
+      "source_registry": "...",
+      "install_url": "..."
+    }
+  ],
+  "winner": { /* same structure as candidates[0] */ }
+}
 ```
 
 ## COMPARE COMPLETE
 
-Compared {N} candidates after pre-filter ({rejected} rejected). Structural envelope applied to all string metadata fields.
+Compared {N} candidates after pre-filter ({rejected} rejected). Structural envelope applied to all string metadata fields. Winner: {winner.name} (composite: {winner.composite}).

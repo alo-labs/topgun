@@ -29,6 +29,27 @@ All string metadata fields (name, description, raw_metadata values) are wrapped 
 
 Numeric fields (install_count, stars, security_score) pass through unwrapped.
 
+## Scoring Rubric
+
+Each candidate is scored 0-100 on four dimensions:
+
+| Dimension | Weight | Source Field | Null Default |
+|-----------|--------|-------------|--------------|
+| Capability Match | 40% | name + description vs query | 0 |
+| Security Posture | 25% | security_score | 50 |
+| Popularity | 20% | stars + install_count | 0 |
+| Recency | 15% | last_updated | 10 |
+
+**Composite:** `(capability_match * 0.40) + (security_posture * 0.25) + (popularity * 0.20) + (recency * 0.15)`
+
+**Tie-breaking:** composite DESC, then name ASC.
+
+**Security Warning:** Candidates with security_score < 30 are flagged with `security_warning: true` and a logged warning. They are NOT disqualified — the user sees the warning in output.
+
+## Determinism
+
+Same input always produces same ranked output. No randomness, no LLM-based scoring variability. Composite is a deterministic arithmetic formula; tie-breaking uses lexicographic name sort.
+
 ## Dispatch
 
 This skill is dispatched by the topgun orchestrator via the topgun-comparator agent. Not normally invoked directly.
