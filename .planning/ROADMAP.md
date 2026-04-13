@@ -14,7 +14,7 @@
 | 2 | 3/3 | Complete   | 2026-04-13 |
 | 3 | 1/3 | In Progress|  |
 | 4 | 2/3 | In Progress|  |
-| 5 | InstallSkills + Approval Gate | Approval gate, install verification, fallback, allowed-tools | REQ-17–22, REQ-21 |
+| 5 | 2/3 | In Progress|  |
 | 6 | Caching, State, Resilience | Audit cache, stage resumption, --offline, failure contracts | REQ-23–24, REQ-26, NFR-04 |
 | 7 | Distribution + Marketplace | marketplace.json, GitHub release, skills.sh listing | REQ-28 |
 
@@ -118,13 +118,10 @@
 
 **Why fifth:** Final execution phase after security is confirmed. User approval gate is the last human checkpoint before any skill is installed.
 
-**Plans:** 3 plans
-- [ ] 04-01-PLAN.md — Structural envelope + pre-filters (phone-home, allowed-tools)
-- [ ] 04-02-PLAN.md — Sentinel invocation loop (SHA-256 gating, fingerprint tracking)
-- [ ] 04-03-PLAN.md — Loop cap, escalation, secured copy, audit-{hash}.json
-- **5-01:** User approval gate in orchestrator — present audit manifest (skill name, source, scores, Sentinel summary, allowed-tools), require explicit yes/no
-- **5-02:** `/plugin install` path — install, read `installed_plugins.json` to verify, test-invoke, write entry manually on persistence bug (#12457 mitigation)
-- **5-03:** Local-copy fallback — write to `~/.claude/skills/` on plugin install failure, verify invocability, update `~/.topgun/installed.json`
+**Plans:** 2/3 plans executed
+- [x] 05-01-PLAN.md — User approval gate in orchestrator (audit manifest, allowed-tools warning, yes/no)
+- [x] 05-02-PLAN.md — /plugin install path + post-install verification (#12457 mitigation)
+- [ ] 05-03-PLAN.md — Local-copy fallback + installed registry + audit trail header
 
 **Success criteria:**
 - No installation proceeds without explicit user approval
