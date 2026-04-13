@@ -9,14 +9,21 @@ description: >
 
 # SecureSkills
 
-**Status:** Phase 4 — Structural envelope and pre-filters implemented.
+**Status:** Phase 4 — Complete.
 
 ## Capabilities
 
 - Wraps external SKILL.md content in `<structural-envelope>` tags with source attribution and SHA-256
 - Pre-filters executable body sections for phone-home patterns (curl, wget, fetch) per REQ-15
 - Inspects allowed-tools frontmatter for dangerous permissions (Bash, Computer, wildcard)
-- Computes and stores content SHA-256 for downstream integrity verification
+- Invokes `/audit-security-of-skill` (Alo Labs Sentinel) via Skill tool per REQ-10
+- Runs fix loop until 2 consecutive clean Sentinel passes on identical content (REQ-12)
+- SHA-256 integrity gating between passes — aborts on mismatch (REQ-13)
+- Per-finding fingerprint tracking with 3-attempt loop cap (REQ-14)
+- User escalation on Sentinel-resistant findings — binary accept-risk/reject-skill
+- Critical findings never silently downgraded
+- Writes secured copy to `~/.topgun/secured/{sha}/SKILL.md` with 600 permissions (REQ-16)
+- Writes `audit-{hash}.json` with full findings, resolution paths, and disclaimer (NFR-05)
 
 ## Dispatch
 
@@ -24,6 +31,7 @@ This skill is dispatched by the TopGun orchestrator via the `topgun-securer` age
 
 ## Completion Markers
 
-- `## SECURE COMPLETE` — audit passed
-- `## SECURE REJECTED` — pre-filter rejection (phone-home detected)
-- `## SECURE ESCALATED` — finding requires user decision
+- `## SECURE COMPLETE` — audit passed, secured copy written
+- `## SECURE REJECTED` — pre-filter rejection or user rejected skill
+- `## SECURE ABORTED` — SHA-256 integrity failure between passes
+- `## SECURE ESCALATED` — finding requires user decision (intermediate state)
