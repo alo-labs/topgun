@@ -14,5 +14,6 @@
     "checkInterval": "24h"
   },
   "minClaudeCodeVersion": "1.0.0",
-  "entrypoint": "./skills/"
+  "entrypoint": "./skills/",
+  "skills": "./skills/"
 }
