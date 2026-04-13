@@ -131,38 +131,101 @@ Round `composite` to 2 decimal places.
 
 **Determinism guarantee:** Sort candidates by `composite` DESC. On tie, sort by `name` ASC (lexicographic). This ensures identical input always produces identical ranking.
 
-## Step 6 — Write comparison output
+## Step 6 — Rank and select winner
 
-Construct output with all scored candidates and the winner (index 0 after sorting):
+After sorting candidates by composite DESC (tie-break: name ASC), the winner is the first candidate in the sorted list (index 0).
 
-```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write comparison_path "~/.topgun/comparison-{hash}.json"
+Build the `ranked_list` array from the sorted candidates. Each entry contains:
+
+```json
+{
+  "rank": 1,
+  "name": "...",
+  "source_registry": "...",
+  "composite_score": 74.50,
+  "scores": {
+    "capability_match": 80,
+    "security_posture": 60,
+    "popularity": 70,
+    "recency": 50
+  },
+  "security_warning": false,
+  "install_url": "..."
+}
 ```
 
-Write to `~/.topgun/comparison-{hash}.json`:
+`rank` is 1-based (winner = rank 1).
+
+## Step 7 — Write comparison-{hash}.json
+
+Construct the full JSON output, then compute the hash of the query string:
+
+```bash
+HASH=$(node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" sha256 "{original query string}")
+```
+
+Write to `~/.topgun/comparison-${HASH}.json`:
 
 ```json
 {
   "compared_at": "<ISO 8601 timestamp>",
   "input_hash": "<hash from found-skills filename>",
   "query": "<original user task query>",
-  "candidates": [
-    {
-      "name": "...",
-      "composite": 74.50,
+  "candidate_count": 5,
+  "rejected_count": 1,
+  "winner": {
+    "name": "...",
+    "source_registry": "...",
+    "composite_score": 74.50,
+    "scores": {
       "capability_match": 80,
       "security_posture": 60,
       "popularity": 70,
-      "recency": 50,
-      "security_warning": false,
+      "recency": 50
+    },
+    "security_warning": false,
+    "install_url": "..."
+  },
+  "ranked_list": [
+    {
+      "rank": 1,
+      "name": "...",
       "source_registry": "...",
+      "composite_score": 74.50,
+      "scores": {
+        "capability_match": 80,
+        "security_posture": 60,
+        "popularity": 70,
+        "recency": 50
+      },
+      "security_warning": false,
       "install_url": "..."
     }
   ],
-  "winner": { /* same structure as candidates[0] */ }
+  "weights": {
+    "capability_match": 0.40,
+    "security_posture": 0.25,
+    "popularity": 0.20,
+    "recency": 0.15
+  }
 }
 ```
 
+Use the Write tool to write this JSON file to `~/.topgun/comparison-${HASH}.json`.
+
+## Step 8 — Update state
+
+```bash
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write comparison_path "~/.topgun/comparison-${HASH}.json"
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write winner_name "{winner.name}"
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write winner_registry "{winner.source_registry}"
+```
+
+## Step 9 — Output completion marker
+
+```
 ## COMPARE COMPLETE
 
-Compared {N} candidates after pre-filter ({rejected} rejected). Structural envelope applied to all string metadata fields. Winner: {winner.name} (composite: {winner.composite}).
+Compared {candidate_count} candidates ({rejected_count} rejected by pre-filter).
+Winner: {winner.name} from {winner.source_registry} (score: {winner.composite_score}).
+```
