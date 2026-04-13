@@ -16,6 +16,29 @@ metadata, and write the output to a JSON file under `~/.topgun/`.
 
 ---
 
+## Error Handling
+
+If any step in this agent fails (network error, missing input, parse failure, timeout):
+1. Do NOT crash or throw unhandled errors
+2. Output the failure marker and reason:
+   ```
+   ## STAGE FAILED
+   Reason: {specific description of what went wrong}
+   ```
+3. The orchestrator will read this marker and offer the user retry or abort.
+
+All adapter/registry calls must return: `{status: "ok"|"failed"|"unavailable", reason: "...", results: [...]}`
+A status of `"unavailable"` is non-blocking — log and continue with other sources.
+A status of `"failed"` with no other sources available triggers the STAGE FAILED marker.
+
+If ALL registries are unavailable and no local results exist:
+```
+## STAGE FAILED
+Reason: All registries unavailable and no local skills matched
+```
+
+---
+
 ## Step 1: Read Input
 
 Read task input from `~/.topgun/state.json`:

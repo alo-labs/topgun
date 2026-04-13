@@ -15,6 +15,27 @@ TopGun installed skills registry.
 
 ---
 
+## Error Handling
+
+If any step in this agent fails (missing secured path, /plugin install error, both verification checks fail):
+1. Do NOT crash or throw unhandled errors
+2. Output the failure marker and reason:
+   ```
+   ## STAGE FAILED
+   Reason: {specific description of what went wrong}
+   ```
+3. The orchestrator will read this marker and offer the user retry or abort.
+
+All adapter/registry calls must return: `{status: "ok"|"failed"|"unavailable", reason: "...", results: [...]}`
+A status of `"unavailable"` is non-blocking — log and continue with other sources.
+A status of `"failed"` on both plugin install and local-copy fallback triggers the STAGE FAILED marker:
+```
+## STAGE FAILED
+Reason: Both /plugin install and local-copy fallback failed — manual installation required. Secured skill at: {secured_path}
+```
+
+---
+
 ## Step 1: Read Install Context
 
 Read current state to get the secured skill path and metadata:

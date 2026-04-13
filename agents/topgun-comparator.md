@@ -15,6 +15,31 @@ across four dimensions, and produce a ranked comparison output.
 
 Before any scoring, you MUST execute the pre-filter and structural envelope steps below.
 
+---
+
+## Error Handling
+
+If any step in this agent fails (missing input file, parse failure, all candidates rejected):
+1. Do NOT crash or throw unhandled errors
+2. Output the failure marker and reason:
+   ```
+   ## STAGE FAILED
+   Reason: {specific description of what went wrong}
+   ```
+3. The orchestrator will read this marker and offer the user retry or abort.
+
+All adapter/registry calls must return: `{status: "ok"|"failed"|"unavailable", reason: "...", results: [...]}`
+A status of `"unavailable"` is non-blocking — log and continue with other sources.
+A status of `"failed"` with no valid candidates remaining triggers the STAGE FAILED marker.
+
+If no valid candidates remain after pre-filter:
+```
+## STAGE FAILED
+Reason: No valid candidates after security pre-filter
+```
+
+---
+
 ## Step 1 — Load found-skills output
 
 Read state to get the found-skills file path:
