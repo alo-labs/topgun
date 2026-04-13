@@ -144,8 +144,129 @@ node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write findings_tracker "{J
 
 ---
 
+## Step 5: Loop Cap and Escalation (REQ-14)
+
+### Per-Finding Attempt Tracking
+
+Within the Sentinel loop (Step 4), BEFORE applying fixes in step 6, check the findings_tracker for each finding:
+
+```
+for each finding with fingerprint F:
+    if findings_tracker[F].count >= 3:
+        # This finding has persisted through 3 fix attempts — escalate
+        DO NOT attempt another fix for this finding
+        Mark finding as "escalation_required"
+```
+
+### User Escalation
+
+When any finding is marked "escalation_required":
+
+1. PAUSE the loop
+2. Present the finding to the user:
+   ```
+   ## SENTINEL FINDING — User Decision Required
+
+   The following finding persists after 3 fix attempts:
+
+   - Severity: {severity}
+   - Location: {location}
+   - Description: {description}
+   - Fix attempts: 3 (all failed to resolve)
+
+   Options:
+   A) Accept risk — proceed with this finding unresolved
+   B) Reject skill — abort installation entirely
+   ```
+3. Wait for user response via Task tool callback
+4. If "accept risk":
+   - Record in state: `state-write "accepted_risk_{fingerprint}" "true"`
+   - Record accepted severity — this is an EXPLICIT user decision, not a silent downgrade
+   - Continue loop (finding is excluded from future fix attempts but still recorded in audit)
+5. If "reject skill":
+   - Write state: `state-write audit_status "rejected"`
+   - Output `## SECURE REJECTED` and stop
+
+### Critical Finding Protection (REQ-14)
+
+MUST NOT silently downgrade Critical findings. Specifically:
+- If a Critical finding hits 3 attempts, it MUST go to user escalation — never auto-accept
+- If a Critical finding is auto-fixed, verify the fix actually removes the finding (next Sentinel pass confirms)
+- The audit-{hash}.json MUST record Critical findings with their full resolution path (fixed / accepted-by-user / rejected)
+- No code path may change a finding's severity from Critical to a lower level
+
+## Step 6: Secured Copy Storage (REQ-16)
+
+After 2 consecutive clean passes (or after user accepts remaining risks):
+
+1. Read the final content SHA from state: `state-read content_sha`
+2. Create secured directory: `mkdir -p ~/.topgun/secured/{sha}/`
+3. Write secured SKILL.md:
+   ```bash
+   # Write the SKILL.md content (without structural envelope — clean copy)
+   cat {enveloped_content_path} | # extract content between structural-envelope tags
+   Write to ~/.topgun/secured/{sha}/SKILL.md
+   ```
+4. Set permissions: `chmod 600 ~/.topgun/secured/{sha}/SKILL.md`
+5. Verify permissions: `ls -la ~/.topgun/secured/{sha}/SKILL.md` — confirm `-rw-------`
+6. Write to state: `state-write secured_path "~/.topgun/secured/{sha}/SKILL.md"`
+
+## Step 7: Write audit-{hash}.json (NFR-05)
+
+Write the audit trail to `~/.topgun/audit-{sha}.json` with this structure:
+
+```json
+{
+  "skill_name": "{name}",
+  "skill_source": "{source_registry}",
+  "content_sha": "{final_sha}",
+  "audited_at": "{ISO 8601 timestamp}",
+  "sentinel_skill": "/audit-security-of-skill (Alo Labs locally installed skill)",
+  "total_passes": "{pass_number}",
+  "clean_passes": 2,
+  "findings": [
+    {
+      "fingerprint": "{sha}",
+      "severity": "Critical|High|Medium|Low|Info",
+      "description": "{text}",
+      "location": "{location}",
+      "resolution": "fixed|accepted-by-user|not-applicable",
+      "fix_attempts": "{count}",
+      "first_seen_pass": "{N}",
+      "last_seen_pass": "{N}"
+    }
+  ],
+  "accepted_risks": ["{fingerprints of user-accepted findings}"],
+  "allowed_tools_flagged": ["{list from pre-filter}"],
+  "secured_path": "~/.topgun/secured/{sha}/SKILL.md",
+  "disclaimer": "2 clean Sentinel passes = no automated findings. Not a guarantee of zero vulnerabilities."
+}
+```
+
+Write to state: `state-write audit_path "~/.topgun/audit-{sha}.json"`
+
+## Step 8: Completion
+
+Output the completion marker:
+
+```
+## SECURE COMPLETE
+
+Skill: {name} from {source}
+Sentinel passes: {total} ({clean} clean)
+Findings fixed: {count}
+Risks accepted: {count}
+Secured copy: ~/.topgun/secured/{sha}/SKILL.md
+Audit trail: ~/.topgun/audit-{sha}.json
+
+Disclaimer: 2 clean Sentinel passes = no automated findings. Not a guarantee of zero vulnerabilities.
+```
+
+---
+
 ## Completion Markers
 
 - `## SECURE COMPLETE` — audit passed (2 consecutive clean Sentinel passes)
-- `## SECURE REJECTED` — pre-filter rejection (phone-home detected in executable sections)
-- `## SECURE ESCALATED` — finding requires user decision
+- `## SECURE REJECTED` — pre-filter rejection (phone-home detected in executable sections) or user rejected skill
+- `## SECURE ESCALATED` — finding requires user decision (intermediate state)
+- `## SECURE ABORTED` — SHA-256 integrity failure between passes
