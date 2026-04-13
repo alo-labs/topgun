@@ -1,0 +1,79 @@
+{
+  "query": "kubernetes deployment automation",
+  "query_hash": "a3f8c2d1e4b6901234567890abcdef1234567890abcdef1234567890abcdef12",
+  "searched_at": "2026-04-13T10:00:00Z",
+  "total_elapsed_ms": 4231,
+  "registries_searched": [
+    { "registry": "skills-sh", "status": "ok", "reason": null, "latency_ms": 812, "result_count": 2 },
+    { "registry": "smithery", "status": "ok", "reason": null, "latency_ms": 1043, "result_count": 1 },
+    { "registry": "github", "status": "ok", "reason": null, "latency_ms": 654, "result_count": 1 },
+    { "registry": "agentskill-sh", "status": "unavailable", "reason": "HTTP 503", "latency_ms": 5001, "result_count": 0 },
+    { "registry": "gitlab", "status": "unavailable", "reason": "timeout after 8s", "latency_ms": 8000, "result_count": 0 }
+  ],
+  "unavailable_count": 2,
+  "unavailable_warning": false,
+  "dedup_removed": 0,
+  "total_results": 5,
+  "results": [
+    {
+      "name": "kube-deploy",
+      "description": "Automates Kubernetes deployment workflows including rolling updates, canary releases, and rollback procedures.",
+      "source_registry": "skills-sh",
+      "install_count": 4200,
+      "stars": 187,
+      "security_score": 82,
+      "last_updated": "2026-03-01T00:00:00Z",
+      "content_sha": "b94d27b9934d3e08a52e52d7da7dabfac484efe04e751d0c7e8b9a28f359c012",
+      "install_url": "https://skills.sh/kube-deploy/SKILL.md",
+      "raw_metadata": { "author": "alo-labs", "license": "MIT" }
+    },
+    {
+      "name": "k8s-assistant",
+      "description": "Kubernetes cluster management and deployment assistant with helm chart support.",
+      "source_registry": "skills-sh",
+      "install_count": 2100,
+      "stars": 93,
+      "security_score": 71,
+      "last_updated": "2026-01-15T00:00:00Z",
+      "content_sha": "c2a1f8d3e9b04567890abcdef1234567890abcdef1234567890abcdef123456",
+      "install_url": "https://skills.sh/k8s-assistant/SKILL.md",
+      "raw_metadata": { "author": "k8s-tools", "license": "Apache-2.0" }
+    },
+    {
+      "name": "deploy-maestro",
+      "description": "Multi-cloud deployment orchestration with Kubernetes, ECS, and Cloud Run support.",
+      "source_registry": "smithery",
+      "install_count": 890,
+      "stars": 45,
+      "security_score": null,
+      "last_updated": "2025-11-20T00:00:00Z",
+      "content_sha": "d3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "install_url": "https://smithery.ai/skills/deploy-maestro",
+      "raw_metadata": { "author": "cloudops-team", "verified": true }
+    },
+    {
+      "name": "helm-automator",
+      "description": "Helm chart deployment automation for Kubernetes environments.",
+      "source_registry": "github",
+      "install_count": 320,
+      "stars": 28,
+      "security_score": 65,
+      "last_updated": "2025-08-10T00:00:00Z",
+      "content_sha": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "install_url": "https://raw.githubusercontent.com/example/helm-automator/main/SKILL.md",
+      "raw_metadata": { "repo": "example/helm-automator", "stars": 28 }
+    },
+    {
+      "name": "pipeline-runner",
+      "description": "CI/CD pipeline runner with Kubernetes deployment stages and health checks.",
+      "source_registry": "skills-sh",
+      "install_count": 1500,
+      "stars": 67,
+      "security_score": 78,
+      "last_updated": "2026-02-14T00:00:00Z",
+      "content_sha": "f4c1a5b9e2d3f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4",
+      "install_url": "https://skills.sh/pipeline-runner/SKILL.md",
+      "raw_metadata": { "author": "devops-io", "license": "MIT" }
+    }
+  ]
+}

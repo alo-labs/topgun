@@ -1,0 +1,27 @@
+{
+  "audited_at": "2026-04-13T10:12:00Z",
+  "skill_name": "kube-deploy",
+  "source_registry": "skills-sh",
+  "content_sha": "b94d27b9934d3e08a52e52d7da7dabfac484efe04e751d0c7e8b9a28f359c012",
+  "sentinel_passes": 2,
+  "clean_passes": 2,
+  "findings_fixed": 1,
+  "findings_escalated": 0,
+  "allowed_tools": ["Read", "Write", "Bash", "Grep", "Glob"],
+  "secured_path": "/tmp/topgun-test-secured/kube-deploy/SKILL.md",
+  "disclaimer": "2 clean Sentinel passes = no automated findings. Not a guarantee of zero vulnerabilities.",
+  "audit_log": [
+    {
+      "pass": 1,
+      "findings": 1,
+      "finding_descriptions": ["kubectl command missing --context flag for multi-cluster safety"],
+      "fixed": true
+    },
+    {
+      "pass": 2,
+      "findings": 0,
+      "finding_descriptions": [],
+      "fixed": false
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "generated_at": "2026-04-13T10:05:00Z",
+  "input_hash": "a3f8c2d1e4b6901234567890abcdef1234567890abcdef1234567890abcdef12",
+  "query": "kubernetes deployment automation",
+  "candidate_count": 5,
+  "rejected": [],
+  "scores_by_dimension": {
+    "capability_weight": 0.40,
+    "security_weight": 0.25,
+    "popularity_weight": 0.20,
+    "recency_weight": 0.15
+  },
+  "winner": {
+    "name": "kube-deploy",
+    "source_registry": "skills-sh",
+    "composite_score": 79.15,
+    "scores": {
+      "capability_match": 90,
+      "security_posture": 82,
+      "popularity": 77.4,
+      "recency": 100
+    },
+    "security_warning": false,
+    "install_url": "https://skills.sh/kube-deploy/SKILL.md"
+  },
+  "shortlist": [
+    {
+      "rank": 1,
+      "name": "kube-deploy",
+      "source_registry": "skills-sh",
+      "composite_score": 79.15,
+      "scores": {
+        "capability_match": 90,
+        "security_posture": 82,
+        "popularity": 77.4,
+        "recency": 100
+      },
+      "security_warning": false,
+      "install_url": "https://skills.sh/kube-deploy/SKILL.md"
+    },
+    {
+      "rank": 2,
+      "name": "pipeline-runner",
+      "source_registry": "skills-sh",
+      "composite_score": 68.30,
+      "scores": {
+        "capability_match": 70,
+        "security_posture": 78,
+        "popularity": 57.4,
+        "recency": 80
+      },
+      "security_warning": false,
+      "install_url": "https://skills.sh/pipeline-runner/SKILL.md"
+    },
+    {
+      "rank": 3,
+      "name": "k8s-assistant",
+      "source_registry": "skills-sh",
+      "composite_score": 62.45,
+      "scores": {
+        "capability_match": 75,
+        "security_posture": 71,
+        "popularity": 44.6,
+        "recency": 80
+      },
+      "security_warning": false,
+      "install_url": "https://skills.sh/k8s-assistant/SKILL.md"
+    },
+    {
+      "rank": 4,
+      "name": "deploy-maestro",
+      "source_registry": "smithery",
+      "composite_score": 55.80,
+      "scores": {
+        "capability_match": 65,
+        "security_posture": 50,
+        "popularity": 27.8,
+        "recency": 20
+      },
+      "security_warning": false,
+      "install_url": "https://smithery.ai/skills/deploy-maestro"
+    },
+    {
+      "rank": 5,
+      "name": "helm-automator",
+      "source_registry": "github",
+      "composite_score": 43.60,
+      "scores": {
+        "capability_match": 60,
+        "security_posture": 65,
+        "popularity": 9.6,
+        "recency": 20
+      },
+      "security_warning": false,
+      "install_url": "https://raw.githubusercontent.com/example/helm-automator/main/SKILL.md"
+    }
+  ],
+  "weights": {
+    "capability_match": 0.40,
+    "security_posture": 0.25,
+    "popularity": 0.20,
+    "recency": 0.15
+  }
+}
