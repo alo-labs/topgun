@@ -15,7 +15,7 @@
 | 3 | 1/3 | In Progress|  |
 | 4 | 2/3 | In Progress|  |
 | 5 | 2/3 | In Progress|  |
-| 6 | Caching, State, Resilience | Audit cache, stage resumption, --offline, failure contracts | REQ-23–24, REQ-26, NFR-04 |
+| 6 | 2/3 | In Progress|  |
 | 7 | Distribution + Marketplace | marketplace.json, GitHub release, skills.sh listing | REQ-28 |
 
 ---
@@ -140,13 +140,10 @@
 
 **Why sixth:** Cache and state work is built incrementally during earlier phases but needs a dedicated hardening pass to be production-grade before distribution.
 
-**Plans:** 3 plans
-- [ ] 04-01-PLAN.md — Structural envelope + pre-filters (phone-home, allowed-tools)
-- [ ] 04-02-PLAN.md — Sentinel invocation loop (SHA-256 gating, fingerprint tracking)
-- [ ] 04-03-PLAN.md — Loop cap, escalation, secured copy, audit-{hash}.json
-- **6-01:** Audit cache — `~/.topgun/audit-cache/{sha}.json`, 24h TTL, `updated_at`/`etag` invalidation, stale-with-warning serving, `--force-audit` bypass, `topgun-lock.json`
-- **6-02:** Stage resumption — `~/.topgun/state.json` schema, resume-from-stage logic in orchestrator, `--reset` flag to clear state
-- **6-03:** Auth token management — topgun-tools.cjs keychain integration (macOS Keychain), first-run token prompt, `--offline` flag, cascading failure contracts (`{status, reason, results}` from every sub-agent)
+**Plans:** 2/3 plans executed
+- [x] 06-01-PLAN.md — Audit cache: TTL, etag/updated_at invalidation, stale-with-warning, --force-audit, topgun-lock.json
+- [x] 06-02-PLAN.md — Stage resumption hardening, --offline cache-only mode, --reset flag
+- [ ] 06-03-PLAN.md — Auth token management (keychain), cascading failure contracts across all sub-agents
 
 **Success criteria:**
 - Interrupted pipeline resumes from last completed stage on next invocation
