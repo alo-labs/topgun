@@ -15,7 +15,7 @@
 | 3 | 1/3 | In Progress|  |
 | 4 | 2/3 | In Progress|  |
 | 5 | 2/3 | In Progress|  |
-| 6 | 2/3 | In Progress|  |
+| 6 | 3/3 | Complete   | 2026-04-13 |
 | 7 | Distribution + Marketplace | marketplace.json, GitHub release, skills.sh listing | REQ-28 |
 
 ---
@@ -140,10 +140,10 @@
 
 **Why sixth:** Cache and state work is built incrementally during earlier phases but needs a dedicated hardening pass to be production-grade before distribution.
 
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 - [x] 06-01-PLAN.md — Audit cache: TTL, etag/updated_at invalidation, stale-with-warning, --force-audit, topgun-lock.json
 - [x] 06-02-PLAN.md — Stage resumption hardening, --offline cache-only mode, --reset flag
-- [ ] 06-03-PLAN.md — Auth token management (keychain), cascading failure contracts across all sub-agents
+- [x] 06-03-PLAN.md — Auth token management (keychain), cascading failure contracts across all sub-agents
 
 **Success criteria:**
 - Interrupted pipeline resumes from last completed stage on next invocation
