@@ -1,0 +1,12 @@
+{
+  "name": "topgun",
+  "version": "1.0.0",
+  "description": "Find, compare, security-audit, and install the best available skill for any job from 18+ registries.",
+  "author": {
+    "name": "Alo Labs",
+    "url": "https://github.com/alo-labs/topgun"
+  },
+  "repository": "https://github.com/alo-labs/topgun",
+  "license": "MIT",
+  "skills": "./skills/"
+}
