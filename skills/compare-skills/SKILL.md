@@ -42,7 +42,7 @@ Each candidate is scored 0-100 on four dimensions:
 
 **Composite:** `(capability_match * 0.40) + (security_posture * 0.25) + (popularity * 0.20) + (recency * 0.15)`
 
-**Tie-breaking:** composite DESC, then name ASC.
+**Tie-breaking:** composite DESC, then security_posture DESC, then recency DESC, then name ASC.
 
 **Security Warning:** Candidates with security_score < 30 are flagged with `security_warning: true` and a logged warning. They are NOT disqualified — the user sees the warning in output.
 
@@ -53,10 +53,11 @@ Same input always produces same ranked output. No randomness, no LLM-based scori
 ## Output
 
 Writes `~/.topgun/comparison-{hash}.json` containing:
+- `generated_at` — ISO 8601 timestamp
 - Winner with full score breakdown
-- Ranked list of all non-rejected candidates
-- Rejection count from pre-filter
-- Weight configuration used
+- `shortlist` — ranked list of all non-rejected candidates
+- `rejected` — array of rejected candidates with their rejection reasons
+- `scores_by_dimension` — weight configuration used: `{"capability_weight": 0.40, "security_weight": 0.25, "popularity_weight": 0.20, "recency_weight": 0.15}`
 
 Updates `~/.topgun/state.json` with `comparison_path`, `winner_name`, `winner_registry`.
 

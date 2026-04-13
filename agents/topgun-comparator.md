@@ -129,13 +129,13 @@ composite = (capability_match * 0.40) + (security_posture * 0.25) + (popularity 
 
 Round `composite` to 2 decimal places.
 
-**Determinism guarantee:** Sort candidates by `composite` DESC. On tie, sort by `name` ASC (lexicographic). This ensures identical input always produces identical ranking.
+**Determinism guarantee:** Sort candidates by `composite` DESC. On tie, sort by `security_posture` DESC, then `recency` DESC, then `name` ASC (lexicographic). This ensures identical input always produces identical ranking.
 
 ## Step 6 — Rank and select winner
 
-After sorting candidates by composite DESC (tie-break: name ASC), the winner is the first candidate in the sorted list (index 0).
+After sorting candidates by composite DESC (tie-break: security_posture DESC, then recency DESC, then name ASC), the winner is the first candidate in the sorted list (index 0).
 
-Build the `ranked_list` array from the sorted candidates. Each entry contains:
+Build the `shortlist` array from the sorted candidates. Each entry contains:
 
 ```json
 {
@@ -168,11 +168,23 @@ Write to `~/.topgun/comparison-${HASH}.json`:
 
 ```json
 {
-  "compared_at": "<ISO 8601 timestamp>",
+  "generated_at": "<ISO 8601 timestamp>",
   "input_hash": "<hash from found-skills filename>",
   "query": "<original user task query>",
   "candidate_count": 5,
-  "rejected_count": 1,
+  "rejected": [
+    {
+      "name": "...",
+      "source_registry": "...",
+      "reason": "base64|high-unicode|zero-width"
+    }
+  ],
+  "scores_by_dimension": {
+    "capability_weight": 0.40,
+    "security_weight": 0.25,
+    "popularity_weight": 0.20,
+    "recency_weight": 0.15
+  },
   "winner": {
     "name": "...",
     "source_registry": "...",
@@ -186,7 +198,7 @@ Write to `~/.topgun/comparison-${HASH}.json`:
     "security_warning": false,
     "install_url": "..."
   },
-  "ranked_list": [
+  "shortlist": [
     {
       "rank": 1,
       "name": "...",
