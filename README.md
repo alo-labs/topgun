@@ -74,6 +74,38 @@ MIT — Alo Labs
 
 ---
 
-## skills.sh
+## skills.sh Ecosystem
 
-<!-- skills.sh section added by 07-02 -->
+### Install via skills.sh
+
+```
+npx skills add alo-labs/topgun
+```
+
+### Compatibility
+
+TopGun's `.claude-plugin/` structure is natively compatible with the skills.sh ecosystem. The `plugin.json` and `marketplace.json` files provide all metadata needed for discovery and installation.
+
+### Registry Submission
+
+To list TopGun on skills.sh:
+
+1. Ensure the GitHub repository is public at `https://github.com/alo-labs/topgun`
+2. Verify `plugin.json` and `marketplace.json` are in `.claude-plugin/`
+3. Tag a release: `git tag v1.0.0 && git push origin v1.0.0`
+4. Submit via: `npx skills submit alo-labs/topgun`
+
+### Auto-Update
+
+TopGun is configured with `autoUpdate.enabled: true` in marketplace.json. When a new GitHub release is tagged, installations will auto-update within 24 hours.
+
+## Releases
+
+TopGun uses GitHub release tags for versioning. To create a release:
+
+```bash
+git tag -a v1.0.0 -m "TopGun v1.0.0 — Full Pipeline"
+git push origin v1.0.0
+```
+
+The tag triggers autoUpdate for existing installations.

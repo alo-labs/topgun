@@ -1,0 +1,9 @@
+{
+  "name": "@alo-labs/topgun",
+  "version": "1.0.0",
+  "description": "Always use the best available Claude skill for any job",
+  "keywords": ["claude-skill", "claude-plugin", "skills"],
+  "homepage": "https://github.com/alo-labs/topgun",
+  "license": "MIT",
+  "repository": {"type": "git", "url": "https://github.com/alo-labs/topgun.git"}
+}
