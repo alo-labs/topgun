@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>document.documentElement.setAttribute('data-theme',localStorage.getItem('topgun-theme')||'dark');</script>
+<title>Command Reference — TopGun Help</title>
+<meta name="description" content="Complete reference for all /topgun flags, output files, auth token storage, and topgun-tools.cjs commands.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font-sans);background:var(--bg-page);color:var(--text-primary);line-height:1.7;overflow-x:hidden}
+.container{max-width:860px;margin:0 auto;padding:0 24px}
+.container-wide{max-width:1100px;margin:0 auto;padding:0 24px}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--nav-bg);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 24px}
+nav .nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:64px}
+.nav-logo{font-weight:900;font-size:1rem;color:var(--accent-light);text-decoration:none;letter-spacing:-.03em;background:var(--chrome-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-breadcrumb{font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;gap:8px}
+.nav-breadcrumb a{color:var(--text-secondary);text-decoration:none}
+.nav-breadcrumb a:hover{color:var(--accent-light)}
+.nav-breadcrumb .sep{color:var(--text-dim)}
+.nav-right{display:flex;align-items:center;gap:16px}
+.theme-btn{background:none;border:1px solid var(--border);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;color:var(--text-secondary);transition:all .2s}
+.theme-btn:hover{border-color:var(--accent);color:var(--accent-light)}
+.page-hero{background:var(--bg-hero);padding:120px 24px 64px;position:relative;overflow:hidden}
+.page-hero::before{content:'';position:absolute;top:-200px;right:-200px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,var(--amber-a12) 0%,transparent 70%)}
+.page-hero .container{position:relative;z-index:1}
+.breadcrumb-nav{font-size:.82rem;color:var(--text-dim);margin-bottom:24px;display:flex;align-items:center;gap:8px}
+.breadcrumb-nav a{color:var(--text-dim);text-decoration:none}
+.breadcrumb-nav a:hover{color:var(--accent-light)}
+.page-hero h1{font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:900;letter-spacing:-.04em;margin-bottom:16px;line-height:1.1}
+.page-hero p{font-size:1rem;color:var(--text-secondary);max-width:560px;line-height:1.7}
+.doc-layout{display:grid;grid-template-columns:220px 1fr;gap:48px;padding:64px 0}
+@media(max-width:768px){.doc-layout{grid-template-columns:1fr}}
+.doc-sidebar{position:sticky;top:88px;height:fit-content}
+@media(max-width:768px){.doc-sidebar{display:none}}
+.sidebar-nav{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:2px}
+.sidebar-nav li a{display:block;padding:7px 12px;border-radius:var(--radius-sm);font-size:.85rem;color:var(--text-secondary);text-decoration:none;transition:all .15s}
+.sidebar-nav li a:hover{background:var(--bg-code);color:var(--text-primary)}
+.sidebar-nav li a.active{background:var(--amber-a12);color:var(--accent-light);font-weight:600}
+.sidebar-section{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);padding:16px 12px 4px;margin-top:8px}
+.doc-content h2{font-size:1.5rem;font-weight:800;letter-spacing:-.03em;margin-bottom:16px;margin-top:48px;padding-top:16px}
+.doc-content h2:first-child{margin-top:0}
+.doc-content h3{font-size:1.05rem;font-weight:700;margin-bottom:12px;margin-top:32px}
+.doc-content p{margin-bottom:16px;color:var(--text-secondary);line-height:1.8}
+.doc-content ul,.doc-content ol{margin-bottom:16px;padding-left:20px;color:var(--text-secondary)}
+.doc-content li{margin-bottom:6px;line-height:1.7}
+.doc-content strong{color:var(--text-primary)}
+.callout{border-radius:var(--radius);padding:20px 24px;margin-bottom:24px;display:flex;gap:14px;align-items:flex-start}
+.callout-info{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2)}
+.callout-tip{background:rgba(5,150,105,.06);border:1px solid rgba(5,150,105,.2)}
+.callout-warn{background:rgba(217,119,6,.08);border:1px solid rgba(217,119,6,.25)}
+.callout-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px}
+.callout-body{font-size:.875rem;color:var(--text-secondary);line-height:1.7}
+.callout-body strong{color:var(--text-primary)}
+.code-block{background:var(--bg-code);border:1px solid var(--border);border-radius:var(--radius-sm);padding:20px 24px;font-family:var(--font-mono);font-size:.82rem;line-height:1.9;color:var(--text-secondary);overflow-x:auto;white-space:pre-wrap;margin-bottom:20px}
+.code-block .comment{color:var(--text-dim)}
+.code-block .cmd{color:var(--amber)}
+.code-block .flag{color:var(--cyan)}
+.code-block .string{color:var(--green)}
+.code-block .key{color:var(--cyan)}
+.code-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);font-family:var(--font-mono);margin-bottom:6px}
+.divider{height:1px;background:var(--border);margin:40px 0}
+/* FLAG ENTRIES */
+.flag-entry{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin-bottom:12px}
+.flag-entry:hover{border-color:var(--border-hover)}
+.flag-name{font-family:var(--font-mono);font-size:.9rem;font-weight:700;color:var(--amber);margin-bottom:4px}
+.flag-signature{font-family:var(--font-mono);font-size:.8rem;color:var(--text-dim);margin-bottom:10px}
+.flag-desc{font-size:.875rem;color:var(--text-secondary);line-height:1.7;margin-bottom:0}
+.flag-example{margin-top:10px;font-family:var(--font-mono);font-size:.78rem;color:var(--text-dim);background:var(--bg-code);border-radius:6px;padding:8px 12px}
+.flag-example .cmd{color:var(--amber)}
+.flag-example .flag{color:var(--cyan)}
+.flag-example .string{color:var(--green)}
+/* FILE ENTRIES */
+.file-entry{display:flex;gap:16px;padding:16px 20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px}
+.file-entry:hover{border-color:var(--border-hover)}
+.file-name{font-family:var(--font-mono);font-size:.82rem;font-weight:700;color:var(--amber);min-width:200px;flex-shrink:0}
+.file-desc{font-size:.875rem;color:var(--text-secondary);line-height:1.6}
+/* TOOLS TABLE */
+.tools-table{width:100%;border-collapse:collapse;margin-bottom:24px;font-size:.875rem}
+.tools-table th{text-align:left;padding:8px 14px;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);border-bottom:2px solid var(--border)}
+.tools-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text-secondary);vertical-align:top}
+.tools-table td:first-child{font-family:var(--font-mono);font-size:.8rem;color:var(--amber);font-weight:600}
+.tools-table tr:last-child td{border-bottom:none}
+.page-nav-bottom{display:flex;justify-content:space-between;margin-top:56px;padding-top:32px;border-top:1px solid var(--border)}
+.page-nav-bottom a{display:flex;flex-direction:column;gap:4px;text-decoration:none}
+.pnb-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;font-weight:600;color:var(--text-dim)}
+.pnb-title{font-size:.95rem;font-weight:700;color:var(--accent-light)}
+footer{border-top:1px solid var(--border);padding:40px 0;color:var(--text-dim);font-size:.85rem}
+.footer-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+footer a{color:var(--text-secondary);text-decoration:none}
+footer a:hover{color:var(--accent-light)}
+.footer-links{display:flex;gap:24px}
+svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;stroke-width:1.5;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div style="display:flex;align-items:center;gap:12px">
+      <a href="../../" class="nav-logo">TopGun</a>
+      <span class="nav-breadcrumb">
+        <span class="sep">/</span><a href="../">Help</a>
+        <span class="sep">/</span>Command Reference
+      </span>
+    </div>
+    <div class="nav-right">
+      <button class="theme-btn" onclick="toggleTheme()" id="theme-btn" aria-label="Toggle theme">
+        <span id="icon-sun" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span>
+        <span id="icon-moon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="container">
+    <div class="breadcrumb-nav">
+      <a href="../../">TopGun</a><span>/</span>
+      <a href="../">Help Center</a><span>/</span>
+      <span style="color:var(--text-primary)">Command Reference</span>
+    </div>
+    <h1>Command Reference</h1>
+    <p>All /topgun flags, output files, auth token configuration, and topgun-tools commands.</p>
+  </div>
+</div>
+
+<div class="container-wide">
+  <div class="doc-layout">
+
+    <aside class="doc-sidebar">
+      <ul class="sidebar-nav">
+        <li class="sidebar-section">On this page</li>
+        <li><a href="#flags">/topgun Flags</a></li>
+        <li><a href="#output-files">Output Files</a></li>
+        <li><a href="#auth">Auth Token Storage</a></li>
+        <li><a href="#tools">topgun-tools.cjs</a></li>
+        <li class="sidebar-section">Other Pages</li>
+        <li><a href="../getting-started/">Getting Started</a></li>
+        <li><a href="../concepts/">Core Concepts</a></li>
+        <li><a href="../troubleshooting/">Troubleshooting</a></li>
+      </ul>
+    </aside>
+
+    <main class="doc-content">
+
+      <h2 id="flags">/topgun Flags</h2>
+      <p>All flags are optional. TopGun works with zero flags for most use cases.</p>
+
+      <div class="code-label">Usage</div>
+      <div class="code-block"><span class="cmd">/topgun</span> <span class="string">&lt;task description&gt;</span> [flags]</div>
+
+      <div class="flag-entry">
+        <div class="flag-name">--registries</div>
+        <div class="flag-signature">--registries &lt;registry1,registry2,…&gt;</div>
+        <p class="flag-desc">Restrict the FindSkills search to a comma-separated list of registry names. By default, all enabled adapters run. Use this to target specific sources or speed up searches when you know where the skill lives.</p>
+        <div class="flag-example"><span class="cmd">/topgun</span> <span class="string">web scraping skill</span> <span class="flag">--registries</span> <span class="string">skills.sh,npm</span>
+<span class="cmd">/topgun</span> <span class="string">git automation</span> <span class="flag">--registries</span> <span class="string">github,smithery</span></div>
+      </div>
+
+      <div class="flag-entry">
+        <div class="flag-name">--offline</div>
+        <div class="flag-signature">--offline</div>
+        <p class="flag-desc">Skip all live registry queries. TopGun uses only previously cached results from <code style="font-family:var(--font-mono);font-size:.9em">~/.topgun/cache/</code>. Useful when working without internet access or when you want to re-run a pipeline on already-fetched candidates without hitting rate limits.</p>
+        <div class="flag-example"><span class="cmd">/topgun</span> <span class="string">deployment skill</span> <span class="flag">--offline</span></div>
+      </div>
+
+      <div class="flag-entry">
+        <div class="flag-name">--reset</div>
+        <div class="flag-signature">--reset</div>
+        <p class="flag-desc">Discard any saved pipeline state (<code style="font-family:var(--font-mono);font-size:.9em">~/.topgun/state.json</code>) and start the pipeline from scratch. Without this flag, an interrupted pipeline will resume from its last completed stage.</p>
+        <div class="flag-example"><span class="cmd">/topgun</span> <span class="string">code review skill</span> <span class="flag">--reset</span></div>
+      </div>
+
+      <div class="flag-entry">
+        <div class="flag-name">--force-audit</div>
+        <div class="flag-signature">--force-audit</div>
+        <p class="flag-desc">Bypass the audit cache and always run fresh SENTINEL passes, even if a clean result for this contentSha was cached within the last 24 hours. Use this when you want to re-audit a skill after the SENTINEL ruleset has been updated.</p>
+        <div class="flag-example"><span class="cmd">/topgun</span> <span class="string">test runner skill</span> <span class="flag">--force-audit</span></div>
+      </div>
+
+      <div class="flag-entry">
+        <div class="flag-name">--auto-approve</div>
+        <div class="flag-signature">--auto-approve</div>
+        <p class="flag-desc">Skip the manual approval gate and automatically install the winning skill after a successful 2-pass SENTINEL audit. The full audit manifest is still written to <code style="font-family:var(--font-mono);font-size:.9em">~/.topgun/audit-manifest.json</code> for review after the fact. Use with care in automated workflows.</p>
+        <div class="flag-example"><span class="cmd">/topgun</span> <span class="string">linting skill</span> <span class="flag">--auto-approve</span></div>
+      </div>
+
+      <div class="callout callout-warn">
+        <span class="callout-icon"><i data-lucide="alert-triangle"></i></span>
+        <div class="callout-body"><strong>--auto-approve</strong> does not bypass the SENTINEL audit — it only skips the interactive approval prompt. The 2-pass requirement is always enforced.</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h2 id="output-files">Output Files</h2>
+      <p>TopGun writes all pipeline artifacts to <code style="font-family:var(--font-mono);font-size:.9em">~/.topgun/</code>. These files are useful for debugging, audit trails, and pipeline resume.</p>
+
+      <div class="file-entry">
+        <div class="file-name">state.json</div>
+        <div class="file-desc">Current pipeline state. Written after each stage completes. Used by resume logic to skip already-completed stages. Deleted on successful install or when <code style="font-family:var(--font-mono);font-size:.9em">--reset</code> is passed.</div>
+      </div>
+      <div class="file-entry">
+        <div class="file-name">candidates.json</div>
+        <div class="file-desc">Full list of candidates returned by FindSkills, after deduplication. Includes each candidate's registry source, contentSha, raw metadata, and all four scoring dimensions. Written after CompareSkills completes.</div>
+      </div>
+      <div class="file-entry">
+        <div class="file-name">audit-manifest.json</div>
+        <div class="file-desc">The complete audit record for the selected skill: composite score, sub-scores, SENTINEL pass history, findings per pass, SHA-256 values, and the final clean status. This is the document shown at the approval gate.</div>
+      </div>
+      <div class="file-entry">
+        <div class="file-name">install-log.json</div>
+        <div class="file-desc">Record of the installation: timestamp, skill name, version, source registry, install method (plugin system or local-copy fallback), and whether it succeeded. Appended to — not overwritten — on each successful install.</div>
+      </div>
+      <div class="file-entry">
+        <div class="file-name">cache/</div>
+        <div class="file-desc">Directory of cached registry responses and audit results, keyed by contentSha. Files older than 24 hours are ignored. Can be cleared manually or by running <code style="font-family:var(--font-mono);font-size:.9em">topgun-tools clear-cache</code>.</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h2 id="auth">Auth Token Storage</h2>
+      <p>TopGun stores registry auth tokens in the <strong>macOS Keychain</strong> (or the OS credential store on Linux/Windows). Tokens are never written to disk in plaintext.</p>
+
+      <h3>Configuring tokens</h3>
+      <p>Use the <code style="font-family:var(--font-mono);font-size:.9em">topgun-tools set-token</code> command to store a token:</p>
+
+      <div class="code-label">topgun-tools</div>
+      <div class="code-block"><span class="comment"># GitHub personal access token (read:public_repo scope)</span>
+node topgun-tools.cjs set-token github &lt;your-token&gt;
+
+<span class="comment"># Smithery API token</span>
+node topgun-tools.cjs set-token smithery &lt;your-token&gt;
+
+<span class="comment"># GitLab personal access token (read_api scope)</span>
+node topgun-tools.cjs set-token gitlab &lt;your-token&gt;</div>
+
+      <h3>Token usage by registry</h3>
+      <ul>
+        <li><strong>GitHub</strong> — increases rate limit from 60 to 5,000 requests/hour. Required if you search GitHub topics frequently.</li>
+        <li><strong>Smithery</strong> — unlocks private skill listings. Not required for public skills.</li>
+        <li><strong>GitLab</strong> — required only for private group or project repositories. Public GitLab repos work without a token.</li>
+      </ul>
+
+      <div class="callout callout-tip">
+        <span class="callout-icon"><i data-lucide="check-circle"></i></span>
+        <div class="callout-body">If no GitHub token is configured and you hit the rate limit, TopGun will log a warning and return whatever GitHub results were fetched before the limit was reached. It will not fail the pipeline.</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h2 id="tools">topgun-tools.cjs</h2>
+      <p><code style="font-family:var(--font-mono);font-size:.9em">topgun-tools.cjs</code> is a CLI utility bundled with TopGun for managing tokens, cache, and pipeline state outside of Claude Code.</p>
+
+      <table class="tools-table">
+        <thead>
+          <tr><th>Command</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>set-token &lt;registry&gt; &lt;token&gt;</td>
+            <td>Store a registry auth token in the OS credential store</td>
+          </tr>
+          <tr>
+            <td>get-token &lt;registry&gt;</td>
+            <td>Retrieve and print a stored token (masked except last 4 chars)</td>
+          </tr>
+          <tr>
+            <td>delete-token &lt;registry&gt;</td>
+            <td>Remove a stored token from the credential store</td>
+          </tr>
+          <tr>
+            <td>clear-cache</td>
+            <td>Delete all files in <code style="font-size:.85em">~/.topgun/cache/</code></td>
+          </tr>
+          <tr>
+            <td>clear-cache --older-than &lt;hours&gt;</td>
+            <td>Delete cache files older than the specified number of hours</td>
+          </tr>
+          <tr>
+            <td>reset-state</td>
+            <td>Delete <code style="font-size:.85em">~/.topgun/state.json</code> — equivalent to <code style="font-size:.85em">--reset</code> flag</td>
+          </tr>
+          <tr>
+            <td>show-manifest</td>
+            <td>Pretty-print the most recent <code style="font-size:.85em">audit-manifest.json</code></td>
+          </tr>
+          <tr>
+            <td>show-install-log</td>
+            <td>Print all entries from <code style="font-size:.85em">install-log.json</code> in a readable table</td>
+          </tr>
+          <tr>
+            <td>list-registries</td>
+            <td>Print all configured registry adapters and their current status (enabled/disabled, auth present)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="code-label">Example usage</div>
+      <div class="code-block"><span class="comment"># From the TopGun plugin directory</span>
+node ~/.claude/plugins/topgun/topgun-tools.cjs show-manifest
+node ~/.claude/plugins/topgun/topgun-tools.cjs list-registries
+node ~/.claude/plugins/topgun/topgun-tools.cjs clear-cache --older-than 48</div>
+
+      <div class="page-nav-bottom">
+        <a href="../concepts/">
+          <span class="pnb-label">← Previous</span>
+          <span class="pnb-title">Core Concepts</span>
+        </a>
+        <a href="../troubleshooting/">
+          <span class="pnb-label">Next →</span>
+          <span class="pnb-title">Troubleshooting</span>
+        </a>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<footer>
+  <div class="container-wide">
+    <div class="footer-inner">
+      <div>
+        <a href="../../" style="font-weight:700;color:var(--text-primary)">TopGun</a>
+        <span style="margin:0 8px">·</span>
+        Innovated at <a href="https://alolabs.dev" target="_blank" rel="noopener">Ālo Labs</a>
+      </div>
+      <div class="footer-links">
+        <a href="../">Help Center</a>
+        <a href="https://github.com/alo-labs/topgun" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/alo-labs/topgun/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.js"></script>
+<script>
+lucide.createIcons();
+function toggleTheme(){
+  const curr=document.documentElement.getAttribute('data-theme');
+  const next=curr==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('topgun-theme',next);
+  updateThemeIcon(next);
+}
+function updateThemeIcon(t){
+  document.getElementById('icon-sun').style.display=t==='dark'?'inline':'none';
+  document.getElementById('icon-moon').style.display=t==='dark'?'none':'inline';
+}
+updateThemeIcon(document.documentElement.getAttribute('data-theme')||'dark');
+const sections=document.querySelectorAll('.doc-content h2[id]');
+const sidebarLinks=document.querySelectorAll('.sidebar-nav li a');
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      sidebarLinks.forEach(l=>l.classList.remove('active'));
+      const a=document.querySelector('.sidebar-nav li a[href="#'+e.target.id+'"]');
+      if(a)a.classList.add('active');
+    }
+  });
+},{rootMargin:'-20% 0px -70% 0px'});
+sections.forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>

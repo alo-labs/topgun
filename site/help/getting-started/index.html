@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>document.documentElement.setAttribute('data-theme',localStorage.getItem('topgun-theme')||'dark');</script>
+<title>Getting Started — TopGun Help</title>
+<meta name="description" content="Get started with TopGun. Learn what it is, install prerequisites, and run your first SENTINEL-secured skill install.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font-sans);background:var(--bg-page);color:var(--text-primary);line-height:1.7;overflow-x:hidden}
+.container{max-width:860px;margin:0 auto;padding:0 24px}
+.container-wide{max-width:1100px;margin:0 auto;padding:0 24px}
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--nav-bg);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 24px}
+nav .nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:64px}
+.nav-logo{font-weight:900;font-size:1rem;color:var(--accent-light);text-decoration:none;letter-spacing:-.03em;background:var(--chrome-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-breadcrumb{font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;gap:8px}
+.nav-breadcrumb a{color:var(--text-secondary);text-decoration:none}
+.nav-breadcrumb a:hover{color:var(--accent-light)}
+.nav-breadcrumb .sep{color:var(--text-dim)}
+.nav-right{display:flex;align-items:center;gap:16px}
+.theme-btn{background:none;border:1px solid var(--border);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;color:var(--text-secondary);transition:all .2s}
+.theme-btn:hover{border-color:var(--accent);color:var(--accent-light)}
+/* PAGE HERO */
+.page-hero{background:var(--bg-hero);padding:120px 24px 64px;position:relative;overflow:hidden}
+.page-hero::before{content:'';position:absolute;top:-200px;right:-200px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,var(--amber-a12) 0%,transparent 70%)}
+.page-hero .container{position:relative;z-index:1}
+.breadcrumb-nav{font-size:.82rem;color:var(--text-dim);margin-bottom:24px;display:flex;align-items:center;gap:8px}
+.breadcrumb-nav a{color:var(--text-dim);text-decoration:none}
+.breadcrumb-nav a:hover{color:var(--accent-light)}
+.page-hero h1{font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:900;letter-spacing:-.04em;margin-bottom:16px;line-height:1.1}
+.page-hero p{font-size:1rem;color:var(--text-secondary);max-width:560px;line-height:1.7}
+/* LAYOUT */
+.doc-layout{display:grid;grid-template-columns:220px 1fr;gap:48px;padding:64px 0}
+@media(max-width:768px){.doc-layout{grid-template-columns:1fr}}
+.doc-sidebar{position:sticky;top:88px;height:fit-content}
+@media(max-width:768px){.doc-sidebar{display:none}}
+.sidebar-nav{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:2px}
+.sidebar-nav li a{display:block;padding:7px 12px;border-radius:var(--radius-sm);font-size:.85rem;color:var(--text-secondary);text-decoration:none;transition:all .15s}
+.sidebar-nav li a:hover{background:var(--bg-code);color:var(--text-primary)}
+.sidebar-nav li a.active{background:var(--amber-a12);color:var(--accent-light);font-weight:600}
+.sidebar-section{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);padding:16px 12px 4px;margin-top:8px}
+/* DOC CONTENT */
+.doc-content h2{font-size:1.5rem;font-weight:800;letter-spacing:-.03em;margin-bottom:16px;margin-top:48px;padding-top:16px}
+.doc-content h2:first-child{margin-top:0}
+.doc-content h3{font-size:1.1rem;font-weight:700;margin-bottom:12px;margin-top:32px;color:var(--text-primary)}
+.doc-content p{margin-bottom:16px;color:var(--text-secondary);line-height:1.8}
+.doc-content ul,.doc-content ol{margin-bottom:16px;padding-left:20px;color:var(--text-secondary)}
+.doc-content li{margin-bottom:6px;line-height:1.7}
+.doc-content strong{color:var(--text-primary)}
+/* CALLOUTS */
+.callout{border-radius:var(--radius);padding:20px 24px;margin-bottom:24px;display:flex;gap:14px;align-items:flex-start}
+.callout-info{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2)}
+.callout-tip{background:rgba(5,150,105,.06);border:1px solid rgba(5,150,105,.2)}
+.callout-warn{background:rgba(217,119,6,.08);border:1px solid rgba(217,119,6,.25)}
+.callout-stop{background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.2)}
+.callout-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px}
+.callout-body{font-size:.875rem;color:var(--text-secondary);line-height:1.7}
+.callout-body strong{color:var(--text-primary)}
+/* CODE BLOCKS */
+.code-block{background:var(--bg-code);border:1px solid var(--border);border-radius:var(--radius-sm);padding:20px 24px;font-family:var(--font-mono);font-size:.82rem;line-height:1.9;color:var(--text-secondary);overflow-x:auto;white-space:pre-wrap;margin-bottom:20px}
+.code-block .comment{color:var(--text-dim)}
+.code-block .cmd{color:var(--amber)}
+.code-block .string{color:var(--green)}
+.code-block .flag{color:var(--cyan)}
+.code-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);font-family:var(--font-mono);margin-bottom:6px}
+/* STEP LIST */
+.step-list{list-style:none;padding:0;margin:0 0 24px}
+.step-list li{display:flex;gap:16px;margin-bottom:24px}
+.step-num{min-width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--grad-1),var(--grad-2),var(--grad-3));color:#fff;font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);flex-shrink:0;margin-top:2px;box-shadow:0 2px 8px rgba(245,158,11,.25)}
+.step-body h4{font-size:.95rem;font-weight:700;margin-bottom:6px}
+.step-body p{font-size:.875rem;color:var(--text-secondary);line-height:1.6;margin:0}
+/* PREREQ GRID */
+.prereq-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px}
+@media(max-width:600px){.prereq-grid{grid-template-columns:1fr}}
+.prereq-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;gap:12px;align-items:flex-start}
+.prereq-icon{font-size:1.4rem;flex-shrink:0}
+.prereq-card h4{font-size:.9rem;font-weight:700;margin-bottom:4px}
+.prereq-card p{font-size:.8rem;color:var(--text-secondary);line-height:1.5;margin:0}
+.install-cmd{font-family:var(--font-mono);font-size:.75rem;color:var(--amber);margin-top:6px}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-left:8px}
+.tag-required{background:rgba(220,38,38,.12);color:var(--red)}
+.tag-optional{background:rgba(8,145,178,.12);color:var(--cyan)}
+.divider{height:1px;background:var(--border);margin:40px 0}
+/* AUDIT OUTPUT */
+.audit-output{background:var(--bg-code);border:1px solid var(--border);border-radius:var(--radius-sm);padding:20px 24px;font-family:var(--font-mono);font-size:.8rem;line-height:1.9;color:var(--text-secondary);overflow-x:auto;margin-bottom:20px}
+.ao-ok{color:var(--green);font-weight:700}
+.ao-warn{color:var(--amber);font-weight:700}
+.ao-label{color:var(--accent-light)}
+.ao-dim{color:var(--text-dim)}
+/* NEXT STEPS */
+.next-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+@media(max-width:600px){.next-grid{grid-template-columns:1fr}}
+.next-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-decoration:none;color:inherit;transition:all .2s;display:block}
+.next-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.next-card .nc-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--accent-light);margin-bottom:6px}
+.next-card h4{font-size:.95rem;font-weight:700;margin-bottom:4px}
+.next-card p{font-size:.82rem;color:var(--text-secondary);line-height:1.5;margin:0}
+/* PAGE NAV BOTTOM */
+.page-nav-bottom{display:flex;justify-content:flex-end;margin-top:56px;padding-top:32px;border-top:1px solid var(--border)}
+.page-nav-bottom a{display:flex;flex-direction:column;gap:4px;text-decoration:none}
+.pnb-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;font-weight:600;color:var(--text-dim)}
+.pnb-title{font-size:.95rem;font-weight:700;color:var(--accent-light)}
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:40px 0;color:var(--text-dim);font-size:.85rem}
+.footer-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+footer a{color:var(--text-secondary);text-decoration:none}
+footer a:hover{color:var(--accent-light)}
+.footer-links{display:flex;gap:24px}
+svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;stroke-width:1.5;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div style="display:flex;align-items:center;gap:12px">
+      <a href="../../" class="nav-logo">TopGun</a>
+      <span class="nav-breadcrumb">
+        <span class="sep">/</span>
+        <a href="../">Help</a>
+        <span class="sep">/</span>
+        Getting Started
+      </span>
+    </div>
+    <div class="nav-right">
+      <button class="theme-btn" onclick="toggleTheme()" id="theme-btn" aria-label="Toggle theme">
+        <span id="icon-sun" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span>
+        <span id="icon-moon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="container">
+    <div class="breadcrumb-nav">
+      <a href="../../">TopGun</a>
+      <span>/</span>
+      <a href="../">Help Center</a>
+      <span>/</span>
+      <span style="color:var(--text-primary)">Getting Started</span>
+    </div>
+    <h1>Getting Started</h1>
+    <p>Go from zero to your first SENTINEL-secured skill install in under 5 minutes.</p>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="container-wide">
+  <div class="doc-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="doc-sidebar">
+      <ul class="sidebar-nav">
+        <li class="sidebar-section">On this page</li>
+        <li><a href="#what-is-topgun">What is TopGun?</a></li>
+        <li><a href="#prerequisites">Prerequisites</a></li>
+        <li><a href="#install">Installation</a></li>
+        <li><a href="#first-run">Your First /topgun</a></li>
+        <li><a href="#output">Understanding the Output</a></li>
+        <li><a href="#whats-next">What's Next</a></li>
+        <li class="sidebar-section">Other Pages</li>
+        <li><a href="../concepts/">Core Concepts</a></li>
+        <li><a href="../reference/">Command Reference</a></li>
+        <li><a href="../troubleshooting/">Troubleshooting</a></li>
+      </ul>
+    </aside>
+
+    <!-- CONTENT -->
+    <main class="doc-content">
+
+      <h2 id="what-is-topgun">What is TopGun?</h2>
+      <p>TopGun is a Claude Code plugin that solves a simple but critical problem: <strong>finding and installing the right skill, safely</strong>. Without TopGun, you search one registry at a time, install code you've never audited, and have no way to know if a better option exists elsewhere.</p>
+      <p>TopGun fixes all three problems with a four-stage pipeline:</p>
+      <ol>
+        <li><strong>FindSkills</strong> — searches 18+ registries in parallel</li>
+        <li><strong>CompareSkills</strong> — ranks candidates by capability, security, popularity, and recency</li>
+        <li><strong>SecureSkills</strong> — runs SENTINEL audit until 2 consecutive clean passes</li>
+        <li><strong>InstallSkills</strong> — installs the winner after your approval</li>
+      </ol>
+      <p>The result: every skill you install via TopGun is the best available option, and it has been independently audited before it touches your environment.</p>
+
+      <div class="callout callout-info">
+        <span class="callout-icon"><i data-lucide="info"></i></span>
+        <div class="callout-body"><strong>SENTINEL</strong> is Alo Labs' security audit skill (<code style="font-family:var(--font-mono);font-size:.9em">/audit-security-of-skill</code>). It must be installed separately before TopGun can perform security audits. See the prerequisites below.</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h2 id="prerequisites">Prerequisites</h2>
+      <p>TopGun requires two things to be installed before you can use it:</p>
+
+      <div class="prereq-grid">
+        <div class="prereq-card">
+          <div class="prereq-icon"><i data-lucide="terminal"></i></div>
+          <div>
+            <h4>Claude Code <span class="tag tag-required">Required</span></h4>
+            <p>TopGun is a Claude Code plugin. You need Claude Code installed and authenticated.</p>
+            <div class="install-cmd">npm install -g @anthropic/claude-code</div>
+          </div>
+        </div>
+        <div class="prereq-card">
+          <div class="prereq-icon"><i data-lucide="shield-check"></i></div>
+          <div>
+            <h4>Alo Labs Audit Skill <span class="tag tag-required">Required</span></h4>
+            <p>SENTINEL depends on <code style="font-family:var(--font-mono);font-size:.85em">audit-security-of-skill</code> being locally available.</p>
+            <div class="install-cmd">/plugin install alo-labs/audit-security-of-skill</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout callout-warn">
+        <span class="callout-icon"><i data-lucide="alert-triangle"></i></span>
+        <div class="callout-body"><strong>Install order matters.</strong> Install <code style="font-family:var(--font-mono);font-size:.9em">audit-security-of-skill</code> before TopGun. If SENTINEL is missing when TopGun tries to run the SecureSkills stage, the pipeline will abort. See <a href="../troubleshooting/#sentinel-missing" style="color:var(--accent-light)">Troubleshooting: SENTINEL not found</a>.</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h2 id="install">Installation</h2>
+      <p>With prerequisites in place, install TopGun in one command inside Claude Code:</p>
+
+      <div class="code-label">Claude Code terminal</div>
+      <div class="code-block"><span class="cmd">/plugin install</span> <span class="string">alo-labs/topgun</span></div>
+
+      <p>Claude Code will fetch the plugin, verify the manifest, and register the <code style="font-family:var(--font-mono);font-size:.9em">/topgun</code> slash command. No configuration needed — TopGun works out of the box with sensible defaults.</p>
+
+      <div class="callout callout-tip">
+        <span class="callout-icon"><i data-lucide="check-circle"></i></span>
+        <div class="callout-body"><strong>Verify the install</strong> by typing <code style="font-family:var(--font-mono);font-size:.9em">/topgun --help</code> in Claude Code. You should see the TopGun banner and available flags.</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h2 id="first-run">Your First /topgun Invocation</h2>
+      <p>Invoke TopGun with a plain-English description of the skill you need. TopGun interprets the description and searches all registries accordingly.</p>
+
+      <div class="code-label">Example invocations</div>
+      <div class="code-block"><span class="cmd">/topgun</span> <span class="string">find me a skill for web scraping</span>
+
+<span class="cmd">/topgun</span> <span class="string">best git workflow automation skill</span>
+
+<span class="cmd">/topgun</span> <span class="string">code review skill with multi-pass support</span>
+
+<span class="comment"># With flags</span>
+<span class="cmd">/topgun</span> <span class="string">deployment pipeline skill</span> <span class="flag">--auto-approve</span>
+<span class="cmd">/topgun</span> <span class="string">test runner skill</span> <span class="flag">--registries</span> <span class="string">skills.sh,npm</span></div>
+
+      <p>After you run a <code style="font-family:var(--font-mono);font-size:.9em">/topgun</code> command, the pipeline executes automatically:</p>
+
+      <ol class="step-list">
+        <li>
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h4>FindSkills searches all registries in parallel</h4>
+            <p>18+ registries are queried simultaneously. Results are normalized to a unified schema and deduplicated by contentSha. This typically completes in 2–5 seconds.</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h4>CompareSkills ranks the candidates</h4>
+            <p>Every candidate is scored across four dimensions and given a composite score. The top-ranked candidate advances to the audit stage.</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h4>SecureSkills runs SENTINEL</h4>
+            <p>SENTINEL audits the top candidate. If findings are detected, TopGun applies fixes and re-runs. This repeats until 2 consecutive clean passes are achieved.</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <h4>InstallSkills — you approve, then it installs</h4>
+            <p>TopGun presents the full audit manifest. You review and approve. The skill is installed via <code style="font-family:var(--font-mono);font-size:.85em">/plugin install</code>.</p>
+          </div>
+        </li>
+      </ol>
+
+      <div class="divider"></div>
+
+      <h2 id="output">Understanding the Output</h2>
+      <p>As TopGun runs, it emits a real-time audit trail in the Claude Code terminal. Here's what a successful run looks like:</p>
+
+      <div class="audit-output">
+<span class="ao-label">TopGun</span> <span class="ao-dim">›</span> <span class="ao-ok">✓</span> Searching 18 registries…
+<span class="ao-label">TopGun</span> <span class="ao-dim">›</span> <span class="ao-ok">✓</span> Found 14 candidates across 9 registries in 2.3s
+<span class="ao-label">TopGun</span> <span class="ao-dim">›</span> <span class="ao-ok">✓</span> Deduplicated to 11 unique skills (by contentSha)
+<span class="ao-label">TopGun</span> <span class="ao-dim">›</span> <span class="ao-ok">✓</span> Top score: <strong style="color:var(--text-primary)">web-scraper-pro</strong> · composite 0.94
+<span class="ao-label">TopGun</span> <span class="ao-dim">›</span>   capability 0.96 · security 0.91 · popularity 0.88 · recency 0.97
+<span class="ao-label">TopGun</span> <span class="ao-dim">›</span> <span class="ao-warn">⧗</span> SENTINEL pass 1/2 — scanning web-scraper-pro…
+<span class="ao-label">TopGun</span> <span class="ao-dim">›</span> <span class="ao-ok">✓</span> SENTINEL pass 1 clean · 0 findings · SHA-256 verified
+<span class="ao-label">TopGun</span> <span class="ao-dim">›</span> <span class="ao-warn">⧗</span> SENTINEL pass 2/2 — confirming…
+<span class="ao-label">TopGun</span> <span class="ao-dim">›</span> <span class="ao-ok">✓</span> SENTINEL pass 2 clean · 0 findings · SHA-256 verified
+<span class="ao-label">TopGun</span> <span class="ao-dim">›</span> Awaiting approval — type <strong style="color:var(--text-primary)">yes</strong> to install or <strong style="color:var(--text-primary)">no</strong> to abort</div>
+
+      <p>Key things to look for:</p>
+      <ul>
+        <li><strong>Candidate count</strong> — how many skills were found and how many were unique after deduplication</li>
+        <li><strong>Composite score</strong> — the winning skill's overall quality score (0–1)</li>
+        <li><strong>Four sub-scores</strong> — capability, security, popularity, recency</li>
+        <li><strong>SENTINEL passes</strong> — both passes must be clean before install is offered</li>
+        <li><strong>SHA-256 verified</strong> — confirms the skill content was not modified between audit passes</li>
+      </ul>
+
+      <div class="divider"></div>
+
+      <h2 id="whats-next">What's Next</h2>
+      <p>Now that you've installed TopGun and run your first command, explore the rest of the documentation:</p>
+
+      <div class="next-grid">
+        <a href="../concepts/" class="next-card">
+          <div class="nc-label">Next step</div>
+          <h4>Core Concepts</h4>
+          <p>Understand the pipeline, registry adapters, scoring rubric, and SENTINEL in depth.</p>
+        </a>
+        <a href="../reference/" class="next-card">
+          <div class="nc-label">Reference</div>
+          <h4>Command Reference</h4>
+          <p>Every /topgun flag, output file, and topgun-tools command documented.</p>
+        </a>
+        <a href="../concepts/#scoring" class="next-card">
+          <div class="nc-label">Deep dive</div>
+          <h4>Scoring Rubric</h4>
+          <p>How TopGun weights capability, security, popularity, and recency.</p>
+        </a>
+        <a href="../troubleshooting/" class="next-card">
+          <div class="nc-label">Help</div>
+          <h4>Troubleshooting</h4>
+          <p>Fix registry failures, missing SENTINEL, install errors, and more.</p>
+        </a>
+      </div>
+
+      <div class="page-nav-bottom">
+        <a href="../concepts/">
+          <span class="pnb-label">Next →</span>
+          <span class="pnb-title">Core Concepts</span>
+        </a>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<footer>
+  <div class="container-wide">
+    <div class="footer-inner">
+      <div>
+        <a href="../../" style="font-weight:700;color:var(--text-primary)">TopGun</a>
+        <span style="margin:0 8px">·</span>
+        Innovated at <a href="https://alolabs.dev" target="_blank" rel="noopener">Ālo Labs</a>
+      </div>
+      <div class="footer-links">
+        <a href="../">Help Center</a>
+        <a href="https://github.com/alo-labs/topgun" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/alo-labs/topgun/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.js"></script>
+<script>
+lucide.createIcons();
+function toggleTheme(){
+  const curr=document.documentElement.getAttribute('data-theme');
+  const next=curr==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('topgun-theme',next);
+  updateThemeIcon(next);
+}
+function updateThemeIcon(t){
+  document.getElementById('icon-sun').style.display=t==='dark'?'inline':'none';
+  document.getElementById('icon-moon').style.display=t==='dark'?'none':'inline';
+}
+updateThemeIcon(document.documentElement.getAttribute('data-theme')||'dark');
+// Active sidebar link
+const sections=document.querySelectorAll('.doc-content h2[id]');
+const sidebarLinks=document.querySelectorAll('.sidebar-nav li a');
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      sidebarLinks.forEach(l=>l.classList.remove('active'));
+      const active=document.querySelector('.sidebar-nav li a[href="#'+e.target.id+'"]');
+      if(active)active.classList.add('active');
+    }
+  });
+},{rootMargin:'-20% 0px -70% 0px'});
+sections.forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>

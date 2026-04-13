@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>document.documentElement.setAttribute('data-theme',localStorage.getItem('topgun-theme')||'dark');</script>
+<title>Core Concepts — TopGun Help</title>
+<meta name="description" content="Understand the TopGun pipeline, registry adapters, scoring rubric, SENTINEL audit, structural envelope, state management, and caching.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font-sans);background:var(--bg-page);color:var(--text-primary);line-height:1.7;overflow-x:hidden}
+.container{max-width:860px;margin:0 auto;padding:0 24px}
+.container-wide{max-width:1100px;margin:0 auto;padding:0 24px}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--nav-bg);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 24px}
+nav .nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:64px}
+.nav-logo{font-weight:900;font-size:1rem;color:var(--accent-light);text-decoration:none;letter-spacing:-.03em;background:var(--chrome-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-breadcrumb{font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;gap:8px}
+.nav-breadcrumb a{color:var(--text-secondary);text-decoration:none}
+.nav-breadcrumb a:hover{color:var(--accent-light)}
+.nav-breadcrumb .sep{color:var(--text-dim)}
+.nav-right{display:flex;align-items:center;gap:16px}
+.theme-btn{background:none;border:1px solid var(--border);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;color:var(--text-secondary);transition:all .2s}
+.theme-btn:hover{border-color:var(--accent);color:var(--accent-light)}
+.page-hero{background:var(--bg-hero);padding:120px 24px 64px;position:relative;overflow:hidden}
+.page-hero::before{content:'';position:absolute;top:-200px;right:-200px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,var(--amber-a12) 0%,transparent 70%)}
+.page-hero .container{position:relative;z-index:1}
+.breadcrumb-nav{font-size:.82rem;color:var(--text-dim);margin-bottom:24px;display:flex;align-items:center;gap:8px}
+.breadcrumb-nav a{color:var(--text-dim);text-decoration:none}
+.breadcrumb-nav a:hover{color:var(--accent-light)}
+.page-hero h1{font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:900;letter-spacing:-.04em;margin-bottom:16px;line-height:1.1}
+.page-hero p{font-size:1rem;color:var(--text-secondary);max-width:560px;line-height:1.7}
+.doc-layout{display:grid;grid-template-columns:220px 1fr;gap:48px;padding:64px 0}
+@media(max-width:768px){.doc-layout{grid-template-columns:1fr}}
+.doc-sidebar{position:sticky;top:88px;height:fit-content}
+@media(max-width:768px){.doc-sidebar{display:none}}
+.sidebar-nav{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:2px}
+.sidebar-nav li a{display:block;padding:7px 12px;border-radius:var(--radius-sm);font-size:.85rem;color:var(--text-secondary);text-decoration:none;transition:all .15s}
+.sidebar-nav li a:hover{background:var(--bg-code);color:var(--text-primary)}
+.sidebar-nav li a.active{background:var(--amber-a12);color:var(--accent-light);font-weight:600}
+.sidebar-section{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);padding:16px 12px 4px;margin-top:8px}
+.doc-content h2{font-size:1.5rem;font-weight:800;letter-spacing:-.03em;margin-bottom:16px;margin-top:48px;padding-top:16px}
+.doc-content h2:first-child{margin-top:0}
+.doc-content h3{font-size:1.1rem;font-weight:700;margin-bottom:12px;margin-top:32px}
+.doc-content p{margin-bottom:16px;color:var(--text-secondary);line-height:1.8}
+.doc-content ul,.doc-content ol{margin-bottom:16px;padding-left:20px;color:var(--text-secondary)}
+.doc-content li{margin-bottom:6px;line-height:1.7}
+.doc-content strong{color:var(--text-primary)}
+.callout{border-radius:var(--radius);padding:20px 24px;margin-bottom:24px;display:flex;gap:14px;align-items:flex-start}
+.callout-info{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2)}
+.callout-tip{background:rgba(5,150,105,.06);border:1px solid rgba(5,150,105,.2)}
+.callout-warn{background:rgba(217,119,6,.08);border:1px solid rgba(217,119,6,.25)}
+.callout-stop{background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.2)}
+.callout-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px}
+.callout-body{font-size:.875rem;color:var(--text-secondary);line-height:1.7}
+.callout-body strong{color:var(--text-primary)}
+.code-block{background:var(--bg-code);border:1px solid var(--border);border-radius:var(--radius-sm);padding:20px 24px;font-family:var(--font-mono);font-size:.82rem;line-height:1.9;color:var(--text-secondary);overflow-x:auto;white-space:pre-wrap;margin-bottom:20px}
+.code-block .comment{color:var(--text-dim)}
+.code-block .cmd{color:var(--amber)}
+.code-block .string{color:var(--green)}
+.code-block .key{color:var(--cyan)}
+.code-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);font-family:var(--font-mono);margin-bottom:6px}
+.divider{height:1px;background:var(--border);margin:40px 0}
+/* PIPELINE DIAGRAM */
+.pipeline-flow{display:flex;flex-direction:column;gap:0;margin-bottom:32px}
+.pipeline-step{display:flex;align-items:flex-start;gap:20px;padding:20px 24px;background:var(--bg-card);border:1px solid var(--border);border-radius:0;position:relative}
+.pipeline-step:first-child{border-radius:var(--radius) var(--radius) 0 0}
+.pipeline-step:last-child{border-radius:0 0 var(--radius) var(--radius)}
+.pipeline-step+.pipeline-step{border-top:none}
+.pipeline-step:hover{background:var(--bg-card-hover)}
+.ps-num{min-width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--grad-1),var(--grad-2),var(--grad-3));color:#fff;font-weight:800;font-size:.8rem;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);flex-shrink:0;margin-top:2px;box-shadow:0 2px 8px rgba(245,158,11,.2)}
+.ps-body h4{font-size:.95rem;font-weight:700;margin-bottom:4px}
+.ps-body p{font-size:.875rem;color:var(--text-secondary);line-height:1.6;margin:0}
+/* SCORE TABLE */
+.score-table{width:100%;border-collapse:collapse;margin-bottom:24px}
+.score-table th{text-align:left;padding:10px 16px;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);border-bottom:2px solid var(--border)}
+.score-table td{padding:12px 16px;font-size:.875rem;border-bottom:1px solid var(--border);color:var(--text-secondary);vertical-align:middle}
+.score-table td:first-child{color:var(--text-primary);font-weight:600}
+.score-table tr:last-child td{border-bottom:none}
+.score-bar{height:6px;border-radius:999px;background:var(--border);overflow:hidden;width:100px}
+.score-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--grad-2),var(--grad-4))}
+/* ADAPTER TABLE */
+.adapter-table{width:100%;border-collapse:collapse;margin-bottom:24px;font-size:.875rem}
+.adapter-table th{text-align:left;padding:8px 14px;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);border-bottom:2px solid var(--border)}
+.adapter-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text-secondary);vertical-align:top}
+.adapter-table td:first-child{color:var(--text-primary);font-weight:600;font-family:var(--font-mono);font-size:.8rem}
+.adapter-table tr:last-child td{border-bottom:none}
+.page-nav-bottom{display:flex;justify-content:space-between;margin-top:56px;padding-top:32px;border-top:1px solid var(--border)}
+.page-nav-bottom a{display:flex;flex-direction:column;gap:4px;text-decoration:none}
+.pnb-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;font-weight:600;color:var(--text-dim)}
+.pnb-title{font-size:.95rem;font-weight:700;color:var(--accent-light)}
+footer{border-top:1px solid var(--border);padding:40px 0;color:var(--text-dim);font-size:.85rem}
+.footer-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+footer a{color:var(--text-secondary);text-decoration:none}
+footer a:hover{color:var(--accent-light)}
+.footer-links{display:flex;gap:24px}
+svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;stroke-width:1.5;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div style="display:flex;align-items:center;gap:12px">
+      <a href="../../" class="nav-logo">TopGun</a>
+      <span class="nav-breadcrumb">
+        <span class="sep">/</span><a href="../">Help</a>
+        <span class="sep">/</span>Core Concepts
+      </span>
+    </div>
+    <div class="nav-right">
+      <button class="theme-btn" onclick="toggleTheme()" id="theme-btn" aria-label="Toggle theme">
+        <span id="icon-sun" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span>
+        <span id="icon-moon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="container">
+    <div class="breadcrumb-nav">
+      <a href="../../">TopGun</a><span>/</span>
+      <a href="../">Help Center</a><span>/</span>
+      <span style="color:var(--text-primary)">Core Concepts</span>
+    </div>
+    <h1>Core Concepts</h1>
+    <p>The pipeline, registry adapters, scoring rubric, SENTINEL audit, state management, and caching — all in one place.</p>
+  </div>
+</div>
+
+<div class="container-wide">
+  <div class="doc-layout">
+
+    <aside class="doc-sidebar">
+      <ul class="sidebar-nav">
+        <li class="sidebar-section">On this page</li>
+        <li><a href="#pipeline">The Pipeline</a></li>
+        <li><a href="#registries">Registry Adapters</a></li>
+        <li><a href="#scoring">Scoring Rubric</a></li>
+        <li><a href="#sentinel">SENTINEL Audit</a></li>
+        <li><a href="#envelope">Structural Envelope</a></li>
+        <li><a href="#state">State &amp; Resume</a></li>
+        <li><a href="#caching">Caching</a></li>
+        <li class="sidebar-section">Other Pages</li>
+        <li><a href="../getting-started/">Getting Started</a></li>
+        <li><a href="../reference/">Command Reference</a></li>
+        <li><a href="../troubleshooting/">Troubleshooting</a></li>
+      </ul>
+    </aside>
+
+    <main class="doc-content">
+
+      <h2 id="pipeline">The Pipeline</h2>
+      <p>Every <code style="font-family:var(--font-mono);font-size:.9em">/topgun</code> invocation runs a deterministic four-stage pipeline. Stages execute in order; no stage is skipped.</p>
+
+      <div class="pipeline-flow">
+        <div class="pipeline-step">
+          <div class="ps-num">1</div>
+          <div class="ps-body">
+            <h4>FindSkills — Discover</h4>
+            <p>Queries all enabled registries in parallel. Each registry adapter normalizes its results to a unified candidate schema. Candidates with identical <code style="font-family:var(--font-mono);font-size:.85em">contentSha</code> values (SHA-256 of skill content) are deduplicated to a single entry.</p>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="ps-num">2</div>
+          <div class="ps-body">
+            <h4>CompareSkills — Rank</h4>
+            <p>Each unique candidate receives a composite score based on four weighted dimensions. The highest-scoring candidate advances to the audit stage. Scores and all candidate metadata are written to <code style="font-family:var(--font-mono);font-size:.85em">~/.topgun/candidates.json</code>.</p>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="ps-num">3</div>
+          <div class="ps-body">
+            <h4>SecureSkills — Audit</h4>
+            <p>Invokes <code style="font-family:var(--font-mono);font-size:.85em">/audit-security-of-skill</code> (SENTINEL) on the top candidate. Requires two consecutive clean passes. Findings are auto-fixed between passes when possible. SHA-256 is re-verified before each pass.</p>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="ps-num">4</div>
+          <div class="ps-body">
+            <h4>InstallSkills — Install</h4>
+            <p>Presents the full audit manifest (scores, findings history, SHA-256, registry source) for user approval. On approval, installs via <code style="font-family:var(--font-mono);font-size:.85em">/plugin install</code>. Falls back to local-copy installation if the plugin system has a known bug.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout callout-info">
+        <span class="callout-icon"><i data-lucide="info"></i></span>
+        <div class="callout-body">The pipeline state is checkpointed after each stage to <code style="font-family:var(--font-mono);font-size:.9em">~/.topgun/state.json</code>. If the pipeline is interrupted, it can resume from the last completed stage. See <a href="#state" style="color:var(--accent-light)">State &amp; Resume</a>.</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h2 id="registries">Registry Adapters</h2>
+      <p>TopGun uses a registry adapter pattern. Each adapter knows how to query one registry, parse its response format, and return normalized candidates. All adapters run in parallel during the FindSkills stage.</p>
+
+      <h3>Adapter behavior rules</h3>
+      <ul>
+        <li>Each adapter has a <strong>10-second timeout</strong>. If a registry doesn't respond in time, the adapter returns an empty result and logs a warning — it does not block the pipeline.</li>
+        <li>Adapters implement <strong>exponential backoff</strong> with up to 3 retries for transient errors (HTTP 429, 503).</li>
+        <li>If <strong>3 or more adapters</strong> fail simultaneously, TopGun logs a connectivity warning but continues with the adapters that succeeded.</li>
+        <li>Adapters that require auth tokens (GitHub, Smithery) skip silently if no token is configured rather than throwing errors.</li>
+      </ul>
+
+      <table class="adapter-table">
+        <thead>
+          <tr><th>Registry</th><th>Auth required</th><th>Timeout</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>skills.sh</td><td>No</td><td>10s</td><td>Primary registry — highest quality signal</td></tr>
+          <tr><td>agentskill.sh</td><td>No</td><td>10s</td><td>Agent-focused; good tool-pack coverage</td></tr>
+          <tr><td>Smithery</td><td>Optional</td><td>10s</td><td>Token unlocks private listings</td></tr>
+          <tr><td>GitHub Topics</td><td>Optional</td><td>10s</td><td>Token avoids rate limits (60→5000 req/hr)</td></tr>
+          <tr><td>GitLab</td><td>Optional</td><td>10s</td><td>Token required for private group repos</td></tr>
+          <tr><td>npm</td><td>No</td><td>10s</td><td>Searches <code style="font-size:.85em">@claude-skill</code> scope</td></tr>
+          <tr><td>LobeHub</td><td>No</td><td>10s</td><td>REST API; no auth needed</td></tr>
+          <tr><td>OSM</td><td>No</td><td>10s</td><td>Federated; may have regional latency</td></tr>
+          <tr><td>vskill</td><td>No</td><td>10s</td><td>Lockfile-compatible manifest format</td></tr>
+          <tr><td>SkillsMP</td><td>No</td><td>10s</td><td>Commercial; verified publisher badge in score</td></tr>
+          <tr><td>ClawHub</td><td>No</td><td>10s</td><td>Claude-native; auto compatibility checks</td></tr>
+        </tbody>
+      </table>
+
+      <div class="divider"></div>
+
+      <h2 id="scoring">Scoring Rubric</h2>
+      <p>CompareSkills assigns each candidate a composite score between 0 and 1. The composite is a weighted average of four dimensions:</p>
+
+      <table class="score-table">
+        <thead>
+          <tr><th>Dimension</th><th>Weight</th><th>Bar</th><th>What it measures</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Capability match</td>
+            <td><strong>40%</strong></td>
+            <td><div class="score-bar"><div class="score-fill" style="width:100%"></div></div></td>
+            <td>How closely the skill's described capabilities match the requested task, scored by semantic similarity</td>
+          </tr>
+          <tr>
+            <td>Security posture</td>
+            <td><strong>25%</strong></td>
+            <td><div class="score-bar"><div class="score-fill" style="width:62%"></div></div></td>
+            <td>Pre-scan signals: no network calls in SKILL.md, minimal allowed-tools, no eval/exec patterns</td>
+          </tr>
+          <tr>
+            <td>Popularity</td>
+            <td><strong>20%</strong></td>
+            <td><div class="score-bar"><div class="score-fill" style="width:50%"></div></div></td>
+            <td>Stars, installs, or download count from the source registry, normalized logarithmically</td>
+          </tr>
+          <tr>
+            <td>Recency</td>
+            <td><strong>15%</strong></td>
+            <td><div class="score-bar"><div class="score-fill" style="width:38%"></div></div></td>
+            <td>Days since last commit or publish; skills updated within 90 days score highest</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>The composite score formula:</p>
+      <div class="code-block"><span class="comment">// composite = weighted sum</span>
+composite = (capability × 0.40)
+          + (security  × 0.25)
+          + (popularity × 0.20)
+          + (recency   × 0.15)</div>
+
+      <div class="callout callout-tip">
+        <span class="callout-icon"><i data-lucide="check-circle"></i></span>
+        <div class="callout-body">All four sub-scores and the composite are included in the audit manifest shown at the approval gate, so you can always see exactly why a skill was selected.</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h2 id="sentinel">SENTINEL Audit</h2>
+      <p>SENTINEL is Alo Labs' <code style="font-family:var(--font-mono);font-size:.9em">/audit-security-of-skill</code> skill. TopGun invokes it as a sub-skill during the SecureSkills stage.</p>
+
+      <h3>The 2-pass requirement</h3>
+      <p>TopGun requires <strong>two consecutive clean passes</strong> — not just one — before a skill is eligible for installation. This guards against a class of attacks where a first-pass fix introduces a new vulnerability.</p>
+
+      <ol>
+        <li>SENTINEL runs pass 1. Findings (if any) are logged and auto-remediated where possible.</li>
+        <li>SHA-256 of the (possibly modified) skill content is computed and stored.</li>
+        <li>SENTINEL runs pass 2 on the same content. SHA-256 is re-verified before the pass starts.</li>
+        <li>If pass 2 is also clean, the skill is cleared for installation.</li>
+        <li>If pass 2 finds new issues, the loop restarts. There is no maximum iteration cap, but TopGun will warn after 5 cycles.</li>
+      </ol>
+
+      <h3>SHA-256 integrity gating</h3>
+      <p>Between every pair of passes, TopGun re-hashes the skill content and compares it to the hash from the previous pass. If the hashes differ and no remediation was performed, the pipeline <strong>immediately aborts</strong>. This prevents any external modification of skill files during the audit loop.</p>
+
+      <div class="callout callout-stop">
+        <span class="callout-icon"><i data-lucide="x-circle"></i></span>
+        <div class="callout-body"><strong>There is no --skip-audit flag.</strong> The SENTINEL requirement cannot be bypassed. If you need to install a skill without an audit, use <code style="font-family:var(--font-mono);font-size:.9em">/plugin install</code> directly — TopGun will not do it for you.</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h2 id="envelope">Structural Envelope</h2>
+      <p>Before SENTINEL injects skill content into the agent context for analysis, TopGun wraps it in a <strong>structural envelope</strong>. The envelope is a set of delimiter markers that signal to the agent that the content inside is external data — not executable instructions.</p>
+
+      <p>This prevents a class of attacks called <strong>prompt injection via skill content</strong>, where a malicious SKILL.md contains instructions addressed to the AI model (e.g., "IGNORE PREVIOUS INSTRUCTIONS AND…"). The envelope causes the model to treat all content between the delimiters as documentation text, not commands.</p>
+
+      <div class="callout callout-info">
+        <span class="callout-icon"><i data-lucide="info"></i></span>
+        <div class="callout-body">The structural envelope is applied automatically by TopGun. You do not need to configure it. It applies to all skills regardless of their source registry.</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h2 id="state">State and Resume</h2>
+      <p>TopGun writes pipeline state to <code style="font-family:var(--font-mono);font-size:.9em">~/.topgun/state.json</code> after each stage completes. If the pipeline is interrupted (Claude Code crash, network loss, Ctrl-C), you can resume it by running the same <code style="font-family:var(--font-mono);font-size:.9em">/topgun</code> command again.</p>
+
+      <div class="code-label">~/.topgun/state.json structure</div>
+      <div class="code-block">{
+  <span class="key">"query"</span>: <span class="string">"web scraping skill"</span>,
+  <span class="key">"stage"</span>: <span class="string">"SecureSkills"</span>,        <span class="comment">// last completed stage</span>
+  <span class="key">"winner"</span>: <span class="string">"web-scraper-pro"</span>,
+  <span class="key">"winnerSha"</span>: <span class="string">"a3f9c2b1..."</span>,
+  <span class="key">"auditPasses"</span>: 1,               <span class="comment">// passes completed so far</span>
+  <span class="key">"timestamp"</span>: <span class="string">"2026-04-13T10:22:00Z"</span>
+}</div>
+
+      <p>TopGun resumes from the last completed stage, not from the beginning. If FindSkills and CompareSkills already completed, resuming skips those stages and continues with SecureSkills.</p>
+      <p>Use <code style="font-family:var(--font-mono);font-size:.9em">--reset</code> to discard the state and restart the pipeline from scratch.</p>
+
+      <div class="divider"></div>
+
+      <h2 id="caching">Caching</h2>
+      <p>TopGun caches registry results and audit outcomes to avoid redundant work across invocations.</p>
+
+      <h3>Registry cache</h3>
+      <ul>
+        <li>Registry results are cached by <strong>contentSha</strong> (not by skill name), so the same content from different registries is not re-fetched.</li>
+        <li>Cache TTL is <strong>24 hours</strong>. After 24 hours, registry queries run fresh.</li>
+        <li>Use <code style="font-family:var(--font-mono);font-size:.9em">--force-audit</code> to bypass the cache and re-audit even if a clean result exists.</li>
+        <li>Use <code style="font-family:var(--font-mono);font-size:.9em">--offline</code> to use only cached results and skip all live registry queries.</li>
+      </ul>
+
+      <h3>Audit cache</h3>
+      <ul>
+        <li>A clean SENTINEL result is cached against the skill's <strong>contentSha</strong>.</li>
+        <li>If the same contentSha is encountered again within 24 hours, the cached clean result is used and SENTINEL is not re-invoked.</li>
+        <li><code style="font-family:var(--font-mono);font-size:.9em">--force-audit</code> bypasses the audit cache and always runs fresh SENTINEL passes.</li>
+      </ul>
+
+      <div class="page-nav-bottom">
+        <a href="../getting-started/">
+          <span class="pnb-label">← Previous</span>
+          <span class="pnb-title">Getting Started</span>
+        </a>
+        <a href="../reference/">
+          <span class="pnb-label">Next →</span>
+          <span class="pnb-title">Command Reference</span>
+        </a>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<footer>
+  <div class="container-wide">
+    <div class="footer-inner">
+      <div>
+        <a href="../../" style="font-weight:700;color:var(--text-primary)">TopGun</a>
+        <span style="margin:0 8px">·</span>
+        Innovated at <a href="https://alolabs.dev" target="_blank" rel="noopener">Ālo Labs</a>
+      </div>
+      <div class="footer-links">
+        <a href="../">Help Center</a>
+        <a href="https://github.com/alo-labs/topgun" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/alo-labs/topgun/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.js"></script>
+<script>
+lucide.createIcons();
+function toggleTheme(){
+  const curr=document.documentElement.getAttribute('data-theme');
+  const next=curr==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('topgun-theme',next);
+  updateThemeIcon(next);
+}
+function updateThemeIcon(t){
+  document.getElementById('icon-sun').style.display=t==='dark'?'inline':'none';
+  document.getElementById('icon-moon').style.display=t==='dark'?'none':'inline';
+}
+updateThemeIcon(document.documentElement.getAttribute('data-theme')||'dark');
+const sections=document.querySelectorAll('.doc-content h2[id]');
+const sidebarLinks=document.querySelectorAll('.sidebar-nav li a');
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      sidebarLinks.forEach(l=>l.classList.remove('active'));
+      const a=document.querySelector('.sidebar-nav li a[href="#'+e.target.id+'"]');
+      if(a)a.classList.add('active');
+    }
+  });
+},{rootMargin:'-20% 0px -70% 0px'});
+sections.forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>

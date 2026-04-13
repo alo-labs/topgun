@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<script>document.documentElement.setAttribute('data-theme',localStorage.getItem('topgun-theme')||'dark');</script>
+<title>TopGun — Always the Best Skill. Always Secured.</title>
+<meta name="description" content="TopGun is a Claude Code plugin that finds, compares, security-audits, and installs the best available skill from 18+ global registries. SENTINEL-secured. Auto-installed.">
+<meta property="og:title" content="TopGun — Always the Best Skill. Always Secured.">
+<meta property="og:description" content="TopGun searches 18+ global skill registries, ranks every candidate across four dimensions, runs a SENTINEL security audit until clean, and installs the winner — automatically.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://topgun.alolabs.dev">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ───── RESET ───── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+
+/* ───── DESIGN TOKENS — DARK (default) ───── */
+:root,[data-theme="dark"]{
+  --bg-page:#09090e;
+  --bg-card:#111118;
+  --bg-card-hover:#17171f;
+  --bg-code:#0d0d14;
+  --bg-hero:linear-gradient(160deg,#050507 0%,#09090f 25%,#0d0d18 48%,#0f0f1c 62%,#0a0a14 80%,#060608 100%);
+  --accent:#f59e0b;
+  --accent-light:#fbbf24;
+  --accent-glow:rgba(245,158,11,0.18);
+  --accent2:#d97706;
+  --accent3:#b45309;
+  --chrome-gradient:linear-gradient(90deg,#f59e0b 0%,#fde68a 9%,#f59e0b 18%,#d97706 27%,#fbbf24 36%,#fde68a 43%,#f59e0b 51%,#d97706 59%,#fbbf24 68%,#f59e0b 76%,#d97706 86%,#b45309 100%);
+  --green:#059669;
+  --amber:#f59e0b;
+  --red:#dc2626;
+  --cyan:#0891b2;
+  --text-primary:#f1f5f9;
+  --text-secondary:#c0cfde;
+  --text-dim:#64748b;
+  --border:#1e1e2e;
+  --border-hover:#3d3d5e;
+  --radius:12px;
+  --radius-lg:20px;
+  --radius-sm:8px;
+  --font-sans:'Space Grotesk',system-ui,sans-serif;
+  --font-mono:'Fira Code',monospace;
+  --shadow-lg:0 20px 60px rgba(0,0,0,.7);
+  --shadow-glow:0 0 40px rgba(245,158,11,0.08);
+  --shadow-btn:0 4px 20px rgba(245,158,11,0.3);
+  --shadow-btn-hover:0 8px 30px rgba(245,158,11,0.45);
+  --nav-bg:rgba(9,9,14,.92);
+  --nav-mobile-bg:rgba(9,9,14,.99);
+  --section-alt:rgba(17,17,24,.7);
+  --card-top:rgba(245,158,11,0.6);
+  --hero-glow:rgba(245,158,11,0.06);
+  --grad-1:#92400e;
+  --grad-2:#b45309;
+  --grad-3:#d97706;
+  --grad-4:#f59e0b;
+  --accent-a10:rgba(245,158,11,.10);
+  --accent-a15:rgba(245,158,11,.15);
+  --accent-a20:rgba(245,158,11,.20);
+  --accent-a25:rgba(245,158,11,.25);
+  --accent-a30:rgba(245,158,11,.30);
+  --accent-a40:rgba(245,158,11,.40);
+  --amber-a12:rgba(245,158,11,.12);
+  --amber-a15:rgba(245,158,11,.15);
+  --red-a12:rgba(220,38,38,.12);
+  --green-a12:rgba(5,150,105,.12);
+  --cyan-a12:rgba(8,145,178,.12);
+}
+
+/* ───── LIGHT THEME ───── */
+[data-theme="light"]{
+  --bg-page:#fafaf7;
+  --bg-card:#ffffff;
+  --bg-card-hover:#f5f5ef;
+  --bg-code:#f0f0e8;
+  --bg-hero:linear-gradient(160deg,#f5f5ef 0%,#f8f8f2 25%,#fafaf5 48%,#fcfcf8 62%,#f8f8f2 80%,#f2f2ec 100%);
+  --accent:#b45309;
+  --accent-light:#92400e;
+  --accent-glow:rgba(180,83,9,0.1);
+  --accent2:#d97706;
+  --accent3:#f59e0b;
+  --chrome-gradient:linear-gradient(90deg,#92400e 0%,#d97706 9%,#b45309 18%,#78350f 27%,#d97706 36%,#f59e0b 43%,#b45309 51%,#92400e 59%,#d97706 68%,#b45309 76%,#78350f 86%,#92400e 100%);
+  --green:#059669;
+  --amber:#b45309;
+  --red:#dc2626;
+  --cyan:#0891b2;
+  --text-primary:#1a1a0e;
+  --text-secondary:#44440a;
+  --text-dim:#78786a;
+  --border:#e5e5d0;
+  --border-hover:#c8a870;
+  --nav-bg:rgba(250,250,247,.92);
+  --nav-mobile-bg:rgba(250,250,247,.99);
+  --section-alt:rgba(240,240,232,.6);
+  --shadow-lg:0 20px 60px rgba(0,0,0,.10);
+  --shadow-glow:0 0 40px rgba(180,83,9,0.08);
+  --shadow-btn:0 4px 20px rgba(180,83,9,0.25);
+  --shadow-btn-hover:0 8px 30px rgba(180,83,9,0.35);
+  --grad-1:#78350f;
+  --grad-2:#92400e;
+  --grad-3:#b45309;
+  --grad-4:#d97706;
+  --hero-glow:rgba(180,83,9,0.04);
+  --card-top:rgba(180,83,9,0.45);
+  --accent-a10:rgba(180,83,9,.10);
+  --accent-a15:rgba(180,83,9,.15);
+  --accent-a20:rgba(180,83,9,.20);
+  --accent-a25:rgba(180,83,9,.25);
+  --accent-a30:rgba(180,83,9,.30);
+  --accent-a40:rgba(180,83,9,.40);
+  --amber-a12:rgba(180,83,9,.12);
+  --amber-a15:rgba(180,83,9,.15);
+  --red-a12:rgba(220,38,38,.12);
+  --green-a12:rgba(5,150,105,.12);
+  --cyan-a12:rgba(8,145,178,.12);
+}
+
+/* ───── THEME TRANSITION ───── */
+body,nav,section,.feature-card,.layer-card,.install-block,.code-block,.callout{
+  transition:background .25s,background-color .25s,border-color .25s,color .25s,box-shadow .25s;
+}
+
+body{font-family:var(--font-sans);background:var(--bg-page);color:var(--text-primary);line-height:1.7;overflow-x:hidden}
+
+/* ───── UTILITIES ───── */
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+.text-center{text-align:center}
+.mt-2{margin-top:16px}.mt-3{margin-top:24px}.mt-4{margin-top:32px}.mt-6{margin-top:48px}
+.mb-2{margin-bottom:16px}.mb-4{margin-bottom:32px}
+
+/* ───── NAV ───── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:var(--nav-bg);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);padding:0 24px;
+}
+nav .nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:64px}
+.nav-logo{font-weight:900;font-size:1.15rem;color:var(--accent-light);text-decoration:none;letter-spacing:-.03em;background:var(--chrome-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+nav .nav-links{display:flex;gap:28px;list-style:none}
+nav .nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+nav .nav-links a:hover{color:var(--text-primary)}
+.nav-right{display:flex;align-items:center;gap:12px}
+.theme-btn{background:none;border:1px solid var(--border);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-secondary);transition:all .2s}
+.theme-btn:hover{border-color:var(--accent);color:var(--accent-light)}
+nav .nav-cta{
+  background:linear-gradient(135deg,var(--grad-1),var(--grad-2));
+  color:#fff;padding:8px 20px;border-radius:999px;
+  font-size:.8rem;font-weight:600;text-decoration:none;
+  transition:all .2s;border:none;cursor:pointer;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
+}
+nav .nav-cta:hover{background:linear-gradient(135deg,var(--grad-2),var(--grad-4));box-shadow:0 0 20px var(--accent-a25)}
+.nav-toggle{display:none;background:none;border:none;color:var(--text-primary);cursor:pointer;width:34px;height:34px;align-items:center;justify-content:center}
+@media(max-width:768px){
+  nav .nav-links{display:none}
+  .nav-toggle{display:flex}
+  nav .nav-links.active{
+    display:flex;flex-direction:column;position:absolute;
+    top:64px;left:0;right:0;background:var(--nav-mobile-bg);
+    padding:20px 24px;gap:16px;border-bottom:1px solid var(--border);
+  }
+}
+
+/* ───── HERO ───── */
+.hero{background:var(--bg-hero);padding:100px 24px 96px;position:relative;overflow:hidden;text-align:center}
+.hero::before{
+  content:'';position:absolute;top:-200px;right:-150px;
+  width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(ellipse at 55% 45%,var(--accent-a10) 0%,var(--accent-a10) 40%,transparent 72%);
+}
+.hero::after{
+  content:'';position:absolute;bottom:-150px;left:-100px;
+  width:500px;height:500px;border-radius:50%;
+  background:radial-gradient(ellipse at 45% 55%,rgba(245,158,11,.06) 0%,rgba(245,158,11,.03) 45%,transparent 72%);
+}
+.hero .container{position:relative;z-index:1}
+.hero .version-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,var(--amber-a12),var(--accent-a10));
+  border:1px solid var(--amber-a15);
+  border-radius:999px;padding:6px 16px;font-size:.8rem;
+  color:var(--accent-light);font-weight:500;margin-bottom:40px;
+  font-family:var(--font-mono);letter-spacing:.04em;
+}
+.hero .version-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero h1{
+  font-size:clamp(3rem,7vw,6rem);font-weight:900;
+  line-height:1;letter-spacing:-.06em;
+  margin:0 auto 16px;
+}
+.hero h1 .gradient{
+  background:var(--chrome-gradient);
+  background-size:200% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:shine 4s linear infinite;
+}
+@keyframes shine{0%{background-position:0% center}100%{background-position:200% center}}
+.hero-tagline-caps{font-size:.82rem;font-weight:700;letter-spacing:.22em;color:var(--accent-light);margin:0 auto 20px;text-transform:uppercase}
+.hero .tagline{font-size:1.3rem;font-weight:700;color:var(--text-primary);margin:0 auto 20px;letter-spacing:-.01em}
+.hero .subtitle{font-size:1.05rem;color:var(--text-secondary);max-width:620px;margin:0 auto 40px;line-height:1.7}
+.hero .cta-group{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:52px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:999px;font-size:.9rem;font-weight:600;text-decoration:none;transition:all .25s;border:none;cursor:pointer}
+.btn-primary{
+  background:linear-gradient(135deg,var(--grad-1) 0%,var(--grad-2) 35%,var(--grad-3) 65%,var(--grad-1) 100%);
+  background-size:250% auto;
+  color:#fff;
+  box-shadow:var(--shadow-btn),inset 0 1px 0 rgba(255,255,255,.15);
+}
+.btn-primary:hover{background-position:right center;box-shadow:var(--shadow-btn-hover);transform:translateY(-2px)}
+.btn-outline{background:transparent;color:var(--text-primary);border:1.5px solid var(--border-hover)}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent-light)}
+.hero-pills{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.hero-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 18px;border-radius:999px;
+  background:var(--amber-a12);
+  border:1px solid var(--amber-a15);
+  font-size:.8rem;font-weight:700;color:var(--accent-light);
+  letter-spacing:.02em;font-family:var(--font-mono);
+}
+
+/* ───── SECTION HEADINGS ───── */
+section{padding:80px 0}
+section:nth-child(even){background:var(--section-alt)}
+.section-label{text-transform:uppercase;font-size:.75rem;font-weight:700;letter-spacing:.12em;color:var(--accent-light);margin-bottom:12px}
+.section-title{font-size:clamp(1.8rem,3vw,2.5rem);font-weight:800;letter-spacing:-.03em;margin-bottom:16px;line-height:1.2}
+.section-desc{font-size:1rem;color:var(--text-secondary);max-width:600px;margin-bottom:48px}
+.section-desc.centered{margin-left:auto;margin-right:auto}
+
+/* ───── FEATURE CARDS ───── */
+.feature-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+@media(max-width:900px){.feature-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.feature-grid{grid-template-columns:1fr}}
+.feature-card{
+  background:var(--bg-card);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:32px;
+  transition:all .3s;position:relative;overflow:hidden;
+}
+.feature-card:hover{border-color:var(--border-hover);box-shadow:var(--shadow-glow);transform:translateY(-4px)}
+.feature-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;
+  height:2px;background:linear-gradient(90deg,transparent,var(--card-top),var(--accent-light),var(--card-top),transparent);
+  opacity:0;transition:opacity .3s;
+}
+.feature-card:hover::before{opacity:1}
+.feature-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.feature-card h3{font-size:1.05rem;font-weight:700;margin-bottom:8px}
+.feature-card p{font-size:.9rem;color:var(--text-secondary);line-height:1.6}
+
+/* ───── LAYER CARDS (pipeline) ───── */
+.layer-grid{display:grid;gap:16px}
+.layer-card{
+  background:var(--bg-card);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:28px;
+  transition:all .3s;position:relative;overflow:hidden;
+  display:flex;align-items:flex-start;gap:20px;
+}
+.layer-card:hover{border-color:var(--border-hover);box-shadow:var(--shadow-glow);transform:translateY(-3px)}
+.layer-num{
+  min-width:40px;height:40px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--grad-1),var(--grad-2),var(--grad-3));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 2px 8px rgba(245,158,11,.3);
+  color:#fff;font-weight:800;font-size:.9rem;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);margin-top:2px;
+}
+.layer-body h3{font-size:1.05rem;font-weight:700;margin-bottom:6px}
+.layer-body p{font-size:.9rem;color:var(--text-secondary);line-height:1.6}
+.layer-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 10px;border-radius:999px;
+  font-size:.7rem;font-weight:700;letter-spacing:.05em;
+  font-family:var(--font-mono);margin-left:10px;
+}
+
+/* ───── REGISTRY CARDS ───── */
+.registry-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:900px){.registry-grid{grid-template-columns:1fr}}
+@media(min-width:601px) and (max-width:900px){.registry-grid{grid-template-columns:repeat(2,1fr)}}
+.registry-card{
+  background:var(--bg-card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:20px 24px;
+  transition:all .25s;display:flex;align-items:flex-start;gap:14px;
+}
+.registry-card:hover{border-color:var(--border-hover);transform:translateY(-2px)}
+.reg-icon{width:36px;height:36px;border-radius:8px;background:var(--amber-a12);border:1px solid var(--amber-a15);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--accent-light)}
+.reg-name{font-size:.9rem;font-weight:700;margin-bottom:3px}
+.reg-desc{font-size:.8rem;color:var(--text-secondary);line-height:1.5}
+
+/* ───── INSTALL SECTION ───── */
+.install-block{
+  background:var(--bg-code);border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;
+  max-width:720px;margin:0 auto;
+}
+.install-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 20px;border-bottom:1px solid var(--border);
+}
+.install-header .block-title{font-size:.72rem;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;font-family:var(--font-mono)}
+.install-header .block-dots{display:flex;gap:6px}
+.install-header .block-dots span{width:10px;height:10px;border-radius:50%}
+.install-code{padding:28px 32px;font-family:var(--font-mono);font-size:.85rem;line-height:2.2;color:var(--text-secondary)}
+.install-code .comment{color:var(--text-dim)}
+.install-code .cmd{color:var(--amber)}
+.install-code .flag{color:var(--cyan)}
+.install-code .string{color:var(--green)}
+
+/* ───── AUDIT TRAIL CALLOUT ───── */
+.audit-trail{background:var(--bg-code);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;font-family:var(--font-mono);font-size:.8rem;line-height:1.9;color:var(--text-secondary);max-width:720px;margin:24px auto 0}
+.audit-trail .at-ok{color:var(--green);font-weight:700}
+.audit-trail .at-warn{color:var(--amber);font-weight:700}
+.audit-trail .at-label{color:var(--accent-light)}
+.audit-trail .at-dim{color:var(--text-dim)}
+
+/* ───── CALLOUT BOX ───── */
+.callout-box{
+  background:linear-gradient(135deg,var(--amber-a12),var(--accent-a10) 50%,var(--amber-a12));
+  border:1px solid var(--amber-a15);
+  border-radius:var(--radius-lg);padding:40px;
+  text-align:center;max-width:700px;margin:0 auto;
+}
+.callout-box .callout-icon{font-size:2rem;margin-bottom:12px}
+.callout-box p{font-size:1.05rem;color:var(--text-secondary);line-height:1.7}
+.callout-box strong{color:var(--text-primary)}
+
+/* ───── CTA SECTION ───── */
+.cta-section{
+  background:linear-gradient(135deg,var(--amber-a12) 0%,var(--accent-a10) 40%,var(--amber-a12) 70%);
+  border-top:1px solid var(--amber-a15);border-bottom:1px solid var(--amber-a15);
+}
+
+/* ───── FOOTER ───── */
+footer{border-top:1px solid var(--border);padding:48px 0;color:var(--text-dim);font-size:.85rem}
+footer .footer-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+footer a{color:var(--text-secondary);text-decoration:none}
+footer a:hover{color:var(--accent-light)}
+footer .footer-links{display:flex;gap:24px}
+
+/* ───── ANIMATIONS ───── */
+.fade-in{opacity:0;transform:translateY(24px);transition:all .6s ease-out}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+
+/* ───── RESPONSIVE ───── */
+@media(max-width:768px){
+  section{padding:64px 0}
+  .hero{padding:110px 20px 72px}
+  .hero h1{font-size:clamp(2.5rem,10vw,4rem)}
+  .hero .cta-group{flex-direction:column;align-items:center}
+  .btn{width:100%;max-width:300px;justify-content:center}
+  .install-code{font-size:.78rem;padding:20px 16px}
+  .callout-box{padding:28px 20px}
+}
+@media(max-width:600px){
+  section{padding:52px 0}
+  .hero{padding:96px 16px 60px}
+  .layer-card{flex-direction:column;gap:12px}
+  .install-block{max-width:100%}
+}
+
+svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;stroke-width:1.5;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <div style="display:flex;align-items:center;gap:20px">
+      <a href="/" class="nav-logo">TopGun</a>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#problem">Features</a></li>
+        <li><a href="#pipeline">Pipeline</a></li>
+        <li><a href="#security">Security</a></li>
+        <li><a href="#install">Install</a></li>
+        <li><a href="help/">Help</a></li>
+      </ul>
+    </div>
+    <div class="nav-right">
+      <button class="theme-btn" onclick="toggleTheme()" id="theme-btn" aria-label="Toggle theme">
+        <span id="icon-sun" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span>
+        <span id="icon-moon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+      </button>
+      <a href="https://github.com/alo-labs/topgun" class="nav-cta" target="_blank" rel="noopener">GitHub →</a>
+      <button class="nav-toggle" onclick="toggleNav()" aria-label="Menu">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="version-badge">
+      <span class="dot"></span>
+      v1.0 · CLAUDE CODE PLUGIN
+    </div>
+    <h1><span class="gradient">TopGun</span></h1>
+    <p class="hero-tagline-caps">Always the Best Skill. Always Secured.</p>
+    <p class="tagline">The last skill finder you'll ever need.</p>
+    <p class="subtitle">TopGun searches 18+ global skill registries, ranks every candidate across four dimensions, runs a SENTINEL security audit until clean, and installs the winner — automatically.</p>
+    <div class="cta-group">
+      <a href="#install" class="btn btn-primary">Install TopGun ↓</a>
+      <a href="#pipeline" class="btn btn-outline">View Pipeline →</a>
+    </div>
+    <div class="hero-pills">
+      <span class="hero-pill"><i data-lucide="globe" style="width:14px;height:14px"></i> 18+ Registries</span>
+      <span class="hero-pill"><i data-lucide="bar-chart-2" style="width:14px;height:14px"></i> 4-Factor Scoring</span>
+      <span class="hero-pill"><i data-lucide="shield-check" style="width:14px;height:14px"></i> SENTINEL Secured</span>
+      <span class="hero-pill"><i data-lucide="zap" style="width:14px;height:14px"></i> Auto-Install</span>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section id="problem">
+  <div class="container">
+    <div class="section-label fade-in">The Problem</div>
+    <h2 class="section-title fade-in">You're Installing Skills Blind</h2>
+    <p class="section-desc fade-in">Every manual skill install is a gamble. You don't know if there's a better option, if the code is safe, or if a newer version exists. TopGun eliminates that gamble completely.</p>
+    <div class="feature-grid">
+      <div class="feature-card fade-in">
+        <div class="feature-icon" style="background:var(--red-a12);color:var(--red)"><i data-lucide="x-circle"></i></div>
+        <h3>Wrong Skill</h3>
+        <p>You pick what you know, not what fits. Better options exist across dozens of registries you've never searched.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon" style="background:var(--red-a12);color:var(--red)"><i data-lucide="eye-off"></i></div>
+        <h3>Security Unknown</h3>
+        <p>No audit means trusting random code with full tool access. Any SKILL.md could exfiltrate data or phone home.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon" style="background:var(--amber-a12);color:var(--amber)"><i data-lucide="layers"></i></div>
+        <h3>Registry Fragmentation</h3>
+        <p>skills.sh, GitHub, npm, Smithery — impossible to manually check all. You miss the best option every time.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon" style="background:var(--amber-a12);color:var(--amber)"><i data-lucide="alert-triangle"></i></div>
+        <h3>No Verification</h3>
+        <p>Installed skills run with whatever allowed-tools they declare. No hash checking. No integrity guarantees.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section id="pipeline">
+  <div class="container">
+    <div class="section-label fade-in">The Solution</div>
+    <h2 class="section-title fade-in">A 4-Stage Quality Pipeline</h2>
+    <p class="section-desc fade-in">Every <code style="font-family:var(--font-mono);font-size:.9em;color:var(--accent-light);background:var(--amber-a12);padding:2px 8px;border-radius:4px">/topgun</code> invocation runs the full pipeline. No shortcuts.</p>
+    <div class="layer-grid">
+      <div class="layer-card fade-in">
+        <div class="layer-num">1</div>
+        <div class="layer-body">
+          <h3>FindSkills <span class="layer-badge" style="background:var(--cyan-a12);color:var(--cyan)">DISCOVER</span></h3>
+          <p>Searches 18+ registries in parallel — skills.sh, Smithery, GitHub, npm, GitLab, LobeHub, and more. Normalizes every result to a unified schema, deduplicates by contentSha, and produces a ranked candidate list.</p>
+        </div>
+      </div>
+      <div class="layer-card fade-in">
+        <div class="layer-num">2</div>
+        <div class="layer-body">
+          <h3>CompareSkills <span class="layer-badge" style="background:var(--amber-a12);color:var(--amber)">RANK</span></h3>
+          <p>Scores every candidate across four weighted dimensions: capability match (40%), security posture (25%), popularity (20%), and recency (15%). Produces a composite score and selects the winner.</p>
+        </div>
+      </div>
+      <div class="layer-card fade-in">
+        <div class="layer-num">3</div>
+        <div class="layer-body">
+          <h3>SecureSkills <span class="layer-badge" style="background:var(--red-a12);color:var(--red)">AUDIT</span></h3>
+          <p>Runs the SENTINEL audit (Alo Labs /audit-security-of-skill) against the top candidate. Requires 2 consecutive clean passes. Applies fixes between passes. Aborts if SHA-256 hash mismatches between passes.</p>
+        </div>
+      </div>
+      <div class="layer-card fade-in">
+        <div class="layer-num">4</div>
+        <div class="layer-body">
+          <h3>InstallSkills <span class="layer-badge" style="background:var(--green-a12);color:var(--green)">INSTALL</span></h3>
+          <p>Presents a full audit manifest for user approval. On approval, installs via <code style="font-family:var(--font-mono);font-size:.88em;color:var(--accent-light)">/plugin install</code> with local-copy fallback if the plugin system has a known bug.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REGISTRIES -->
+<section id="registries">
+  <div class="container">
+    <div class="section-label fade-in text-center">Coverage</div>
+    <h2 class="section-title fade-in text-center">18+ Registries, All Searched</h2>
+    <p class="section-desc centered fade-in">FindSkills queries every major skill registry in parallel. No manual searching required.</p>
+    <div class="registry-grid">
+      <div class="registry-card fade-in">
+        <div class="reg-icon"><i data-lucide="terminal"></i></div>
+        <div><div class="reg-name">skills.sh</div><div class="reg-desc">Primary global skill registry — curated SKILL.md packages with metadata</div></div>
+      </div>
+      <div class="registry-card fade-in">
+        <div class="reg-icon"><i data-lucide="terminal"></i></div>
+        <div><div class="reg-name">agentskill.sh</div><div class="reg-desc">Agent-focused skill registry with categorized tool packs</div></div>
+      </div>
+      <div class="registry-card fade-in">
+        <div class="reg-icon"><i data-lucide="layers"></i></div>
+        <div><div class="reg-name">Smithery</div><div class="reg-desc">MCP-native marketplace — skills adapted for Claude Code workflows</div></div>
+      </div>
+      <div class="registry-card fade-in">
+        <div class="reg-icon"><i data-lucide="github"></i></div>
+        <div><div class="reg-name">GitHub Topics</div><div class="reg-desc">Public repos tagged <code style="font-family:var(--font-mono);font-size:.8em">claude-skill</code> — broad community coverage</div></div>
+      </div>
+      <div class="registry-card fade-in">
+        <div class="reg-icon"><i data-lucide="git-branch"></i></div>
+        <div><div class="reg-name">GitLab</div><div class="reg-desc">Enterprise-hosted skills and private-mirror registries</div></div>
+      </div>
+      <div class="registry-card fade-in">
+        <div class="reg-icon"><i data-lucide="package"></i></div>
+        <div><div class="reg-name">npm</div><div class="reg-desc">Published <code style="font-family:var(--font-mono);font-size:.8em">@claude-skill</code> scoped packages with semver versioning</div></div>
+      </div>
+      <div class="registry-card fade-in">
+        <div class="reg-icon"><i data-lucide="cpu"></i></div>
+        <div><div class="reg-name">LobeHub</div><div class="reg-desc">Curated AI-agent plugins and skill bundles from the Lobe ecosystem</div></div>
+      </div>
+      <div class="registry-card fade-in">
+        <div class="reg-icon"><i data-lucide="globe"></i></div>
+        <div><div class="reg-name">OSM (Open Skill Marketplace)</div><div class="reg-desc">Federated open registry for community-audited skills</div></div>
+      </div>
+      <div class="registry-card fade-in">
+        <div class="reg-icon"><i data-lucide="zap"></i></div>
+        <div><div class="reg-name">vskill</div><div class="reg-desc">Versioned skill artifacts with lockfile-compatible manifests</div></div>
+      </div>
+      <div class="registry-card fade-in">
+        <div class="reg-icon"><i data-lucide="shopping-bag"></i></div>
+        <div><div class="reg-name">SkillsMP</div><div class="reg-desc">Commercial marketplace with verified publisher badges</div></div>
+      </div>
+      <div class="registry-card fade-in">
+        <div class="reg-icon"><i data-lucide="anchor"></i></div>
+        <div><div class="reg-name">ClawHub</div><div class="reg-desc">Claude-native hub for agent skills with automated compatibility checks</div></div>
+      </div>
+      <div class="registry-card fade-in">
+        <div class="reg-icon"><i data-lucide="plus-circle"></i></div>
+        <div><div class="reg-name">And 7+ more…</div><div class="reg-desc">HuggingFace Spaces, Replicate, Flowise, and additional adapters ship with each release</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECURITY -->
+<section id="security">
+  <div class="container">
+    <div class="section-label fade-in">Security</div>
+    <h2 class="section-title fade-in">SENTINEL-Gated Installations</h2>
+    <p class="section-desc fade-in">Every skill is audited by Alo Labs' /audit-security-of-skill before installation. No exceptions. No overrides.</p>
+    <div class="feature-grid">
+      <div class="feature-card fade-in">
+        <div class="feature-icon" style="background:var(--amber-a12);color:var(--amber)"><i data-lucide="box"></i></div>
+        <h3>Structural Envelope</h3>
+        <p>All external skill content is wrapped in a structural envelope before injection into agent context, preventing prompt injection attacks.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon" style="background:var(--red-a12);color:var(--red)"><i data-lucide="phone-off"></i></div>
+        <h3>Phone-Home Detection</h3>
+        <p>Rejects any SKILL.md containing <code style="font-family:var(--font-mono);font-size:.85em">curl</code>, <code style="font-family:var(--font-mono);font-size:.85em">wget</code>, or <code style="font-family:var(--font-mono);font-size:.85em">fetch</code> in executable sections.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon" style="background:var(--green-a12);color:var(--green)"><i data-lucide="repeat-2"></i></div>
+        <h3>2 Clean Passes Required</h3>
+        <p>SENTINEL runs until it returns zero findings on two consecutive independent passes. No single-pass shortcuts are allowed.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon" style="background:var(--cyan-a12);color:var(--cyan)"><i data-lucide="fingerprint"></i></div>
+        <h3>Integrity Gating</h3>
+        <p>SHA-256 hash of the skill content is verified between passes. Any mismatch triggers an immediate pipeline abort.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INSTALL -->
+<section id="install">
+  <div class="container text-center">
+    <div class="section-label fade-in">Installation</div>
+    <h2 class="section-title fade-in">One Command. Always the Best.</h2>
+    <p class="section-desc centered fade-in">Install TopGun once. From that point forward, every skill you need is one command away — always the best available, always audited.</p>
+    <div class="install-block fade-in">
+      <div class="install-header">
+        <span class="block-title">Claude Code · Terminal</span>
+        <div class="block-dots">
+          <span style="background:#dc2626"></span>
+          <span style="background:#f59e0b"></span>
+          <span style="background:#059669"></span>
+        </div>
+      </div>
+      <div class="install-code">
+        <div><span class="comment"># Step 1: Install the TopGun plugin</span></div>
+        <div><span class="cmd">/plugin install</span> <span class="string">alo-labs/topgun</span></div>
+        <div>&nbsp;</div>
+        <div><span class="comment"># Step 2: Use TopGun for any task</span></div>
+        <div><span class="cmd">/topgun</span> <span class="string">find me a skill for web scraping</span></div>
+        <div><span class="cmd">/topgun</span> <span class="string">best git workflow automation skill</span></div>
+        <div><span class="cmd">/topgun</span> <span class="string">code review skill with multi-pass support</span></div>
+        <div>&nbsp;</div>
+        <div><span class="comment"># Optional flags</span></div>
+        <div><span class="cmd">/topgun</span> <span class="string">deployment pipeline skill</span> <span class="flag">--auto-approve</span></div>
+        <div><span class="cmd">/topgun</span> <span class="string">test runner skill</span> <span class="flag">--registries</span> <span class="string">skills.sh,npm</span></div>
+      </div>
+    </div>
+    <div class="audit-trail fade-in">
+      <div><span class="at-label">TopGun</span> <span class="at-dim">›</span> <span class="at-ok">✓</span> Found 14 candidates across 9 registries in 2.3s</div>
+      <div><span class="at-label">TopGun</span> <span class="at-dim">›</span> <span class="at-ok">✓</span> Top score: <strong style="color:var(--text-primary)">web-scraper-pro</strong> · composite 0.94</div>
+      <div><span class="at-label">TopGun</span> <span class="at-dim">›</span> <span class="at-warn">⧗</span> SENTINEL pass 1/2 — scanning…</div>
+      <div><span class="at-label">TopGun</span> <span class="at-dim">›</span> <span class="at-ok">✓</span> SENTINEL pass 1 clean · SHA-256 verified</div>
+      <div><span class="at-label">TopGun</span> <span class="at-dim">›</span> <span class="at-ok">✓</span> SENTINEL pass 2 clean · ready for install</div>
+      <div><span class="at-label">TopGun</span> <span class="at-dim">›</span> Awaiting your approval…</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container text-center">
+    <div class="callout-box fade-in">
+      <div class="callout-icon"><i data-lucide="rocket"></i></div>
+      <h2 style="font-size:clamp(1.5rem,3vw,2rem);font-weight:800;letter-spacing:-.03em;margin-bottom:12px">Ready to stop installing blind?</h2>
+      <p>TopGun is free, open-source, and available now. One install gives you access to every skill registry on the planet — with a security audit on every result.</p>
+      <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:28px">
+        <a href="#install" class="btn btn-primary">Get Started ↓</a>
+        <a href="https://github.com/alo-labs/topgun" class="btn btn-outline" target="_blank" rel="noopener">View on GitHub →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <span style="font-weight:700;color:var(--text-primary)">TopGun</span>
+        <span style="margin:0 8px">·</span>
+        Innovated at <a href="https://alolabs.dev" target="_blank" rel="noopener">Ālo Labs</a>
+      </div>
+      <div class="footer-links">
+        <a href="help/">Help</a>
+        <a href="https://github.com/alo-labs/topgun" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/alo-labs/topgun/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.js"></script>
+<script>
+lucide.createIcons();
+
+// Theme toggle
+function toggleTheme(){
+  const curr=document.documentElement.getAttribute('data-theme');
+  const next=curr==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('topgun-theme',next);
+  updateThemeIcon(next);
+}
+function updateThemeIcon(theme){
+  document.getElementById('icon-sun').style.display=theme==='dark'?'inline':'none';
+  document.getElementById('icon-moon').style.display=theme==='dark'?'none':'inline';
+}
+updateThemeIcon(document.documentElement.getAttribute('data-theme')||'dark');
+
+// Mobile nav
+function toggleNav(){
+  document.getElementById('nav-links').classList.toggle('active');
+}
+
+// Fade-in on scroll
+const observer=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target)}});
+},{threshold:0.1});
+document.querySelectorAll('.fade-in').forEach(el=>observer.observe(el));
+</script>
+</body>
+</html>
