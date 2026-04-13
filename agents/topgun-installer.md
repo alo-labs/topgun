@@ -126,9 +126,14 @@ node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write test_invoke_status "
 
 **If installation is verified (any passing row in decision matrix above):**
 
+Update state:
+
+```bash
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write install_method "plugin"
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write install_path "~/.claude/plugins/{skill_name}"
 ```
-## INSTALL COMPLETE
-```
+
+Proceed to Step 6 (Registry Update).
 
 **If both verification checks failed OR /plugin install itself failed:**
 
@@ -142,10 +147,100 @@ Write the failed state:
 node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write install_verified "false"
 ```
 
-Then output:
+Proceed to Step 5 (Local-Copy Fallback).
+
+---
+
+## Step 5: Local-Copy Fallback
+
+Executed when /plugin install failed or post-install verification failed.
+
+### 5.1 Read secured path from state
+
+```bash
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-read
+```
+
+Extract `secured_path` (e.g. `~/.topgun/secured/{sha}/SKILL.md`) and `skill_name`.
+
+### 5.2 Write secured SKILL.md to local skills directory
+
+```bash
+mkdir -p ~/.claude/skills/{skill_name}
+cp ~/.topgun/secured/{sha}/SKILL.md ~/.claude/skills/{skill_name}/SKILL.md
+chmod 644 ~/.claude/skills/{skill_name}/SKILL.md
+```
+
+### 5.3 Verify invocability
+
+Attempt a lightweight test invocation of the locally installed skill via the Task tool with a minimal prompt (e.g. `--help`).
+
+- If the skill responds with any non-error output: set `local_copy_status = "success"`.
+- If the skill errors, is not found, or times out: set `local_copy_status = "failed"`.
+
+### 5.4 Handle local-copy result
+
+**If `local_copy_status = "success"`:**
+
+Update state:
+
+```bash
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write install_method "local-copy"
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write install_path "~/.claude/skills/{skill_name}/SKILL.md"
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write install_verified "true"
+```
+
+Proceed to Step 6 (Registry Update).
+
+**If `local_copy_status = "failed"`:**
+
+Output the following error clearly:
+
+> Local-copy fallback also failed. Manual installation required.
+> Secured skill is available at: {secured_path}
+> Copy it manually to ~/.claude/skills/{skill_name}/SKILL.md
+
+Write failed state:
+
+```bash
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write install_verified "false"
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write install_method "failed"
+```
+
+Do NOT output ## INSTALL COMPLETE. STOP here.
+
+---
+
+## Step 6: Registry Update (installed.json)
+
+After ANY successful install (plugin or local-copy), update `~/.topgun/installed.json`:
+
+```bash
+node -e "
+const fs = require('fs');
+const path = require('path');
+const regPath = path.join(process.env.HOME, '.topgun', 'installed.json');
+let registry = [];
+try { registry = JSON.parse(fs.readFileSync(regPath, 'utf8')); } catch(e) { registry = []; }
+registry.push({
+  name: '{skill_name}',
+  source_registry: '{source_registry}',
+  install_method: '{plugin|local-copy}',
+  installed_at: new Date().toISOString(),
+  secured_path: '~/.topgun/secured/{sha}/SKILL.md',
+  install_path: '{actual install path}'
+});
+fs.writeFileSync(regPath, JSON.stringify(registry, null, 2));
+console.log('Registry updated');
+"
+```
+
+If the write fails, output a warning but do NOT block the install:
+
+> Warning: Could not update ~/.topgun/installed.json — registry entry not written. Install succeeded.
+
+After a successful registry update, output:
 
 ```
-## INSTALL FAILED — FALLBACK NEEDED
+## INSTALL COMPLETE
 ```
-
-The orchestrator (Plan 05-03) will handle the local-copy fallback path.
