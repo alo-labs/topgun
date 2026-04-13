@@ -214,19 +214,40 @@ node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write current_stage comple
 
 ## Step 8: Audit Trail Header
 
-After all stages complete, display:
+This step only executes if approval was "approved" (Step 6) and InstallSkills returned `## INSTALL COMPLETE`. If `approval = "rejected"`, do NOT display this header — the pipeline already stopped in Step 6.
+
+Read current state to get install data:
+
+```bash
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-read
+```
+
+Read the audit and comparison JSON files for scores:
+
+```bash
+cat ~/.topgun/audit-*.json 2>/dev/null | tail -1
+cat ~/.topgun/comparison-*.json 2>/dev/null | tail -1
+```
+
+Extract: `skill_name`, `source_registry`, `install_method` (from state), `capability` / `security` / `popularity` / `recency` scores (from comparison JSON), `pass_count` and `finding_count` (from audit JSON).
+
+Determine installed location label:
+- If `install_method = "plugin"` → display `plugin`
+- If `install_method = "local-copy"` → display `local ~/.claude/skills/`
+
+Display the header with actual values:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  TOPGUN ► SKILL ACQUIRED
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- Skill:    [name + source registry from comparison results]
- Score:    [capability / security / popularity / recency]
+ Skill:    {skill_name} ({source_registry})
+ Score:    capability={X} / security={X} / popularity={X} / recency={X}
  Secured:  2 clean Sentinel passes (Alo Labs /audit-security-of-skill)
- Installed: [plugin | local ~/.claude/skills/]
+ Installed: {plugin | local ~/.claude/skills/}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-Followed by the disclaimer: "2 clean Sentinel passes = no automated findings. Not a guarantee of zero vulnerabilities."
+Immediately after the header, display the disclaimer:
 
-**Note:** In Phase 1 (stub mode), populate the header with placeholder values since sub-agents return stub data.
+> 2 clean Sentinel passes = no automated findings. Not a guarantee of zero vulnerabilities.
