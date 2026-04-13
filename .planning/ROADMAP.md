@@ -11,8 +11,8 @@
 | Phase | Name | Key Deliverable | Requirements |
 |-------|------|-----------------|--------------|
 | 1 | Plugin Scaffold + Orchestrator | Working plugin shell, topgun-tools.cjs, local testability | REQ-01, REQ-25, REQ-27, NFR-06 |
-| 2 | 2/3 | In Progress|  |
-| 3 | CompareSkills — Multi-Factor Ranking | Scoring rubric, structural envelope on metadata | REQ-08–09, NFR-01 |
+| 2 | 3/3 | Complete   | 2026-04-13 |
+| 3 | 1/3 | In Progress|  |
 | 4 | SecureSkills — Sentinel Audit Loop | Sentinel invocation, SHA-256 gating, loop cap, escalation | REQ-10–16, NFR-01, NFR-02, NFR-05 |
 | 5 | InstallSkills + Approval Gate | Approval gate, install verification, fallback, allowed-tools | REQ-17–22, REQ-21 |
 | 6 | Caching, State, Resilience | Audit cache, stage resumption, --offline, failure contracts | REQ-23–24, REQ-26, NFR-04 |
@@ -47,7 +47,7 @@
 
 **Why second:** Pipeline entry point. CompareSkills and everything downstream depend on the normalized schema being stable.
 
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 - **2-01:** Tier-1 registry adapters — skills.sh (WebFetch), agentskill.sh (`ags search --json`), Smithery (REST + Bearer), GitHub/GitLab (REST search)
 - **2-02:** Tier-2 registry adapters — SkillsMP, LobeHub, OSM, vskill, ClawHub (headless attempt), npm, and remaining registries from the report; graceful skip for unavailable registries
 - **2-03:** Normalization layer — unified schema, deduplication by package identity, contentSha extraction, 3+ unavailable warning, found-skills-{hash}.json output
@@ -68,7 +68,7 @@
 
 **Why third:** Depends on FindSkills' normalized schema. Straightforward logic but must implement structural envelope for all metadata before any agent context injection.
 
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 - **3-01:** Structural envelope enforcement + pre-filter (base64, Unicode > U+2000, zero-width char detection)
 - **3-02:** Scoring rubric — capability match (semantic similarity to job context), security posture (registry security score), popularity (install count + stars), recency (last_updated); weighted composite score
 - **3-03:** Ranked shortlist output, winner selection, `comparison-{hash}.json`
