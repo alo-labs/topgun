@@ -83,20 +83,67 @@ switch (command) {
   case 'cache-lookup': {
     const sha = args[0];
     if (!sha) { output({ hit: false }); break; }
+
+    // Parse flags
+    const forceIdx = args.indexOf('--force');
+    if (forceIdx !== -1) { output({ hit: false, forced: true }); break; }
+
+    const upstreamEtagIdx = args.indexOf('--upstream-etag');
+    const upstreamEtag = upstreamEtagIdx !== -1 ? args[upstreamEtagIdx + 1] : null;
+    const upstreamUpdatedAtIdx = args.indexOf('--upstream-updated-at');
+    const upstreamUpdatedAt = upstreamUpdatedAtIdx !== -1 ? args[upstreamUpdatedAtIdx + 1] : null;
+
     const cachePath = path.join(TOPGUN_HOME, 'audit-cache', `${sha}.json`);
     if (!fs.existsSync(cachePath)) { output({ hit: false }); break; }
-    const cached = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
+
+    let cached;
+    try {
+      cached = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
+    } catch {
+      output({ hit: false });
+      break;
+    }
+
+    // Check upstream etag invalidation
+    if (upstreamEtag !== null && cached.etag !== undefined && upstreamEtag !== cached.etag) {
+      output({ hit: false, invalidated: true, reason: 'upstream etag changed' });
+      break;
+    }
+
+    // Check upstream updated_at invalidation
+    if (upstreamUpdatedAt !== null && cached.updated_at !== undefined && upstreamUpdatedAt !== cached.updated_at) {
+      output({ hit: false, invalidated: true, reason: 'upstream updated_at changed' });
+      break;
+    }
+
     const age = Date.now() - new Date(cached.cached_at).getTime();
     const ttl = 24 * 60 * 60 * 1000;
-    output({ hit: age < ttl, stale: age >= ttl, age_hours: Math.round(age / 3600000), data: cached });
+    const age_hours = Math.round(age / 3600000);
+
+    if (age >= ttl) {
+      output({
+        hit: false,
+        stale: true,
+        age_hours,
+        warning: `Audit cached ${age_hours} hours ago -- use --force-audit to refresh`,
+        data: cached,
+      });
+      break;
+    }
+
+    output({ hit: true, stale: false, age_hours, data: cached });
     break;
   }
 
   case 'cache-write': {
     const sha = args[0];
-    const jsonData = args.slice(1).join(' ');
+    // Collect positional JSON (everything before first -- flag)
+    const flagStart = args.findIndex((a, i) => i > 0 && a.startsWith('--'));
+    const jsonData = flagStart === -1
+      ? args.slice(1).join(' ')
+      : args.slice(1, flagStart).join(' ');
     if (!sha || !jsonData) {
-      console.error('Usage: cache-write <sha> <json>');
+      console.error('Usage: cache-write <sha> <json> [--etag <etag>] [--updated-at <iso>]');
       process.exit(1);
     }
     ensureDir(path.join(TOPGUN_HOME, 'audit-cache'));
@@ -107,8 +154,70 @@ switch (command) {
       process.exit(1);
     }
     data.cached_at = new Date().toISOString();
+    const etagIdx = args.indexOf('--etag');
+    if (etagIdx !== -1 && args[etagIdx + 1]) data.etag = args[etagIdx + 1];
+    const updatedAtIdx = args.indexOf('--updated-at');
+    if (updatedAtIdx !== -1 && args[updatedAtIdx + 1]) data.updated_at = args[updatedAtIdx + 1];
     fs.writeFileSync(cachePath, JSON.stringify(data, null, 2));
     output({ status: 'ok', sha, path: cachePath });
+    break;
+  }
+
+  case 'lock-write': {
+    const jsonData = args[0];
+    if (!jsonData) {
+      console.error('Usage: lock-write <json>');
+      process.exit(1);
+    }
+    let incoming;
+    try { incoming = JSON.parse(jsonData); } catch {
+      console.error('Invalid JSON data for lock-write');
+      process.exit(1);
+    }
+    ensureDir(TOPGUN_HOME);
+    const lockPath = path.join(TOPGUN_HOME, 'topgun-lock.json');
+    const lock = {
+      locked_at: new Date().toISOString(),
+      audits: incoming.audits || [],
+      topgun_version: incoming.topgun_version || '1.0',
+    };
+    fs.writeFileSync(lockPath, JSON.stringify(lock, null, 2));
+    output({ status: 'ok', path: lockPath });
+    break;
+  }
+
+  case 'lock-read': {
+    const lockPath = path.join(TOPGUN_HOME, 'topgun-lock.json');
+    if (!fs.existsSync(lockPath)) { output({ exists: false }); break; }
+    try {
+      output(JSON.parse(fs.readFileSync(lockPath, 'utf8')));
+    } catch {
+      output({ exists: false });
+    }
+    break;
+  }
+
+  case 'cache-invalidate': {
+    const target = args[0];
+    const cacheDir = path.join(TOPGUN_HOME, 'audit-cache');
+    if (target === '--all') {
+      ensureDir(cacheDir);
+      const files = fs.readdirSync(cacheDir).filter(f => f.endsWith('.json'));
+      for (const f of files) fs.unlinkSync(path.join(cacheDir, f));
+      output({ status: 'ok', count: files.length });
+      break;
+    }
+    if (!target) {
+      console.error('Usage: cache-invalidate <sha> | --all');
+      process.exit(1);
+    }
+    const filePath = path.join(cacheDir, `${target}.json`);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      output({ status: 'ok', deleted: true });
+    } else {
+      output({ status: 'ok', deleted: false });
+    }
     break;
   }
 
@@ -268,6 +377,6 @@ switch (command) {
 
   default:
     console.error(`Unknown command: ${command}`);
-    console.error('Commands: init, state-read, state-write, sha256, cache-lookup, cache-write, keychain-get, keychain-set, schemas');
+    console.error('Commands: init, state-read, state-write, sha256, cache-lookup, cache-write, cache-invalidate, lock-write, lock-read, keychain-get, keychain-set, schemas');
     process.exit(1);
 }
