@@ -6,9 +6,9 @@
 <meta name="color-scheme" content="dark light">
 <script>document.documentElement.setAttribute('data-theme',localStorage.getItem('topgun-theme')||'dark');</script>
 <title>TopGun — Best AI Skill for any Job — Security Assured</title>
-<meta name="description" content="TopGun is a Claude Code plugin that finds, compares, security-audits, and installs the best available skill from 11 global registries. SENTINEL-secured. Auto-installed.">
+<meta name="description" content="TopGun is a Claude Code plugin that finds, compares, security-audits, and installs the best available skill from 18 global registries. SENTINEL-secured. Auto-installed.">
 <meta property="og:title" content="TopGun — Best AI Skill for any Job — Security Assured">
-<meta property="og:description" content="TopGun searches 11 global skill registries, ranks every candidate across four dimensions, runs a SENTINEL security audit until clean, and installs the winner — automatically.">
+<meta property="og:description" content="TopGun searches 18 global skill registries, ranks every candidate across four dimensions, runs a SENTINEL security audit until clean, and installs the winner — automatically.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://topgun.alolabs.dev">
 <meta name="twitter:card" content="summary_large_image">
@@ -23,13 +23,13 @@ html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
 /* ───── DESIGN TOKENS — DARK (default) ───── */
 :root,[data-theme="dark"]{
   --bg-page:#09090e;
-  --bg-card:#111118;
+  --bg-card:#181818;
   --bg-card-hover:#17171f;
   --bg-code:#0d0d14;
   --bg-hero:linear-gradient(160deg,#050507 0%,#09090f 25%,#0d0d18 48%,#0f0f1c 62%,#0a0a14 80%,#060608 100%);
   --accent:#f59e0b;
   --accent-light:#fbbf24;
-  --accent-glow:rgba(245,158,11,0.18);
+  --accent-glow:rgba(245,158,18,0.18);
   --accent2:#d97706;
   --accent3:#b45309;
   --chrome-gradient:linear-gradient(90deg,#f59e0b 0%,#fde68a 9%,#f59e0b 18%,#d97706 27%,#fbbf24 36%,#fde68a 43%,#f59e0b 51%,#d97706 59%,#fbbf24 68%,#f59e0b 76%,#d97706 86%,#b45309 100%);
@@ -48,26 +48,26 @@ html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
   --font-sans:'Space Grotesk',system-ui,sans-serif;
   --font-mono:'Fira Code',monospace;
   --shadow-lg:0 20px 60px rgba(0,0,0,.7);
-  --shadow-glow:0 0 40px rgba(245,158,11,0.08);
-  --shadow-btn:0 4px 20px rgba(245,158,11,0.3);
-  --shadow-btn-hover:0 8px 30px rgba(245,158,11,0.45);
+  --shadow-glow:0 0 40px rgba(245,158,18,0.08);
+  --shadow-btn:0 4px 20px rgba(245,158,18,0.3);
+  --shadow-btn-hover:0 8px 30px rgba(245,158,18,0.45);
   --nav-bg:rgba(9,9,14,.92);
   --nav-mobile-bg:rgba(9,9,14,.99);
   --section-alt:rgba(17,17,24,.7);
-  --card-top:rgba(245,158,11,0.6);
-  --hero-glow:rgba(245,158,11,0.06);
+  --card-top:rgba(245,158,18,0.6);
+  --hero-glow:rgba(245,158,18,0.06);
   --grad-1:#92400e;
   --grad-2:#b45309;
   --grad-3:#d97706;
   --grad-4:#f59e0b;
-  --accent-a10:rgba(245,158,11,.10);
-  --accent-a15:rgba(245,158,11,.15);
-  --accent-a20:rgba(245,158,11,.20);
-  --accent-a25:rgba(245,158,11,.25);
-  --accent-a30:rgba(245,158,11,.30);
-  --accent-a40:rgba(245,158,11,.40);
-  --amber-a12:rgba(245,158,11,.12);
-  --amber-a15:rgba(245,158,11,.15);
+  --accent-a10:rgba(245,158,18,.10);
+  --accent-a15:rgba(245,158,18,.15);
+  --accent-a20:rgba(245,158,18,.20);
+  --accent-a25:rgba(245,158,18,.25);
+  --accent-a30:rgba(245,158,18,.30);
+  --accent-a40:rgba(245,158,18,.40);
+  --amber-a12:rgba(245,158,18,.12);
+  --amber-a15:rgba(245,158,18,.15);
   --red-a12:rgba(220,38,38,.12);
   --green-a12:rgba(5,150,105,.12);
   --cyan-a12:rgba(8,145,178,.12);
@@ -177,7 +177,7 @@ nav .nav-cta:hover{background:linear-gradient(135deg,var(--grad-2),var(--grad-4)
 .hero::after{
   content:'';position:absolute;bottom:-150px;left:-100px;
   width:500px;height:500px;border-radius:50%;
-  background:radial-gradient(ellipse at 45% 55%,rgba(245,158,11,.06) 0%,rgba(245,158,11,.03) 45%,transparent 72%);
+  background:radial-gradient(ellipse at 45% 55%,rgba(245,158,18,.06) 0%,rgba(245,158,18,.03) 45%,transparent 72%);
 }
 .hero .container{position:relative;z-index:1}
 .hero .version-badge{
@@ -266,7 +266,7 @@ section:nth-child(even){background:var(--section-alt)}
 .layer-num{
   min-width:40px;height:40px;border-radius:50%;flex-shrink:0;
   background:linear-gradient(135deg,var(--grad-1),var(--grad-2),var(--grad-3));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 2px 8px rgba(245,158,11,.3);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 2px 8px rgba(245,158,18,.3);
   color:#fff;font-weight:800;font-size:.9rem;
   display:flex;align-items:center;justify-content:center;
   font-family:var(--font-mono);margin-top:2px;
@@ -351,7 +351,7 @@ footer .footer-links{display:flex;gap:24px}
 /* ───── RESPONSIVE ───── */
 @media(max-width:768px){
   section{padding:64px 0}
-  .hero{padding:110px 20px 72px}
+  .hero{padding:180px 20px 72px}
   .hero h1{font-size:clamp(2.5rem,10vw,4rem)}
   .hero .cta-group{flex-direction:column;align-items:center}
   .btn{width:100%;max-width:300px;justify-content:center}
@@ -386,7 +386,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
     <div class="nav-right">
       <button class="theme-btn" onclick="toggleTheme()" id="theme-btn" aria-label="Toggle theme">
         <span id="icon-sun" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span>
-        <span id="icon-moon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+        <span id="icon-moon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 18.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
       </button>
       <a href="https://github.com/alo-labs/topgun" class="nav-cta" target="_blank" rel="noopener">GitHub →</a>
       <button class="nav-toggle" onclick="toggleNav()" aria-label="Menu">
@@ -406,13 +406,13 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
     <h1><span class="gradient">TopGun</span></h1>
     <p class="hero-tagline-caps">Best AI Skill for any Job — Security Assured</p>
     <p class="tagline">Agentic AI Skills Finder and Security Enforcer</p>
-    <p class="subtitle">Use TopGun to get the job done — the best AI skills in the world discovered, security scanned and cleared. TopGun searches 11 global skill registries, ranks every candidate across four dimensions, runs a SENTINEL security audit until clean, and installs the winner — automatically.</p>
+    <p class="subtitle">Use TopGun to get the job done — the best AI skills in the world discovered, security scanned and cleared. TopGun searches 18 global skill registries, ranks every candidate across four dimensions, runs a SENTINEL security audit until clean, and installs the winner — automatically.</p>
     <div class="cta-group">
       <a href="#install" class="btn btn-primary">Install TopGun ↓</a>
       <a href="#pipeline" class="btn btn-outline">View Pipeline →</a>
     </div>
     <div class="hero-pills">
-      <span class="hero-pill"><i data-lucide="globe" style="width:14px;height:14px"></i> 11 Registries</span>
+      <span class="hero-pill"><i data-lucide="globe" style="width:14px;height:14px"></i> 18 Registries</span>
       <span class="hero-pill"><i data-lucide="bar-chart-2" style="width:14px;height:14px"></i> 4-Factor Scoring</span>
       <span class="hero-pill"><i data-lucide="shield-check" style="width:14px;height:14px"></i> SENTINEL Secured</span>
       <span class="hero-pill"><i data-lucide="zap" style="width:14px;height:14px"></i> Auto-Install</span>
@@ -462,7 +462,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
         <div class="layer-num">1</div>
         <div class="layer-body">
           <h3>FindSkills <span class="layer-badge" style="background:var(--cyan-a12);color:var(--cyan)">DISCOVER</span></h3>
-          <p>Searches 11 registries in parallel — skills.sh, Smithery, GitHub, npm, GitLab, LobeHub, and more. Normalizes every result to a unified schema, deduplicates by contentSha, and produces a ranked candidate list.</p>
+          <p>Searches 18 registries in parallel — skills.sh, Smithery, GitHub, npm, GitLab, LobeHub, and more. Normalizes every result to a unified schema, deduplicates by contentSha, and produces a ranked candidate list.</p>
         </div>
       </div>
       <div class="layer-card fade-in">
@@ -494,7 +494,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
 <section id="registries">
   <div class="container">
     <div class="section-label fade-in text-center">Coverage</div>
-    <h2 class="section-title fade-in text-center">11 Registries, All Searched</h2>
+    <h2 class="section-title fade-in text-center">18 Registries, All Searched</h2>
     <p class="section-desc centered fade-in">FindSkills queries every major skill registry in parallel. No manual searching required.</p>
     <div class="registry-grid">
       <div class="registry-card fade-in">
