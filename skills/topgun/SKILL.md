@@ -30,7 +30,24 @@ node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-read
 
 Extract the job description from the user's message. This is everything after `/topgun `.
 
-Check for `--registries` flag. If present, extract the comma-separated registry list. Examples:
+Check for the following flags and extract them before parsing the task description:
+
+**`--reset` flag:** If present, clear state and start fresh BEFORE any other logic:
+```bash
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write current_stage null
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write last_completed_stage null
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write run_id null
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write found_skills_path null
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write comparison_path null
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write audit_path null
+```
+Output: "State cleared. Starting fresh pipeline." Then proceed normally with the remaining flags and task description.
+
+**`--offline` flag:** If present, set `offline=true`. All sub-agent dispatches must include "(offline mode — use only cached data, do not fetch from registries)" in their prompts. File existence checks during the offline flow are described in Step 1.5.
+
+**`--force-audit` flag:** If present, set `force_audit=true`. Pass `--force` to the SecureSkills sub-agent prompt so it calls cache-lookup with `--force` and re-runs the audit even if a cached result exists.
+
+**`--registries` flag:** If present, extract the comma-separated registry list. Examples:
 - `/topgun find a deployment skill` → task = "find a deployment skill", registries = null (all)
 - `/topgun --registries skills.sh,github find a deployment skill` → task = "find a deployment skill", registries = ["skills.sh", "github"]
 
@@ -46,15 +63,70 @@ If `--registries` was provided:
 node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write registries "<comma-separated list>"
 ```
 
+## Step 1.5: Offline Check
+
+**Only execute this step if `--offline` flag was set.**
+
+Check whether cached output files exist for this query before proceeding. Compute the query hash:
+```bash
+QUERY_HASH=$(node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" sha256 "<task_description>" | node -e "process.stdin.resume();let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>console.log(JSON.parse(d).hash))")
+```
+
+Check for cached FindSkills output:
+```bash
+node -e "process.exit(require('fs').existsSync(require('path').join(process.env.HOME, '.topgun', 'found-skills-' + process.argv[1] + '.json')) ? 0 : 1)" "$QUERY_HASH"
+```
+
+If the found-skills cache file does NOT exist:
+- Output: "No cached results available for this query. Run without --offline to search registries."
+- STOP. Do NOT proceed.
+
+If the found-skills cache file exists, read `found_skills_path` from state. If state has no `found_skills_path`, set it to `~/.topgun/found-skills-{hash}.json`.
+
+For SecureSkills, the cached audit is checked at Step 5 when `offline=true`: if no audit cache exists for the winning skill's SHA, output "No cached audit available. Cannot proceed offline." and STOP.
+
 ## Step 2: Resume Check
 
-Read the state from Step 0. Check `last_completed_stage`:
+Read the state from Step 0. Check `last_completed_stage`.
+
+For each stage, verify the expected output file ACTUALLY EXISTS on disk before trusting the state flag. If the state says a stage is complete but the output file is missing, log a warning and re-run from that stage.
+
+**Stage verification rules:**
+
 - If `null` or missing → start from FindSkills (Step 3)
-- If `find` → skip to CompareSkills (Step 4)
-- If `compare` → skip to SecureSkills (Step 5)
-- If `secure` → go to approval gate (Step 6)
-- If `approve` → skip to InstallSkills (Step 7)
+
+- If `find`:
+  ```bash
+  node -e "process.exit(require('fs').existsSync(process.argv[1]) ? 0 : 1)" "<found_skills_path from state>"
+  ```
+  If file missing: output "WARNING: Found-skills output missing, re-running FindSkills." → start from Step 3.
+  If file exists: skip to CompareSkills (Step 4).
+
+- If `compare`:
+  First verify `found_skills_path` exists (same check as `find` above). If missing: warn "WARNING: Found-skills output missing, re-running FindSkills." → start from Step 3.
+  Then verify `comparison_path` exists:
+  ```bash
+  node -e "process.exit(require('fs').existsSync(process.argv[1]) ? 0 : 1)" "<comparison_path from state>"
+  ```
+  If comparison file missing: output "WARNING: Comparison output missing, re-running CompareSkills." → start from Step 4 (FindSkills output still valid).
+  If both exist: skip to SecureSkills (Step 5).
+
+- If `secure`:
+  Verify `audit_path` exists:
+  ```bash
+  node -e "process.exit(require('fs').existsSync(process.argv[1]) ? 0 : 1)" "<audit_path from state>"
+  ```
+  If file missing: output "WARNING: Audit output missing, re-running SecureSkills." → start from Step 5.
+  If file exists: go to approval gate (Step 6).
+
+- If `approve`:
+  Verify `audit_path` exists (same check as `secure` above).
+  If file missing: output "WARNING: Audit output missing, cannot resume past approval. Re-running SecureSkills." → start from Step 5.
+  If file exists: skip to InstallSkills (Step 7).
+
 - If `install` or `complete` → inform user pipeline already completed for this run. Suggest `--reset` to start fresh.
+
+**Threat model note (T-06-04):** Before trusting `last_completed_stage`, validate its value against the known enum: `find`, `compare`, `secure`, `approve`, `install`, `complete`. If the value is not in this set (e.g. due to manual state.json editing), output "WARNING: Invalid stage value in state.json. Restarting from scratch." and start from Step 3.
 
 ## Step 3: FindSkills
 
@@ -63,7 +135,7 @@ Update state:
 node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write current_stage find
 ```
 
-Dispatch the finder agent:
+Dispatch the finder agent. If `offline=true`, include "(offline mode — use only cached data, do not fetch from registries)" in the prompt:
 
 Task(
   subagent_type="topgun-finder",
@@ -73,9 +145,10 @@ Task(
 
 After the agent returns, verify the output contains `## FIND COMPLETE`. If not, report an error and stop.
 
-Update state:
+Update state, including the output file path:
 ```bash
 node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write last_completed_stage find
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write found_skills_path "$HOME/.topgun/found-skills-{hash}.json"
 ```
 
 ## Step 4: CompareSkills
@@ -85,7 +158,7 @@ Update state:
 node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write current_stage compare
 ```
 
-Dispatch the comparator agent:
+Dispatch the comparator agent. If `offline=true`, include "(offline mode — use only cached data, do not fetch from registries)" in the prompt:
 
 Task(
   subagent_type="topgun-comparator",
@@ -95,9 +168,10 @@ Task(
 
 After the agent returns, verify the output contains `## COMPARE COMPLETE`. If not, report an error and stop.
 
-Update state:
+Update state, including the output file path:
 ```bash
 node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write last_completed_stage compare
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write comparison_path "$HOME/.topgun/comparison-{hash}.json"
 ```
 
 ## Step 5: SecureSkills
@@ -107,7 +181,13 @@ Update state:
 node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write current_stage secure
 ```
 
-Dispatch the securer agent:
+**Offline check (T-06-05):** If `offline=true`, verify a cached audit exists for the winning skill's SHA before dispatching:
+```bash
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" cache-lookup "<winning_skill_sha>"
+```
+If result is `{ "hit": false }`: output "No cached audit available. Cannot proceed offline." and STOP.
+
+Dispatch the securer agent. If `force_audit=true`, include "--force" in the prompt so it bypasses the audit cache:
 
 Task(
   subagent_type="topgun-securer",
@@ -117,9 +197,10 @@ Task(
 
 After the agent returns, verify the output contains `## SECURE COMPLETE`. If not, report an error and stop.
 
-Update state:
+Update state, including the output file path:
 ```bash
 node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write last_completed_stage secure
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write audit_path "$HOME/.topgun/audit-{hash}.json"
 ```
 
 ## Step 6: User Approval Gate
