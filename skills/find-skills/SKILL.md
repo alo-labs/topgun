@@ -41,11 +41,13 @@ default to all registries: `["skills-sh", "agentskill-sh", "smithery", "github",
 
 ## Step 3: Adapter Dispatch
 
-For each enabled registry, execute its adapter by following the corresponding
-instruction file at `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/{registry}.md`.
+For each enabled registry, the `topgun-finder` agent dispatches one parallel sub-agent
+per registry using the Agent tool. All registries are searched simultaneously — no
+concurrency cap. Each sub-agent reads its adapter instruction file at
+`$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/{registry}.md`, executes the search,
+and writes a partial results file to `~/.topgun/registry-{hash}-{registry}.json`.
 
-**Concurrency cap: process at most 5 adapters simultaneously (batch of 5).**
-With 18 registries, dispatch in 4 batches of 5, 5, 5, 3.
+All 18 sub-agents are launched in a **single parallel batch**.
 
 Each adapter must return the following contract object:
 
