@@ -162,12 +162,10 @@
 
 **Why last:** Distribution is only meaningful once the full pipeline is tested and hardened.
 
-**Plans:** 3 plans
-- [ ] 04-01-PLAN.md — Structural envelope + pre-filters (phone-home, allowed-tools)
-- [ ] 04-02-PLAN.md — Sentinel invocation loop (SHA-256 gating, fingerprint tracking)
-- [ ] 04-03-PLAN.md — Loop cap, escalation, secured copy, audit-{hash}.json
-- **7-01:** `.claude-plugin/marketplace.json`, autoUpdate config, GitHub release tags (v1.0.0), `/plugin install alo-labs/topgun` support
-- **7-02:** skills.sh listing, `npx skills add alo-labs/topgun` support, README and usage examples, registry submission guides
+**Plans:** 2 plans
+Plans:
+- [ ] 07-01-PLAN.md — Plugin distribution: marketplace.json, README.md, autoUpdate config
+- [ ] 07-02-PLAN.md — skills.sh listing, npx support, registry submission guide
 
 **Success criteria:**
 - `npx @anthropic-ai/claude-code --allowedTools "Bash,Read,Write,Glob,Grep" -p '/plugin install alo-labs/topgun'` succeeds in a clean environment
