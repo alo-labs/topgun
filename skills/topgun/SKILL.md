@@ -52,7 +52,7 @@ Read the state from Step 0. Check `last_completed_stage`:
 - If `null` or missing → start from FindSkills (Step 3)
 - If `find` → skip to CompareSkills (Step 4)
 - If `compare` → skip to SecureSkills (Step 5)
-- If `secure` → skip to approval gate (Step 6 — not yet implemented, skip to Step 7)
+- If `secure` → go to approval gate (Step 6)
 - If `approve` → skip to InstallSkills (Step 7)
 - If `install` or `complete` → inform user pipeline already completed for this run. Suggest `--reset` to start fresh.
 
@@ -124,10 +124,70 @@ node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write last_completed_stage
 
 ## Step 6: User Approval Gate
 
-**Not implemented in Phase 1.** Skip to Step 7. Mark as completed:
+Update state:
+```bash
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write current_stage approve
+```
+
+Read the audit results file written by SecureSkills:
+```bash
+cat ~/.topgun/audit-{hash}.json
+```
+
+Read the comparison results file written by CompareSkills:
+```bash
+cat ~/.topgun/comparison-{hash}.json
+```
+
+Extract from the audit JSON: `skill_name`, `source_registry`, scores (`capability`, `security`, `popularity`, `recency`), Sentinel summary (`pass_count`, `finding_count`), `allowed_tools` list, and `secured_path`.
+
+Present the audit manifest to the user:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ TOPGUN ► APPROVAL REQUIRED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ Skill:         {name} ({source_registry})
+ Score:         capability={X} / security={X} / popularity={X} / recency={X}
+ Sentinel:      {pass_count} passes, {finding_count} findings resolved
+ Allowed-tools: {comma-separated list}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**Permission warning check (REQ-18):** BEFORE asking for approval, inspect the `allowed_tools` list. If it contains `Bash`, `Computer`, or a wildcard (`*`), display this warning:
+
+```
+WARNING: This skill requests elevated permissions:
+  - {list each dangerous tool found}
+  These tools allow the skill to execute arbitrary commands on your system.
+  Review the allowed-tools list carefully before approving.
+```
+
+Then ask the user: "Do you approve installation of this skill? (yes/no)"
+
+**If user says "yes" or "y" (case-insensitive):**
+
+Update state:
 ```bash
 node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write last_completed_stage approve
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write approval "approved"
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write approved_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
+
+Proceed to Step 7 (InstallSkills).
+
+**If user says "no" or "n" (case-insensitive):**
+
+Update state:
+```bash
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write last_completed_stage approve
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write approval "rejected"
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write current_stage complete
+```
+
+Output: "Installation rejected by user. Pipeline complete — no skill installed."
+
+STOP. Do NOT proceed to Step 7.
 
 ## Step 7: InstallSkills
 
