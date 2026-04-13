@@ -16,6 +16,32 @@
 
 <!-- ENTRIES BELOW — newest first -->
 
+## 2026-04-13 — v1.1.0
+
+**What**: Expanded from 11 to 18 skill registries, bundled SENTINEL v2.3.0 eliminating external dependency, fixed code review findings in adapters, and added 4-stage pre-release quality gate.
+
+**Added**:
+- 7 new Tier-3 registry adapters: `glama.md`, `huggingface.md`, `langchain-hub.md`, `claude-plugins-official.md`, `cursor-directory.md`, `mcp-so.md`, `opentools.md`
+- `skills/sentinel/SKILL.md` — SENTINEL v2.3.0 bundled directly into plugin (no external dependency)
+- `docs/pre-release-quality-gate.md` — 4-stage quality gate adapted for TopGun
+
+**Changed**:
+- `agentskill-sh.md` — upgraded to WebFetch primary with Bash CLI `ags` fallback
+- `find-skills/SKILL.md` — default registry list expanded to 18, batching updated to 4 batches of 5/5/5/3
+- `secure-skills/SKILL.md` — switched from external `/audit-security-of-skill` to bundled SENTINEL (REQ-10)
+- `topgun/SKILL.md` — Step 8 audit trail template updated to reference bundled SENTINEL v2.3.0
+- `README.md` — removed stale external Sentinel dependency requirement
+- `site/index.html` — updated registry count to 18, refreshed positioning copy
+- `plugin.json` — bumped version to 1.1.0
+
+**Fixed**:
+- `claude-plugins-official.md` — added explicit 4xx → unavailable handling + Degradation Notice
+- `glama.md` — added description sanitization (truncate 500 chars, strip HTML/markdown)
+- `cursor-directory.md` — documented word-level filtering rationale
+- `agentskill-sh.md` — added `status: "error"` path for CLI non-JSON output
+
+---
+
 ## 2026-04-13 — registry-adapter-expansion-sentinel-bundle
 
 **What**: Added 7 new Tier-3 registry adapters, upgraded agentskill-sh to WebFetch primary with CLI fallback, and bundled SENTINEL v2.3.0 directly into the plugin eliminating the external audit-security-of-skill dependency.

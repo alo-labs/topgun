@@ -25,7 +25,7 @@ npx skills add alo-labs/topgun
 TopGun will:
 1. **Search** 18+ skill registries in parallel
 2. **Compare** candidates across capability, security, popularity, and recency
-3. **Audit** the top pick with Alo Labs Sentinel (2 clean passes required)
+3. **Audit** the top pick with bundled SENTINEL v2.3.0 (2 clean passes required)
 4. **Present** the audit manifest for your approval
 5. **Install** the skill and display the audit trail
 
@@ -103,8 +103,8 @@ TopGun is configured with `autoUpdate.enabled: true` in marketplace.json. When a
 TopGun uses GitHub release tags for versioning. To create a release:
 
 ```bash
-git tag -a v1.0.0 -m "TopGun v1.0.0 — Full Pipeline"
-git push origin v1.0.0
+git tag -a v1.1.0 -m "TopGun v1.1.0 — 18 Registries + Bundled SENTINEL"
+git push origin v1.1.0
 ```
 
 The tag triggers autoUpdate for existing installations.
