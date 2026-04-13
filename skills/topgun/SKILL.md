@@ -63,7 +63,27 @@ If `--registries` was provided:
 node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write registries "<comma-separated list>"
 ```
 
-## Step 1.5: Offline Check
+## Step 1.5: Auth Token Check
+
+**Skip this step entirely if `--offline` flag was set** (no network needed).
+
+Check for registry auth tokens in the OS keychain:
+
+```bash
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" keychain-get github-token
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" keychain-get smithery-token
+```
+
+For each token where the result is `{ "found": false }`:
+- Prompt the user: "GitHub/Smithery API token not found. Some registries require authentication for higher rate limits (60 → 5000 req/hr). Enter your {service} token (or press Enter to skip):"
+- If the user provides a token (non-empty input), store it:
+  ```bash
+  node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" keychain-set {service} topgun {token}
+  ```
+- If the user presses Enter with no value, continue without the token — searches will still work but may hit rate limits.
+- Tokens are stored in the OS keychain ONLY — never written to files, state.json, or any log.
+
+## Step 1.6: Offline Cache Check
 
 **Only execute this step if `--offline` flag was set.**
 
@@ -143,7 +163,14 @@ Task(
   prompt="Find skills matching this job: <task_description>. Write results to ~/.topgun/found-skills-{hash}.json where {hash} is the SHA-256 of the query string. Return ## FIND COMPLETE when done."
 )
 
-After the agent returns, verify the output contains `## FIND COMPLETE`. If not, report an error and stop.
+Parse the sub-agent's output:
+- If output contains `## FIND COMPLETE` → success, continue
+- If output contains `## STAGE FAILED` → extract the line beginning with `Reason:` after the marker
+  - Display to user: "FindSkills failed: {reason}"
+  - Ask user: "Retry this stage or abort pipeline? (retry/abort)"
+  - If retry: re-dispatch the same Task() once. If it fails again, treat as final abort.
+  - If abort: write state `current_stage failed` and stop
+- If output contains neither marker → treat as failure with reason "Sub-agent returned unexpected output"
 
 Update state, including the output file path:
 ```bash
@@ -166,7 +193,14 @@ Task(
   prompt="Read the found-skills output and score candidates. Write results to ~/.topgun/comparison-{hash}.json. Return ## COMPARE COMPLETE when done."
 )
 
-After the agent returns, verify the output contains `## COMPARE COMPLETE`. If not, report an error and stop.
+Parse the sub-agent's output:
+- If output contains `## COMPARE COMPLETE` → success, continue
+- If output contains `## STAGE FAILED` → extract the line beginning with `Reason:` after the marker
+  - Display to user: "CompareSkills failed: {reason}"
+  - Ask user: "Retry this stage or abort pipeline? (retry/abort)"
+  - If retry: re-dispatch the same Task() once. If it fails again, treat as final abort.
+  - If abort: write state `current_stage failed` and stop
+- If output contains neither marker → treat as failure with reason "Sub-agent returned unexpected output"
 
 Update state, including the output file path:
 ```bash
@@ -195,7 +229,15 @@ Task(
   prompt="Audit the winning skill from comparison results. Write audit output to ~/.topgun/audit-{hash}.json. Return ## SECURE COMPLETE when done."
 )
 
-After the agent returns, verify the output contains `## SECURE COMPLETE`. If not, report an error and stop.
+Parse the sub-agent's output:
+- If output contains `## SECURE COMPLETE` → success, continue
+- If output contains `## STAGE FAILED` → extract the line beginning with `Reason:` after the marker
+  - Display to user: "SecureSkills failed: {reason}"
+  - Ask user: "Retry this stage or abort pipeline? (retry/abort)"
+  - If retry: re-dispatch the same Task() once. If it fails again, treat as final abort.
+  - If abort: write state `current_stage failed` and stop
+- If output contains `## SECURE REJECTED` → display "SecureSkills rejected the skill: {reason from state audit_rejection_reason}" and stop (no retry offered — rejection is final)
+- If output contains neither expected marker → treat as failure with reason "Sub-agent returned unexpected output"
 
 Update state, including the output file path:
 ```bash
@@ -285,7 +327,14 @@ Task(
   prompt="Install the secured skill. Verify installation. Update ~/.topgun/installed.json. Return ## INSTALL COMPLETE when done."
 )
 
-After the agent returns, verify the output contains `## INSTALL COMPLETE`. If not, report an error and stop.
+Parse the sub-agent's output:
+- If output contains `## INSTALL COMPLETE` → success, continue
+- If output contains `## STAGE FAILED` → extract the line beginning with `Reason:` after the marker
+  - Display to user: "InstallSkills failed: {reason}"
+  - Ask user: "Retry this stage or abort pipeline? (retry/abort)"
+  - If retry: re-dispatch the same Task() once. If it fails again, treat as final abort.
+  - If abort: write state `current_stage failed` and stop
+- If output contains neither marker → treat as failure with reason "Sub-agent returned unexpected output"
 
 Update state:
 ```bash
