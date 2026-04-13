@@ -8,7 +8,7 @@ description: >
 
 # CompareSkills
 
-**Status:** Phase 3 — Step 1 (Envelope + Pre-filter)
+**Status:** Phase 3 — Complete
 
 ## Overview
 
@@ -49,6 +49,27 @@ Each candidate is scored 0-100 on four dimensions:
 ## Determinism
 
 Same input always produces same ranked output. No randomness, no LLM-based scoring variability. Composite is a deterministic arithmetic formula; tie-breaking uses lexicographic name sort.
+
+## Output
+
+Writes `~/.topgun/comparison-{hash}.json` containing:
+- Winner with full score breakdown
+- Ranked list of all non-rejected candidates
+- Rejection count from pre-filter
+- Weight configuration used
+
+Updates `~/.topgun/state.json` with `comparison_path`, `winner_name`, `winner_registry`.
+
+## Completion
+
+On success, outputs:
+
+```
+## COMPARE COMPLETE
+
+Compared {N} candidates ({M} rejected by pre-filter).
+Winner: {name} from {registry} (score: {composite}).
+```
 
 ## Dispatch
 
