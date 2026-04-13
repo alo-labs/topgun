@@ -46,7 +46,7 @@ Do NOT fetch individual rule files — directory listing is sufficient.
 | Response field | Unified schema field |
 |----------------|----------------------|
 | `name` | `name` |
-| `"Cursor rules for " + name` | `description` (synthesised) |
+| `"Cursor rules for " + name` (sanitize `name`: truncate to 500 chars, strip markdown/HTML tags before constructing) | `description` (synthesised) |
 | constructed URL above | `install_url` |
 | `sha` | `content_sha` |
 | `null` | `stars` |

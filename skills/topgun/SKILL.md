@@ -72,8 +72,8 @@ node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write registries "<comma-s
 Check for registry auth tokens in the OS keychain:
 
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" keychain-get github-token
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" keychain-get smithery-token
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" keychain-get github_token
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" keychain-get smithery_token
 ```
 
 For each token where the result is `{ "found": false }`:
@@ -405,7 +405,8 @@ Write the lock entry for pipeline reproducibility (REQ-23):
 ```bash
 QUERY_HASH=$(node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" sha256 "<task_description>" | node -e "process.stdin.resume();let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>console.log(JSON.parse(d).hash))")
 
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" lock-write "$QUERY_HASH" '{
+node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" lock-write '{
+  "query_hash": "'"$QUERY_HASH"'",
   "skill_name": "{skill_name}",
   "source_registry": "{source_registry}",
   "content_sha": "{content_sha from audit JSON}",

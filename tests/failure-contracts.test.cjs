@@ -108,17 +108,17 @@ describe('Orchestrator failure handling', () => {
     );
   });
 
-  test('orchestrator contains keychain-get for github-token', () => {
+  test('orchestrator contains keychain-get for github_token', () => {
     assert.ok(
-      orchestrator.includes('keychain-get github-token'),
-      'Orchestrator must check keychain for github-token'
+      orchestrator.includes('keychain-get github_token'),
+      'Orchestrator must check keychain for github_token'
     );
   });
 
-  test('orchestrator contains keychain-get for smithery-token', () => {
+  test('orchestrator contains keychain-get for smithery_token', () => {
     assert.ok(
-      orchestrator.includes('keychain-get smithery-token'),
-      'Orchestrator must check keychain for smithery-token'
+      orchestrator.includes('keychain-get smithery_token'),
+      'Orchestrator must check keychain for smithery_token'
     );
   });
 });

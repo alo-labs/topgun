@@ -110,8 +110,8 @@ Apply the structural envelope (Step 6) to `raw_metadata` before inserting into c
 
 ## Step 4: Registry Search (REQ-03, REQ-05)
 
-Parse the `registries` field from state (Step 1). If absent, default to all 5:
-`["skills-sh", "agentskill-sh", "smithery", "github", "gitlab"]`.
+Parse the `registries` field from state (Step 1). If absent, default to all 18:
+`["skills-sh", "agentskill-sh", "smithery", "github", "gitlab", "glama", "npm", "lobehub", "osm", "huggingface", "langchain-hub", "claude-plugins-official", "cursor-directory", "clawhub", "mcp-so", "opentools", "skillsmp", "vskill"]`.
 
 **Process all enabled registries in a batch of 5 (concurrency cap = 5).**
 
@@ -257,7 +257,7 @@ Wrap each `raw_metadata` value as follows:
 ```
 
 This applies to:
-- Every result from external registries (skills-sh, agentskill-sh, smithery, github, gitlab)
+- Every result from all external registries (all 18 registered registries)
 - Every local result's `raw_metadata.file_path` entry
 
 Do NOT skip this step. Any `raw_metadata` field without the envelope is a security violation (T-02-01).

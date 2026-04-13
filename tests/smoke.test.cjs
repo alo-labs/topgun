@@ -202,9 +202,9 @@ describe('adapter files — all 11 present', () => {
     });
   }
 
-  test('adapter count is exactly 11', () => {
+  test('adapter count is exactly 18', () => {
     const files = fs.readdirSync(adaptersDir).filter(f => f.endsWith('.md'));
-    assert.equal(files.length, 11, `expected 11 adapters, found ${files.length}: ${files.join(', ')}`);
+    assert.equal(files.length, 18, `expected 18 adapters, found ${files.length}: ${files.join(', ')}`);
   });
 });
 
