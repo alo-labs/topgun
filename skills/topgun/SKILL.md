@@ -47,6 +47,8 @@ Output: "State cleared. Starting fresh pipeline." Then proceed normally with the
 
 **`--force-audit` flag:** If present, set `force_audit=true`. Pass `--force` to the SecureSkills sub-agent prompt so it calls cache-lookup with `--force` and re-runs the audit even if a cached result exists.
 
+**`--auto-approve` flag:** If present, set `auto_approve=true`. The interactive approval gate in Step 6 will be skipped and installation will proceed automatically. Only use in trusted automated pipelines (e.g., `claude --print`).
+
 **`--registries` flag:** If present, extract the comma-separated registry list. Examples:
 - `/topgun find a deployment skill` → task = "find a deployment skill", registries = null (all)
 - `/topgun --registries skills.sh,github find a deployment skill` → task = "find a deployment skill", registries = ["skills.sh", "github"]
@@ -276,6 +278,22 @@ Present the audit manifest to the user:
  Allowed-tools: {comma-separated list}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
+
+**Auto-approve check:** Before prompting the user, check if `auto_approve=true` in state:
+
+- If `auto_approve=true`:
+  - Output: "⚠️  Auto-approve bypasses the interactive approval gate. Only use in trusted automated pipelines."
+  - Output: "Auto-approve mode active — skipping interactive approval gate. Audit manifest:"
+  - Print the full audit manifest (as formatted above).
+  - Update state:
+    ```bash
+    node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write last_completed_stage approve
+    node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write approval "approved"
+    node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write approved_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    ```
+  - Proceed directly to Step 7 (InstallSkills). Do NOT prompt the user.
+
+- If `auto_approve` is not set: continue with the interactive prompt below.
 
 **Permission warning check (REQ-18):** BEFORE asking for approval, inspect the `allowed_tools` list. If it contains `Bash`, `Computer`, or a wildcard (`*`), display this warning:
 

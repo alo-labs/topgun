@@ -242,6 +242,28 @@ describe('README.md', () => {
   });
 });
 
+// ─── --auto-approve flag ──────────────────────────────────────────────────────
+
+describe('skills/topgun/SKILL.md — --auto-approve flag', () => {
+  const skillPath = path.join(ROOT, 'skills', 'topgun', 'SKILL.md');
+
+  test('contains --auto-approve flag documentation', () => {
+    const content = fs.readFileSync(skillPath, 'utf8');
+    assert.ok(
+      content.includes('--auto-approve'),
+      'skills/topgun/SKILL.md must document the --auto-approve flag'
+    );
+  });
+
+  test('contains auto_approve state variable', () => {
+    const content = fs.readFileSync(skillPath, 'utf8');
+    assert.ok(
+      content.includes('auto_approve'),
+      'skills/topgun/SKILL.md must reference the auto_approve state variable'
+    );
+  });
+});
+
 // ─── hooks/hooks.json ─────────────────────────────────────────────────────────
 
 describe('hooks/hooks.json', () => {
