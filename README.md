@@ -103,8 +103,8 @@ TopGun is configured with `autoUpdate.enabled: true` in marketplace.json. When a
 TopGun uses GitHub release tags for versioning. To create a release:
 
 ```bash
-git tag -a v1.1.0 -m "TopGun v1.1.0 — 18 Registries + Bundled SENTINEL"
-git push origin v1.1.0
+git tag -a v{version} -m "TopGun v{version} — release description"
+git push origin v{version}
 ```
 
 The tag triggers autoUpdate for existing installations.

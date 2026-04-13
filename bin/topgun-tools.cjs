@@ -25,7 +25,8 @@ function output(data) {
 }
 
 function validateKeychainArg(arg, name) {
-  if (/["';$`]/.test(arg)) {
+  // Block shell metacharacters that could enable injection via execSync string interpolation
+  if (/["';$`|\\&<>\n\r]/.test(arg)) {
     console.error(`Invalid character in ${name}: shell metacharacters are not allowed`);
     process.exit(1);
   }
