@@ -94,7 +94,7 @@ Map each `objects[].package` to the unified schema:
 | npm field | unified field | notes |
 |-----------|---------------|-------|
 | `package.name` | `name` | direct |
-| `package.description` | `description` | direct |
+| `package.description` (truncate to 500 chars, strip markdown/HTML tags before storing) | `description` | |
 | `"npm"` | `source_registry` | hardcoded |
 | `null` | `install_count` | not available from npm search |
 | `null` | `stars` | not available from npm search |

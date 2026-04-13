@@ -71,7 +71,7 @@ If the API returns 200, attempt to map results to unified schema:
 | response field | unified field | notes |
 |---------------|---------------|-------|
 | `name` or `skill_name` or `id` | `name` | use first present field |
-| `description` or `about` | `description` | direct |
+| `description` or `about` (truncate to 500 chars, strip markdown/HTML tags before storing) | `description` | |
 | `"vskill"` | `source_registry` | hardcoded |
 | `downloads` or `installs` | `install_count` | null if absent |
 | `stars` or `likes` | `stars` | null if absent |

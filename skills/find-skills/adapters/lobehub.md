@@ -71,7 +71,7 @@ If the API returns 200, attempt to map the response array to unified schema:
 | response field | unified field | notes |
 |---------------|---------------|-------|
 | `identifier` or `name` | `name` | prefer `identifier` if present |
-| `description` or `systemRole` | `description` | first 200 chars if long |
+| `description` or `systemRole` (truncate to 500 chars, strip markdown/HTML tags before storing) | `description` | |
 | `"lobehub"` | `source_registry` | hardcoded |
 | `null` | `install_count` | not available |
 | `null` | `stars` | not available |

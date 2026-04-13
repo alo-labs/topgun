@@ -36,7 +36,7 @@ Expected shape: array or object with plugin entries.
 | Response field | Unified schema field |
 |----------------|----------------------|
 | `name` | `name` |
-| `description` | `description` |
+| `description` (truncate to 500 chars, strip markdown/HTML tags before storing) | `description` |
 | `homepage` or `repository` | `install_url` |
 | `version` | `last_updated` (use as proxy) |
 | `keywords` or `tags` | included in `raw_metadata` |

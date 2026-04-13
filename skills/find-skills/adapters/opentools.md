@@ -52,7 +52,7 @@ Do NOT retry. Do NOT attempt browser-based scraping.
 | Response field | Unified schema field |
 |----------------|----------------------|
 | `name` or `title` | `name` |
-| `description` or `tagline` | `description` |
+| `description` or `tagline` (truncate to 500 chars, strip markdown/HTML tags before storing) | `description` |
 | `url` or `website` | `install_url` |
 | `stars` or `upvotes` | `stars` |
 | `updatedAt` or `createdAt` | `last_updated` |

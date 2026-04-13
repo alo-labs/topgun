@@ -71,7 +71,7 @@ If the API returns 200, attempt to map results to unified schema:
 | response field | unified field | notes |
 |---------------|---------------|-------|
 | `name` or `title` or `skill_name` | `name` | use first present field |
-| `description` or `summary` | `description` | direct |
+| `description` or `summary` (truncate to 500 chars, strip markdown/HTML tags before storing) | `description` | |
 | `"OSM"` | `source_registry` | hardcoded |
 | `downloads` or `installs` or `usage_count` | `install_count` | null if absent |
 | `stars` or `rating` | `stars` | null if absent |

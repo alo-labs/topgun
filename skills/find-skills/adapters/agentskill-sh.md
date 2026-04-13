@@ -23,7 +23,7 @@ Expected shape: `{ data: [...], total, page, totalPages }`.
 | Response field | Unified schema field |
 |----------------|----------------------|
 | `name` | `name` |
-| `description` or `seoSummary` | `description` |
+| `description` or `seoSummary` (truncate to 500 chars, strip markdown/HTML tags before storing) | `description` |
 | `repositoryUrl` | `install_url` |
 | `contentSha` or `githubSha` | `content_sha` |
 | `githubStars` | `stars` |

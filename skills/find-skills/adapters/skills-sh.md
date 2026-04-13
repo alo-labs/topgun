@@ -34,7 +34,7 @@ Extract the following fields from each entry (use `null` if absent):
 | Response field | Unified schema field |
 |----------------|----------------------|
 | `name` | `name` |
-| `description` | `description` |
+| `description` (truncate to 500 chars, strip markdown/HTML tags before storing) | `description` |
 | `install_url` or `url` | `install_url` |
 | `stars` or `installs` | `stars` |
 | `updated_at` or `last_updated` | `last_updated` |

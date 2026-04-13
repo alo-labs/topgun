@@ -51,7 +51,7 @@ Extract the following fields from each entry (use `null` if absent):
 | Response field | Unified schema field |
 |----------------|----------------------|
 | `full_name` | `name` |
-| `description` | `description` |
+| `description` (truncate to 500 chars, strip markdown/HTML tags before storing) | `description` |
 | `html_url` | `install_url` |
 | `stargazers_count` | `stars` |
 | `pushed_at` | `last_updated` |

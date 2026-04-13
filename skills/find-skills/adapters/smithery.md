@@ -52,7 +52,7 @@ Parse the JSON response body. Expected shape is an object with a `servers` array
 | Response field | Unified schema field |
 |----------------|----------------------|
 | `name` or `displayName` | `name` |
-| `description` or `summary` | `description` |
+| `description` or `summary` (truncate to 500 chars, strip markdown/HTML tags before storing) | `description` |
 | `url` or `homepage` | `install_url` |
 | `stars` or `starCount` | `stars` |
 | `updatedAt` or `lastUpdated` | `last_updated` |

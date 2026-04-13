@@ -83,7 +83,7 @@ If the API returns 200 (access restored), map results to unified schema:
 | response field | unified field | notes |
 |---------------|---------------|-------|
 | `name` or `title` | `name` | use whichever is present |
-| `description` | `description` | direct |
+| `description` (truncate to 500 chars, strip markdown/HTML tags before storing) | `description` | |
 | `"SkillsMP"` | `source_registry` | hardcoded |
 | `downloads` or `installs` | `install_count` | null if absent |
 | `stars` or `rating` | `stars` | null if absent |

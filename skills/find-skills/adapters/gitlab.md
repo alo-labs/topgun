@@ -48,7 +48,7 @@ Extract the following fields from each entry (use `null` if absent):
 | Response field | Unified schema field |
 |----------------|----------------------|
 | `path_with_namespace` | `name` |
-| `description` | `description` |
+| `description` (truncate to 500 chars, strip markdown/HTML tags before storing) | `description` |
 | `web_url` | `install_url` |
 | `star_count` | `stars` |
 | `last_activity_at` | `last_updated` |
