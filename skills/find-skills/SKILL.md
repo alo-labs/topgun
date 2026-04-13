@@ -105,3 +105,80 @@ being placed in context. See topgun-finder.md for the envelope format.
 | Smithery | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/smithery.md` |
 | GitHub | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/github.md` |
 | GitLab | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/gitlab.md` |
+
+---
+
+## Step 6: Normalization Orchestration
+
+After all adapter dispatches complete (Step 3) and results are aggregated, the agent must execute the following steps in order before writing any output:
+
+1. **Normalize** all results to the unified schema (10 fields). Reject any result where `name` is missing or empty (log: `Skipped unnamed result from {registry}`). Set missing fields to `null`.
+2. **Deduplicate** by identity key = lowercase(`name`) + `|` + `source_registry`. Within the same registry keep the result with the most recent `last_updated`; keep first if tied. Cross-registry duplicates (same name, different registry) are kept — they are needed for CompareSkills comparison. Track `dedup_removed` count.
+3. **Compute contentSha** for each result: use registry-provided `contentSha` if present; fetch and SHA-256 if `install_url` points to a raw SKILL.md; reuse computed sha for local results; set `"pending"` otherwise.
+4. **Apply structural envelope** to every `raw_metadata` value (NFR-01). See topgun-finder.md Step 6 for the exact envelope format.
+5. **Check unavailable count**: if `unavailable_count >= 3`, display a warning to the user listing the unavailable registries and their reasons. Set `unavailable_warning: true` in output.
+6. **Write output JSON** to `~/.topgun/found-skills-{hash}.json` with the full schema documented below.
+
+---
+
+## Output Schema
+
+File: `~/.topgun/found-skills-{hash}.json`
+Hash: SHA-256 of the original task description
+
+```json
+{
+  "query": "original task description",
+  "query_hash": "sha256 hash",
+  "searched_at": "ISO 8601 timestamp",
+  "total_elapsed_ms": 0,
+  "registries_searched": [
+    {
+      "registry": "name",
+      "status": "ok|unavailable|error",
+      "reason": null,
+      "latency_ms": 0,
+      "result_count": 0
+    }
+  ],
+  "unavailable_count": 0,
+  "unavailable_warning": false,
+  "dedup_removed": 0,
+  "results": [
+    {
+      "name": "string",
+      "description": "string",
+      "source_registry": "string",
+      "install_count": null,
+      "stars": null,
+      "security_score": null,
+      "last_updated": "ISO 8601 or null",
+      "content_sha": "string",
+      "install_url": "string or null",
+      "raw_metadata": {}
+    }
+  ],
+  "total_results": 0
+}
+```
+
+This schema is the contract for CompareSkills (Phase 3).
+
+---
+
+## Step 7: Completion Marker
+
+After writing the output file, output exactly:
+
+```
+## FIND COMPLETE
+
+Found {total_results} skills from {registries_count} registries ({unavailable_count} unavailable).
+Results: ~/.topgun/found-skills-{hash}.json
+```
+
+Where:
+- `{total_results}` = total count of result objects after deduplication
+- `{registries_count}` = total number of registries searched (local + external)
+- `{unavailable_count}` = number of registries with unavailable/error status
+- `{hash}` = the query hash

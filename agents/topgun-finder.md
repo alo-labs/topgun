@@ -127,10 +127,97 @@ For each registry in the batch:
 
 Collect all adapter results:
 
-- Build `registries_searched` array: one entry per registry with `{registry, status, reason, latency_ms}`.
+- Build `registries_searched` array: one entry per registry with `{registry, status, reason, latency_ms, result_count}`.
 - Build flat `results` array: all unified schema objects from local + all adapters.
 - Count `unavailable_count`: number of registries with `status != "ok"`.
-- Count `total_results`: length of `results` array.
+- Count `total_results`: length of `results` array after deduplication.
+
+**60s total timeout (NFR-03):**
+
+Track elapsed time from the start of Step 3. If total elapsed time exceeds 55 seconds at any point while dispatching adapter batches, stop dispatching further batches and proceed to normalization with whatever results are available. Log:
+
+```
+FindSkills timeout approaching — proceeding with {N} of {M} registries searched.
+```
+
+---
+
+## Step 5a: Normalization
+
+For each result in the flat results array, ensure all 10 unified schema fields are present:
+
+**Required fields (with defaults if missing):**
+
+| Field | Type | Default if missing |
+|-------|------|--------------------|
+| `name` | string | — skip result (see below) |
+| `description` | string | `null` |
+| `source_registry` | string | required — keep adapter value |
+| `install_count` | number or null | `null` |
+| `stars` | number or null | `null` |
+| `security_score` | number or null | `null` |
+| `last_updated` | ISO 8601 string or null | `null` |
+| `content_sha` | string | computed (see Step 5b) |
+| `install_url` | string or null | `null` |
+| `raw_metadata` | object | `{}` |
+
+**Validation rules:**
+
+- If `name` is missing or empty string: skip this result entirely. Log: `Skipped unnamed result from {registry}`.
+- If `stars` is not a number and not null: set to `null`.
+- If `last_updated` is not a valid ISO 8601 string and not null: set to `null`.
+- All other missing fields: set to `null` (no skip).
+
+---
+
+## Step 5b: ContentSha Extraction
+
+For each result after normalization, compute `content_sha` as follows:
+
+1. **Registry provides `contentSha` field** (e.g., agentskill.sh ecosystem): use the value as-is.
+2. **Result has `install_url` pointing to a raw SKILL.md file** (URL ending in `/SKILL.md` or containing `raw` path): fetch the file content, then compute:
+   ```bash
+   node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" sha256 "{file_contents}"
+   ```
+   Set the result as `content_sha`.
+3. **Local results**: always compute SHA-256 from the SKILL.md file content read during local search (Step 3). This was already done in Step 3 — reuse that value.
+4. **None of the above apply**: set `content_sha` to `"pending"`. This will be resolved during CompareSkills/SecureSkills when the actual SKILL.md is fetched.
+
+---
+
+## Step 5c: Deduplication
+
+**Identity key** = lowercase(`name`) + `|` + `source_registry`
+
+**Same-registry dedup (discard duplicates within a registry):**
+
+If two results share the same identity key:
+- Keep the one with the more recent `last_updated` date.
+- If `last_updated` is null for both, or dates are equal, keep the first one seen.
+- Discard the other.
+- Increment `dedup_removed` counter for each discarded result.
+
+**Cross-registry duplicates (same name, different `source_registry`):**
+
+Keep ALL of them — CompareSkills needs to compare results across sources.
+
+Track `dedup_removed` = total number of discarded results.
+
+---
+
+## Step 5d: Unavailable Warning (REQ-06)
+
+After all adapters complete, count the number of registries with `status: "unavailable"` or `status: "error"`.
+
+If `unavailable_count >= 3`, output a visible warning to the user:
+
+```
+WARNING: {N} registries were unavailable during this search.
+Unavailable: {list of registry names and reasons}
+Results may be incomplete. Consider retrying or using --registries to target specific registries.
+```
+
+Set `unavailable_warning: true` in the output JSON. Otherwise set `unavailable_warning: false`.
 
 ---
 
@@ -163,19 +250,24 @@ Write the result to `~/.topgun/found-skills-{hash}.json`:
   "query": "{task_description}",
   "query_hash": "{hash}",
   "searched_at": "{ISO 8601 UTC timestamp}",
+  "total_elapsed_ms": 0,
   "registries_searched": [
-    { "registry": "string", "status": "string", "reason": "string or null", "latency_ms": 0 }
+    { "registry": "string", "status": "string", "reason": "string or null", "latency_ms": 0, "result_count": 0 }
   ],
   "unavailable_count": 0,
+  "unavailable_warning": false,
+  "dedup_removed": 0,
   "results": [
     {
       "name": "string",
       "description": "string",
-      "install_url": "string or null",
-      "stars": "number or null",
-      "last_updated": "ISO string or null",
-      "content_sha": "string or null",
       "source_registry": "string",
+      "install_count": null,
+      "stars": null,
+      "security_score": null,
+      "last_updated": "ISO string or null",
+      "content_sha": "string",
+      "install_url": "string or null",
       "raw_metadata": {}
     }
   ],
