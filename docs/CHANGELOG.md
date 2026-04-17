@@ -17,6 +17,26 @@
 
 <!-- ENTRIES BELOW — newest first -->
 
+## 2026-04-18 — doc-scheme-restructure
+
+**What**: Restructured docs/ to comply with the Silver Bullet doc-scheme — renamed Architecture-and-Design.md to ARCHITECTURE.md, replaced placeholder TESTING.md, split KNOWLEDGE.md into knowledge/INDEX.md + knowledge/2026-04.md + lessons/2026-04.md, and added doc-scheme.md.
+
+**Added**:
+- `docs/TESTING.md` — testing strategy replacing 3-line placeholder
+- `docs/knowledge/INDEX.md` — gateway index replacing KNOWLEDGE.md Part 1
+- `docs/knowledge/2026-04.md` — project-scoped intelligence (migrated from KNOWLEDGE.md Part 2)
+- `docs/lessons/2026-04.md` — portable lessons (extracted from KNOWLEDGE.md Part 2)
+- `docs/doc-scheme.md` — Silver Bullet doc-scheme reference
+
+**Changed**:
+- `docs/Architecture-and-Design.md` → `docs/ARCHITECTURE.md` (git mv, content preserved)
+
+**Removed**:
+- `docs/KNOWLEDGE.md` — fully migrated; content split across knowledge/ and lessons/
+- `docs/Testing-Strategy-and-Plan.md` — replaced by TESTING.md
+
+---
+
 ## 2026-04-18 — v1.3.0
 
 **What**: Replaced LLM-driven Agent fan-out with a mechanical Node.js subprocess dispatcher and added a PreToolUse:Write enforcement hook to guarantee all 18 registry partials are written before aggregation.
