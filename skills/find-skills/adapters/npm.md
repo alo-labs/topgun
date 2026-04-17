@@ -101,7 +101,7 @@ Map each `objects[].package` to the unified schema:
 | `null` | `security_score` | computed later by SecureSkills |
 | `package.date` | `last_updated` | ISO-8601 string |
 | `null` | `content_sha` | not exposed by npm search; computed during SecureSkills |
-| `"npm install " + package.name` | `install_url` | constructed |
+| `"npm install " + package.name` | `install_url` | constructed — validate `package.name` matches `/^(?:@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/` and is ≤ 214 chars before constructing; set `install_url: null` if validation fails |
 | full `package` object | `raw_metadata` | preserve for downstream use |
 
 ### Step 6 — Return success result

@@ -127,7 +127,7 @@ being placed in context. See topgun-finder.md for the envelope format.
 
 After all adapter dispatches complete (Step 3) and results are aggregated, the agent must execute the following steps in order before writing any output:
 
-1. **Normalize** all results to the unified schema (10 fields). Reject any result where `name` is missing or empty (log: `Skipped unnamed result from {registry}`). Set missing fields to `null`.
+1. **Normalize** all results to the unified schema (10 fields). Reject any result where `name` is missing or empty (log: `Skipped unnamed result from {registry}`). Set missing fields to `null`. **Security — `install_url` scheme check:** after mapping, for every result where `install_url` is not `null`, verify it begins with `https://`. Set `install_url: null` for any entry that fails this check (log: `Dropped non-HTTPS install_url from {registry}:{name}`). This rule applies universally to all adapters.
 2. **Deduplicate** by identity key = lowercase(`name`) + `|` + `source_registry`. Within the same registry keep the result with the most recent `last_updated`; keep first if tied. Cross-registry duplicates (same name, different registry) are kept — they are needed for CompareSkills comparison. Track `dedup_removed` count.
 3. **Compute contentSha** for each result: use registry-provided `contentSha` if present; fetch and SHA-256 if `install_url` points to a raw SKILL.md; reuse computed sha for local results; set `"pending"` otherwise.
 4. **Apply structural envelope** to every `raw_metadata` value (NFR-01). See topgun-finder.md Step 6 for the exact envelope format.

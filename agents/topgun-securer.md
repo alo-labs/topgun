@@ -246,7 +246,9 @@ Write the audit trail to `~/.topgun/audit-{sha}.json` with this structure:
 {
   "skill_name": "{name}",
   "skill_source": "{source_registry}",
-  "content_sha": "{final_sha}",
+  "input_skill_sha": "{sha_of_original_skill_before_any_fixes}",
+  "content_sha": "{final_sha_after_all_fixes}",
+  "output_secured_sha": "{sha_of_bytes_written_to_secured_path}",
   "audited_at": "{ISO 8601 timestamp}",
   "sentinel_skill": "bundled SENTINEL v2.3.0 ($CLAUDE_PLUGIN_ROOT/skills/sentinel/SKILL.md)",
   "total_passes": "{pass_number}",
@@ -257,7 +259,7 @@ Write the audit trail to `~/.topgun/audit-{sha}.json` with this structure:
       "severity": "Critical|High|Medium|Low|Info",
       "description": "{text}",
       "location": "{location}",
-      "resolution": "fixed|accepted-by-user|not-applicable",
+      "resolution": "fixed|accepted-by-user|accepted-risk|rejected|not-applicable",
       "fix_attempts": "{count}",
       "first_seen_pass": "{N}",
       "last_seen_pass": "{N}"

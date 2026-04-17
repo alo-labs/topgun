@@ -39,7 +39,7 @@ Expected shape: `{ servers: [...], pageInfo: { endCursor, hasNextPage } }`.
 |----------------|----------------------|
 | `name` | `name` |
 | `description` (truncate to 500 chars, strip markdown/HTML tags before storing) | `description` |
-| `url` | `install_url` |
+| `url` (validate begins with `https://`; set `null` if not) | `install_url` |
 | `attributes.githubStars` | `stars` |
 | `attributes.updatedAt` | `last_updated` |
 | `namespace` + `slug` | `content_sha` (use as identifier) |
