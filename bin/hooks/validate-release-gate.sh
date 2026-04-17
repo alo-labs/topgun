@@ -2,6 +2,12 @@
 # Pre-release quality gate enforcer
 # Intercepts Bash tool calls containing "gh release create" and blocks them
 # unless all 4 quality-gate stage markers are present in the SB state file.
+#
+# Stage count and marker names are defined in docs/pre-release-quality-gate.md.
+# Each stage in that document ends with:
+#   echo "quality-gate-stage-N" >> ~/.claude/.silver-bullet/state
+# If stages are added or removed from that document, update the loop below
+# and commit both files together.
 
 INPUT=$(cat)
 COMMAND=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('command',''))" 2>/dev/null)
