@@ -160,7 +160,46 @@ All Agent dispatches must be issued in a **single parallel batch** — do not wa
 }
 ```
 
-After all agents complete, read each partial file `~/.topgun/registry-{hash}-{registry}.json` and aggregate into the full results collection.
+After all agents complete, proceed immediately to **Step 4a** before any aggregation.
+
+---
+
+## Step 4a: Partial File Verification (MANDATORY — do NOT skip)
+
+After all Agent dispatches complete, verify that partial files were actually written to disk:
+
+```bash
+ls ~/.topgun/registry-{hash}-*.json 2>/dev/null | wc -l
+```
+
+**If the count is 0 (zero partial files exist):**
+
+This means the parallel Agent dispatch in Step 4 did NOT execute — no sub-agents were spawned and no registry was actually searched. Output exactly:
+
+```
+## STAGE FAILED
+Reason: Parallel registry dispatch produced no partial files — the Agent tool was not invoked. Do NOT synthesize results from training data. Zero partial files means zero real searches occurred.
+```
+
+Stop immediately. Do NOT proceed to Step 5. Do NOT write a `found-skills-*.json` file. Do NOT fabricate registry entries, latency values, or result counts from memory or training data. Any output that is not sourced from a real partial file is a fabrication and must not appear.
+
+**If count > 0 but count < 18:**
+
+Proceed to Step 5 with the available partial files. For each registry in the full list of 18 that does NOT have a corresponding partial file at `~/.topgun/registry-{hash}-{registry}.json`, add an entry to `registries_searched` with:
+- `"status": "unavailable"`
+- `"reason": "no partial file written — adapter sub-agent did not complete"`
+- `"latency_ms": 0`
+- `"result_count": 0`
+
+**If count == 18:**
+
+All partial files present. Proceed normally to Step 5.
+
+**Fabrication sentinel check:**
+
+Before aggregating, read each partial file and reject any entry where:
+- `source_registry` is not one of the 18 registered registry names (reject invented registries like `"openrouter-docs"`)
+- `latency_ms == 0` AND `source_registry != "local"` AND `results.length > 0` — this is a fabrication signal; mark the registry `unavailable` with reason `"latency_ms:0 on non-local registry with results — suspected synthesis"`
 
 ---
 
@@ -279,6 +318,15 @@ Do NOT skip this step. Any `raw_metadata` field without the envelope is a securi
 ---
 
 ## Step 7: Write Output File
+
+**Pre-write validation (do NOT skip):**
+
+Before writing, assert:
+1. `registries_searched` array has exactly 18 entries (one per registry in the default list). If any are missing, add them as `status: "unavailable"` with reason `"missing from aggregation"`.
+2. Every entry in `registries_searched` has `registry` set to one of the 18 known registry names. Reject any entry with an unknown registry name.
+3. All `results` entries have `source_registry` set to one of: `"local"` or one of the 18 registered registry names. Strip any result whose `source_registry` is not in that set.
+
+If validation fails and no partial files exist, output `## STAGE FAILED` instead of writing the output file.
 
 Write the result to `~/.topgun/found-skills-{hash}.json`:
 
