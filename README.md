@@ -1,3 +1,4 @@
+<!-- generated-by: gsd-doc-writer -->
 # TopGun
 
 TopGun is a Claude Code plugin that automatically finds, compares, security-audits, and installs the best available skill for any job — searching 18+ registries in parallel so you never settle for a suboptimal tool.
@@ -23,7 +24,7 @@ npx skills add alo-labs/topgun
 ```
 
 TopGun will:
-1. **Search** 18+ skill registries in parallel
+1. **Search** 18+ skill registries via parallel subprocess dispatch
 2. **Compare** candidates across capability, security, popularity, and recency
 3. **Audit** the top pick with bundled SENTINEL v2.3.0 (2 clean passes required)
 4. **Present** the audit manifest for your approval
@@ -39,7 +40,7 @@ The `/topgun` orchestrator dispatches four sub-skills in sequence:
 
 | Step | Skill | What it does |
 |------|-------|--------------|
-| 1 | `find-skills` | Federated search across 18+ registries in parallel |
+| 1 | `find-skills` | 18 registries searched via parallel subprocess dispatch |
 | 2 | `compare-skills` | Multi-factor ranking: capability, security posture, popularity, recency |
 | 3 | `secure-skills` | Bundled SENTINEL v2.3.0 audit — 2 consecutive clean passes required |
 | 4 | `install-skills` | Installs the approved skill and writes the audit trail |
@@ -62,6 +63,46 @@ TopGun uses **SENTINEL v2.3.0** — bundled directly in the plugin — to audit 
 - **Structural envelope check**: validates skill file layout and manifest integrity
 - **2-clean-pass requirement**: Sentinel must return a clean result on two independent runs before a skill is considered safe
 - **Audit manifest**: every installation produces a signed audit trail you can inspect
+
+## Hook Setup
+
+TopGun v1.3.0 ships a `PreToolUse:Write` enforcement hook that guarantees all 18 registry partial files are written before the finder aggregates results. The hook must be registered in `~/.claude/settings.json`.
+
+### What the hook does
+
+`bin/hooks/validate-partials.sh` intercepts any write to a `found-skills-*.json` file. It extracts the run hash from the filename, counts the corresponding `registry-{hash}-*.json` partial files, and blocks the write (exit 1) if fewer than 18 are present. This prevents the finder from producing an incomplete result set regardless of agent behavior.
+
+### Installing the hook
+
+Run the init command after installing the plugin:
+
+```bash
+node ~/.claude/plugins/alo-labs/topgun/bin/topgun-tools.cjs init
+```
+
+This adds the following entry to `~/.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/path/to/topgun/bin/hooks/validate-partials.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Version bump note
+
+The hook path in `settings.json` includes the plugin version. When upgrading TopGun, re-run `topgun-tools.cjs init` to update the path to the new version.
 
 ### Requirements
 
@@ -91,7 +132,7 @@ To list TopGun on skills.sh:
 
 1. Ensure the GitHub repository is public at `https://github.com/alo-labs/topgun`
 2. Verify `plugin.json` and `marketplace.json` are in `.claude-plugin/`
-3. Tag a release: `git tag v1.0.0 && git push origin v1.0.0`
+3. Tag a release: `git tag v1.3.0 && git push origin v1.3.0`
 4. Submit via: `npx skills submit alo-labs/topgun`
 
 ### Auto-Update

@@ -1,3 +1,4 @@
+<!-- generated-by: gsd-doc-writer -->
 # TopGun — Project Knowledge
 
 > Gateway index and accumulated project intelligence.
@@ -32,17 +33,41 @@
 
 *(none yet)*
 
+2026-04-18 — Registry dispatch pattern (mechanical subprocess fan-out): LLM-driven Agent fan-out is unreliable for guaranteed parallel dispatch — the model synthesizes plausible output from training data instead of spawning actual sub-calls. The reliable pattern is a Node.js binary (`topgun-tools.cjs dispatch-registries`) that uses `child_process.spawn` + `Promise.allSettled` to mechanically spawn one `claude --bare` subprocess per registry. The LLM calls this as a single Bash command; dispatch is entirely outside the model.
+
+2026-04-18 — Partial-file aggregation pattern: each registry subprocess writes its own partial file (`registry-{hash}-{name}.json`) before the aggregator writes the combined artifact. Unavailable registries write `{ "status": "unavailable" }` rather than omitting their file. The aggregator always sees exactly N files, making failures visible and countable rather than silently absent.
+
+2026-04-18 — Hook enforcement layering: three layers enforce the partial-count invariant in descending reliability — (1) prompt instruction (bypassable by model), (2) binary self-check via `validate-partials` command (bypassable if Bash call is omitted), (3) `PreToolUse:Write` hook in `~/.claude/settings.json` (not bypassable — OS-level interception). Only the hook provides a hard guarantee.
+
 ### Known gotchas
 
 *(none yet)*
+
+2026-04-18 — Hook path is version-pinned: `validate-partials.sh` is referenced in `~/.claude/settings.json` with its full absolute path, which includes the version string (e.g., `1.3.0`). On every plugin version bump the hook path in settings.json must be updated manually, or automated via `topgun-tools.cjs init`.
+
+2026-04-18 — Silver Bullet dev-cycle-check.sh blocks writes to plugin cache: `~/.claude/plugins/cache/` is blocked by a PostToolUse hook. Plugin changes must go through git commit → tag → GitHub release → user reinstall. Cannot directly sync the cache during development.
+
+2026-04-18 — `--bare` flag on adapter subprocesses: adapter `claude` subprocesses use `--bare` to skip hooks, LSP, and plugin sync for speed. `CLAUDE.md` is not auto-discovered in these subprocesses; adapter prompt files must be fully self-contained with no external references.
+
+2026-04-18 — Version alignment between plugin.json and marketplace.json: both files must carry identical version strings. Any mismatch causes Claude Desktop to not expose the plugin's skills or agents. Always bump both files together.
 
 ### Key decisions
 
 *(none yet)*
 
+2026-04-18 — Node.js dispatcher over LLM Agent fan-out: chose mechanical subprocess fan-out because LLM-driven dispatch (even with `Agent` in the tools list) proved unreliable in production — the model synthesizes the expected output shape from training data rather than spawning sub-calls. Node.js subprocess fan-out is the only approach that provides dispatch guarantees. Closes issue #2.
+
+2026-04-18 — Unavailable partials always written: if a registry subprocess fails or times out, the binary writes a `status: "unavailable"` partial file rather than omitting it. This ensures aggregation always sees exactly 18 files, making missing registries explicit and auditable rather than silently absent from results.
+
+2026-04-18 — PreToolUse hook as final enforcement gate: prompt instructions and binary self-checks can both theoretically be bypassed by agent behavior (different mechanisms). The PreToolUse:Write hook intercepts at the OS tool-use level before any write lands on disk and cannot be bypassed by agent behavior. This is the only layer that provides a hard guarantee.
+
+2026-04-18 — SENTINEL bundled in plugin: bundling SENTINEL v2.3.0 directly in `skills/sentinel/SKILL.md` eliminates the external `/audit-security-of-skill` dependency. An external dependency could be unavailable, outdated, or itself compromised. Bundling version-locks audit quality with the plugin release.
+
 ### Recurring patterns
 
 *(none yet)*
+
+2026-04-18 — Version-alignment pattern: `plugin.json` and `marketplace.json` must always carry identical version strings. The release checklist should verify both files before tagging. Mismatch is silent but breaks Claude Desktop skill/agent exposure entirely.
 
 ### Open questions
 

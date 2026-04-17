@@ -1,3 +1,4 @@
+<!-- generated-by: gsd-doc-writer -->
 # Task Log
 
 > Rolling log of completed tasks. One entry per non-trivial task, written at step 15.
@@ -15,6 +16,49 @@
 -->
 
 <!-- ENTRIES BELOW — newest first -->
+
+## 2026-04-18 — v1.3.0
+
+**What**: Replaced LLM-driven Agent fan-out with a mechanical Node.js subprocess dispatcher and added a PreToolUse:Write enforcement hook to guarantee all 18 registry partials are written before aggregation.
+
+**Added**:
+- `bin/topgun-tools.cjs dispatch-registries` — Node.js command that spawns one `claude --bare` subprocess per registry via `child_process.spawn` + `Promise.allSettled`; writes `status: "unavailable"` partial on failure/timeout
+- `bin/hooks/validate-partials.sh` — `PreToolUse:Write` hook installed in `~/.claude/settings.json`; blocks aggregation write if fewer than 18 partial files exist
+- `bin/topgun-tools.cjs validate-partials` — synchronous partial-count check used by finder for self-verification
+
+**Changed**:
+- `agents/topgun-finder.md` — removed `Agent` from tools list; finder now calls `dispatch-registries` via Bash
+- `skills/topgun/SKILL.md` — updated Step 1 to reference mechanical dispatch
+- `plugin.json` — bumped version to 1.3.0
+- `marketplace.json` — bumped version to 1.3.0
+
+**Fixed**:
+- Issue #2 — LLM fabricating registry results from training data instead of dispatching sub-calls; mechanical dispatcher closes this permanently
+
+---
+
+## 2026-04-18 — v1.2.1
+
+**What**: Added prompt-based enforcement gate (Step 4a partial file check) as a pre-write validation step; later superseded by the mechanical hook in v1.3.0.
+
+**Added**:
+- `skills/find-skills/SKILL.md` — Step 4a: explicit pre-write partial file count check in prompt instructions
+
+**Note**: This enforcement relied on the LLM following prompt instructions and was recognized as insufficient since agent behavior can bypass prompt-level gates. Replaced by `validate-partials.sh` hook in v1.3.0.
+
+---
+
+## 2026-04-18 — v1.2.0
+
+**What**: Parallelized all 18 registry searches to run simultaneously by removing the concurrency cap of 5, and added the `Agent` tool to the finder to enable sub-call dispatch.
+
+**Changed**:
+- `skills/find-skills/SKILL.md` — removed concurrency cap; all 18 registries dispatched in a single parallel batch
+- `agents/topgun-finder.md` — added `Agent` to tools list
+- `plugin.json` — bumped version to 1.2.0
+- `marketplace.json` — bumped version to 1.2.0; corrected manifest alignment
+
+---
 
 ## 2026-04-13 — v1.1.0
 
