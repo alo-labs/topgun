@@ -8,7 +8,7 @@ Before ANY release, the following four-stage quality gate MUST be completed in o
 
 ## Enforcement
 
-**State file**: `~/.claude/.silver-bullet/state`
+**State file**: `~/.topgun/quality-gate.state`
 
 **Required markers** (must all be present before release):
 - `quality-gate-stage-1`
@@ -16,12 +16,12 @@ Before ANY release, the following four-stage quality gate MUST be completed in o
 - `quality-gate-stage-3`
 - `quality-gate-stage-4`
 
-**Session reset**: All four markers are cleared at the start of each new Claude Code session. The gate must be completed in full during the session in which the release is being cut — markers from a previous session do not carry over.
+**Session reset**: Run `rm ~/.topgun/quality-gate.state` at the start of each new release session to clear markers from a previous run. The gate must be completed in full during the session in which the release is being cut.
 
 Each stage is complete only when:
 1. The work is done and verified
 2. The `/superpowers:verification-before-completion` skill has been invoked
-3. The marker is written: `echo "quality-gate-stage-N" >> ~/.claude/.silver-bullet/state`
+3. The marker is written: `echo "quality-gate-stage-N" >> ~/.topgun/quality-gate.state`
 
 **Violating the verification rule is equivalent to skipping the stage.**
 
@@ -46,7 +46,7 @@ Run `/engineering:code-review` on each file below. Record findings, fix all acce
 
 **`skills/find-skills/SKILL.md`**
 - Verify the default registry list contains exactly 18 registries with correct names
-- Confirm batching instruction: 4 batches of 5/5/5/3 adapters
+- Confirm all 18 registries are dispatched in a single parallel batch (no concurrency cap — changed in v1.2.0)
 - Verify the unified contract shape `{registry, status, reason, results[], latency_ms}` is defined
 - Confirm the 5-parallel concurrency cap is stated
 
@@ -93,7 +93,7 @@ Run `/engineering:code-review` on each file below. Record findings, fix all acce
 
 2. **Skill file naming**: Every skill directory under `skills/` contains a `SKILL.md`. No orphaned adapter files without a corresponding directory in the adapters folder.
 
-3. **Docs directory structure**: Verify `docs/` contains: `CHANGELOG.md`, `KNOWLEDGE.md`, `pre-release-quality-gate.md`, `Architecture-and-Design.md`, `Testing-Strategy-and-Plan.md`. Flag any missing or orphaned docs.
+3. **Docs directory structure**: Verify `docs/` contains: `CHANGELOG.md`, `ARCHITECTURE.md`, `TESTING.md`, `pre-release-quality-gate.md`, `knowledge/INDEX.md`, `lessons/` directory. Flag any missing or orphaned docs.
 
 4. **Naming consistency**: Verify consistent spelling and casing across `skills/topgun/SKILL.md`, `README.md`, `site/index.html`, and `docs/CHANGELOG.md`. Check: skill names (`/topgun`, `/find-skills`, `/secure-skills`), registry names, config key names (`~/.topgun/state.json`).
 

@@ -13,6 +13,10 @@ degradation_reason: "API returned 403 during research phase — access may be re
 
 Searches the SkillsMP registry for skills. During research, the API endpoint returned 403 (Forbidden). This adapter attempts the request but gracefully degrades on 403.
 
+## Degradation Notice
+
+The endpoint `https://skillsmp.com/api/v1/skills/search` returned 403 (Forbidden) during research — API access may be restricted or require registration. This adapter attempts the request but returns `status: "unavailable"` on 403 or any other non-200 response. The pipeline continues without SkillsMP results.
+
 ## Endpoint
 
 ```

@@ -239,6 +239,8 @@ Parse the sub-agent's output:
   - If retry: re-dispatch the same Task() once. If it fails again, treat as final abort.
   - If abort: write state `current_stage failed` and stop
 - If output contains `## SECURE REJECTED` → display "SecureSkills rejected the skill: {reason from state audit_rejection_reason}" and stop (no retry offered — rejection is final)
+- If output contains `## SECURE ABORTED` → read `audit_abort_reason` from state, display "SecureSkills aborted: {reason}" (SHA-256 integrity failure between passes) and stop (no retry — content instability detected)
+- If output contains `## SECURE ESCALATED` → the securer agent is handling user escalation for a Sentinel-resistant finding; wait for the agent to complete and re-parse its final output for one of the above markers
 - If output contains neither expected marker → treat as failure with reason "Sub-agent returned unexpected output"
 
 Update state, including the output file path:

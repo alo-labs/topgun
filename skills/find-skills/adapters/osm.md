@@ -13,6 +13,10 @@ degradation_reason: "API endpoint is best-guess — not officially documented"
 
 Searches the Open Skills Marketplace. The API endpoint is a best-guess based on observed domain patterns; it is not officially documented. This adapter gracefully skips on any failure.
 
+## Degradation Notice
+
+The endpoint `https://openskillsmarket.org/api/search` is a best-guess — it is not officially documented by OSM. If the endpoint returns any non-200 response or an unexpected format, this adapter returns `status: "unavailable"` and the pipeline continues without OSM results.
+
 ## Endpoint
 
 ```

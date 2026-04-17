@@ -25,6 +25,11 @@ GET https://opentools.ai/api/search?query={query}
 - URL-encode query string.
 - No authentication.
 
+## Timeout + Retry
+
+- **Timeout:** 8 seconds
+- **Retry policy:** Do NOT retry on any failure. This adapter has no confirmed public API; any non-success response triggers immediate graceful skip (see Step 2).
+
 ## Execution Instructions
 
 ### Step 1 — Attempt WebFetch with timeout

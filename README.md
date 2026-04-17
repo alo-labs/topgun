@@ -66,7 +66,7 @@ TopGun uses **SENTINEL v2.3.0** — bundled directly in the plugin — to audit 
 
 ## Hook Setup
 
-TopGun v1.3.0 ships a `PreToolUse:Write` enforcement hook that guarantees all 18 registry partial files are written before the finder aggregates results. The hook must be registered in `~/.claude/settings.json`.
+TopGun v1.4.0 ships a `PreToolUse:Write` enforcement hook that guarantees all 18 registry partial files are written before the finder aggregates results. The hook must be registered in `~/.claude/settings.json`.
 
 ### What the hook does
 
@@ -132,7 +132,7 @@ To list TopGun on skills.sh:
 
 1. Ensure the GitHub repository is public at `https://github.com/alo-labs/topgun`
 2. Verify `plugin.json` and `marketplace.json` are in `.claude-plugin/`
-3. Tag a release: `git tag v1.3.0 && git push origin v1.3.0`
+3. Tag a release: `git tag v1.4.0 && git push origin v1.4.0`
 4. Submit via: `npx skills submit alo-labs/topgun`
 
 ### Auto-Update

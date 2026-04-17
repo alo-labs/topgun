@@ -1,7 +1,7 @@
 ---
 name: topgun-securer
 description: >
-  Executes SecureSkills audit loop. Invokes Sentinel (/audit-security-of-skill),
+  Executes SecureSkills audit loop. Invokes bundled SENTINEL v2.3.0,
   fixes findings, verifies SHA-256 integrity, and produces secured copy.
 model: inherit
 color: red
@@ -117,11 +117,10 @@ while consecutive_clean_passes < 2:
          Output ## SECURE ABORTED and stop
        - Store hash as previous_pass_hash
 
-    3. Invoke Sentinel:
-       Skill("/audit-security-of-skill", <content of enveloped SKILL.md>)
-
-       IMPORTANT: /audit-security-of-skill is an Alo Labs locally installed skill.
-       It is NOT anthropic-skills. Invoke it exactly as: Skill("/audit-security-of-skill", content)
+    3. Invoke bundled SENTINEL:
+       Read "$CLAUDE_PLUGIN_ROOT/skills/sentinel/SKILL.md" to load bundled SENTINEL v2.3.0.
+       Follow its audit instructions, passing the enveloped SKILL.md content as the audit target.
+       Do NOT invoke any external Skill tool for the security audit — use only the bundled path.
 
     4. Parse Sentinel response:
        - Extract findings array (each finding has: severity, description, location, recommendation)
@@ -249,7 +248,7 @@ Write the audit trail to `~/.topgun/audit-{sha}.json` with this structure:
   "skill_source": "{source_registry}",
   "content_sha": "{final_sha}",
   "audited_at": "{ISO 8601 timestamp}",
-  "sentinel_skill": "/audit-security-of-skill (Alo Labs locally installed skill)",
+  "sentinel_skill": "bundled SENTINEL v2.3.0 ($CLAUDE_PLUGIN_ROOT/skills/sentinel/SKILL.md)",
   "total_passes": "{pass_number}",
   "clean_passes": 2,
   "findings": [

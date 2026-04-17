@@ -17,6 +17,20 @@
 
 <!-- ENTRIES BELOW — newest first -->
 
+## 2026-04-18 — v1.4.0
+
+**What**: Added pre-release gate enforcement hook and fixed stale site references to the now-bundled SENTINEL.
+
+**Added**:
+- `bin/hooks/validate-release-gate.sh` — `PreToolUse:Bash` hook that blocks `gh release create` unless all 4 quality-gate stage markers are present in `~/.claude/.silver-bullet/state`
+
+**Changed**:
+- `site/index.html` — version badge updated from v1.1 to v1.4; replaced two stale references to "Alo Labs /audit-security-of-skill" with "bundled SENTINEL v2.3.0"
+- `docs/pre-release-quality-gate.md` — corrected Stage 1 batching check to reflect single-batch dispatch (v1.2.0 change); updated Stage 2 docs structure check to reflect current `docs/` layout
+- `plugin.json` / `marketplace.json` — bumped version to 1.4.0
+
+---
+
 ## 2026-04-18 — doc-scheme-restructure
 
 **What**: Restructured docs/ to comply with the Silver Bullet doc-scheme — renamed Architecture-and-Design.md to ARCHITECTURE.md, replaced placeholder TESTING.md, split KNOWLEDGE.md into knowledge/INDEX.md + knowledge/2026-04.md + lessons/2026-04.md, and added doc-scheme.md.

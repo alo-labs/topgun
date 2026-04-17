@@ -13,6 +13,10 @@ degradation_reason: "API endpoint is best-guess — not officially documented"
 
 Searches the LobeHub agents/skills directory. The API endpoint is a best-guess based on observed URL patterns; it is not officially documented. This adapter gracefully skips on any failure.
 
+## Degradation Notice
+
+The endpoint `https://chat-agents.lobehub.com/api/agents` is a best-guess — it is not officially documented by LobeHub. If the endpoint returns any non-200 response or an unexpected format, this adapter returns `status: "unavailable"` and the pipeline continues without LobeHub results.
+
 ## Endpoint
 
 ```
