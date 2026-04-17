@@ -191,13 +191,13 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
 
       <div class="callout callout-info">
         <span class="callout-icon"><i data-lucide="info"></i></span>
-        <div class="callout-body"><strong>SENTINEL</strong> is Alo Labs' security audit skill (<code style="font-family:var(--font-mono);font-size:1em">/audit-security-of-skill</code>). It must be installed separately before TopGun can perform security audits. See the prerequisites below.</div>
+        <div class="callout-body"><strong>SENTINEL v2.3.0</strong> is bundled directly inside the TopGun plugin. No separate installation step is required — installing TopGun gives you the complete security audit chain.</div>
       </div>
 
       <div class="divider"></div>
 
       <h2 id="prerequisites">Prerequisites</h2>
-      <p>TopGun requires two things to be installed before you can use it:</p>
+      <p>TopGun only requires one thing:</p>
 
       <div class="prereq-grid">
         <div class="prereq-card">
@@ -208,19 +208,11 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
             <div class="install-cmd">npm install -g @anthropic/claude-code</div>
           </div>
         </div>
-        <div class="prereq-card">
-          <div class="prereq-icon"><i data-lucide="shield-check"></i></div>
-          <div>
-            <h4>Alo Labs Audit Skill <span class="tag tag-required">Required</span></h4>
-            <p>SENTINEL depends on <code style="font-family:var(--font-mono);font-size:1em">audit-security-of-skill</code> being locally available.</p>
-            <div class="install-cmd">/plugin install alo-labs/audit-security-of-skill</div>
-          </div>
-        </div>
       </div>
 
-      <div class="callout callout-warn">
-        <span class="callout-icon"><i data-lucide="alert-triangle"></i></span>
-        <div class="callout-body"><strong>Install order matters.</strong> Install <code style="font-family:var(--font-mono);font-size:1em">audit-security-of-skill</code> before TopGun. If SENTINEL is missing when TopGun tries to run the SecureSkills stage, the pipeline will abort. See <a href="../troubleshooting/#sentinel-missing" style="color:var(--accent-light)">Troubleshooting: SENTINEL not found</a>.</div>
+      <div class="callout callout-tip">
+        <span class="callout-icon"><i data-lucide="check-circle"></i></span>
+        <div class="callout-body"><strong>No external dependencies.</strong> SENTINEL v2.3.0 ships inside the TopGun plugin at <code style="font-family:var(--font-mono);font-size:1em">skills/sentinel/SKILL.md</code>. Earlier TopGun versions (pre‑v1.1) required a separate <code style="font-family:var(--font-mono);font-size:1em">audit-security-of-skill</code> install — that requirement is gone as of v1.1.</div>
       </div>
 
       <div class="divider"></div>

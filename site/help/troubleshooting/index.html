@@ -182,25 +182,25 @@ TopGun › ✓ Found 3 candidates across 2 registries (reduced coverage)</div>
 
       <div class="divider"></div>
 
-      <!-- SENTINEL MISSING -->
-      <h2 id="sentinel-missing">SENTINEL Not Found</h2>
+      <!-- SENTINEL FILE MISSING -->
+      <h2 id="sentinel-missing">SENTINEL File Missing from Plugin</h2>
 
       <div class="issue-card sev-stop">
         <div class="issue-header">
-          <div class="issue-title">audit-security-of-skill skill is not installed</div>
+          <div class="issue-title">Bundled SENTINEL file not found inside TopGun plugin</div>
           <span class="issue-badge badge-stop">Pipeline abort</span>
         </div>
         <div class="issue-section-label">Symptoms</div>
-        <div class="issue-symptom">TopGun › ✗ SENTINEL prerequisite missing
-TopGun › Cannot invoke /audit-security-of-skill — skill not found
+        <div class="issue-symptom">TopGun › ✗ Cannot Read $CLAUDE_PLUGIN_ROOT/skills/sentinel/SKILL.md
+TopGun › Bundled SENTINEL v2.3.0 missing from plugin
 TopGun › Pipeline aborted at SecureSkills stage</div>
         <div class="issue-section-label" style="margin-top:16px">Cause</div>
-        <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:16px">TopGun requires Alo Labs' <code style="font-family:var(--font-mono);font-size:1em">audit-security-of-skill</code> skill to perform the SENTINEL audit. If this skill is not installed in Claude Code, the SecureSkills stage cannot run and the pipeline aborts.</p>
+        <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:16px">As of v1.1.0 SENTINEL ships bundled directly inside the TopGun plugin at <code style="font-family:var(--font-mono);font-size:1em">skills/sentinel/SKILL.md</code>. If that file is missing, the plugin cache is corrupted or incomplete. The SecureSkills stage cannot run without it.</p>
         <div class="issue-section-label">Fix</div>
         <ul class="fix-steps">
-          <li><strong>Install the audit skill first.</strong> Run <code style="font-family:var(--font-mono);font-size:1em">/plugin install alo-labs/audit-security-of-skill</code> in Claude Code, then retry your <code style="font-family:var(--font-mono);font-size:1em">/topgun</code> command.</li>
-          <li><strong>Verify installation.</strong> After installing, confirm the skill is active by checking <code style="font-family:var(--font-mono);font-size:1em">/plugin list</code> — you should see <code style="font-family:var(--font-mono);font-size:1em">audit-security-of-skill</code> in the output.</li>
-          <li><strong>Check plugin system health.</strong> If <code style="font-family:var(--font-mono);font-size:1em">/plugin install</code> itself fails, see the <a href="#install-failure" style="color:var(--accent-light)">Install Failure</a> section below.</li>
+          <li><strong>Reinstall TopGun.</strong> Run <code style="font-family:var(--font-mono);font-size:1em">/plugin install alo-labs/topgun</code> in Claude Code. This will fetch the latest plugin release, which includes the bundled SENTINEL file.</li>
+          <li><strong>Verify the bundled file exists.</strong> After reinstall, check that <code style="font-family:var(--font-mono);font-size:1em">~/.claude/plugins/cache/topgun/topgun/&lt;version&gt;/skills/sentinel/SKILL.md</code> is present.</li>
+          <li><strong>Clear stale cache.</strong> If reinstall still fails, remove the plugin cache directory and retry the install.</li>
         </ul>
       </div>
 

@@ -3,7 +3,7 @@ const SEARCH_DATA = [
   {
     page: 'Getting Started',
     title: 'Install TopGun',
-    excerpt: 'Install TopGun with a single command: /plugin install alo-labs/topgun. Requires Claude Code and the Alo Labs audit-security-of-skill skill.',
+    excerpt: 'Install TopGun with a single command: /plugin install alo-labs/topgun. SENTINEL v2.3.0 ships bundled inside the plugin — no external audit skill required.',
     url: 'getting-started/#install'
   },
   {
@@ -45,7 +45,7 @@ const SEARCH_DATA = [
   {
     page: 'Troubleshooting',
     title: 'SENTINEL Not Found',
-    excerpt: 'If /audit-security-of-skill is missing, TopGun will abort before the SecureSkills stage. Install the Alo Labs audit skill first: /plugin install alo-labs/audit-security-of-skill.',
+    excerpt: 'If the bundled SENTINEL file is missing (skills/sentinel/SKILL.md), TopGun will abort before the SecureSkills stage. Reinstall TopGun to restore it: /plugin install alo-labs/topgun.',
     url: 'troubleshooting/#sentinel-missing'
   }
 ];

@@ -120,7 +120,7 @@ After all three passes complete with no blocking issues:
 1. Invoke `/superpowers:verification-before-completion`
 2. Write the marker:
    ```bash
-   echo "quality-gate-stage-1" >> ~/.claude/.silver-bullet/state
+   echo "quality-gate-stage-1" >> ~/.topgun/quality-gate.state
    ```
 
 **Exit criteria**: Zero accepted code review findings across all three passes, fresh verification confirms clean, marker written.
@@ -197,7 +197,7 @@ After two consecutive clean passes across all 5 dimensions:
 1. Invoke `/superpowers:verification-before-completion`
 2. Write the marker:
    ```bash
-   echo "quality-gate-stage-2" >> ~/.claude/.silver-bullet/state
+   echo "quality-gate-stage-2" >> ~/.topgun/quality-gate.state
    ```
 
 **Exit criteria**: Two consecutive clean passes, no consistency gaps remain, marker written.
@@ -226,15 +226,28 @@ Read `README.md` in full and verify/update:
 - **License**: Correct (MIT) and current year
 - **All links**: Every link resolves
 
-### Step 3 — site/index.html (Landing Page)
+### Step 3 — site/** (Landing Page + Help Center)
 
-Read `site/index.html` in full and verify/update:
+**Scope** (added in v1.4.1 after the v1.4.0 miss): audit the full public site tree, not just the landing page.
+
+Files to read in full and verify/update:
+- `site/index.html` (landing page)
+- `site/help/getting-started/index.html`
+- `site/help/concepts/index.html`
+- `site/help/reference/index.html`
+- `site/help/troubleshooting/index.html`
+- `site/help/search.js` (search-index excerpts must stay in sync with page content)
+- Any other `site/**/*.html` or `site/**/*.js` introduced in the release
+
+For each file, verify:
 
 - **Registry count**: "18" everywhere — consistent with README and SKILL.md
 - **Feature section**: Each feature described is implemented; no vaporware
 - **Call-to-action links**: Primary CTAs (GitHub, install, docs) resolve correctly
 - **No broken assets**: All `<img>` and `<link>` references load
 - **External links**: openai.com, GitHub, registry links are current
+- **No stale external-skill references**: search for removed external dependencies (e.g. `audit-security-of-skill` as a prerequisite) — any remaining mention must be explicitly historical and clearly labelled as "pre-vX.Y"
+- **Search index parity**: every entry in `site/help/search.js` matches the content and terminology of the page it links to
 
 ### Step 4 — docs/CHANGELOG.md
 
@@ -262,7 +275,7 @@ CI must pass before proceeding.
 1. Invoke `/superpowers:verification-before-completion`
 2. Write the marker:
    ```bash
-   echo "quality-gate-stage-3" >> ~/.claude/.silver-bullet/state
+   echo "quality-gate-stage-3" >> ~/.topgun/quality-gate.state
    ```
 
 **Exit criteria**: All public-facing content accurate and current, CI passes on main, marker written.
@@ -323,7 +336,7 @@ After all three targets are clean with no blocking issues:
 2. Invoke `/superpowers:verification-before-completion`
 3. Write the marker:
    ```bash
-   echo "quality-gate-stage-4" >> ~/.claude/.silver-bullet/state
+   echo "quality-gate-stage-4" >> ~/.topgun/quality-gate.state
    ```
 
 **Exit criteria**: Zero blocking security findings, all three targets pass clean, marker written.
@@ -336,7 +349,7 @@ After all 4 markers are written to `~/.claude/.silver-bullet/state`:
 
 ```bash
 # Verify all 4 markers are present
-grep -c "quality-gate-stage-" ~/.claude/.silver-bullet/state
+grep -c "quality-gate-stage-" ~/.topgun/quality-gate.state
 # Must output 4
 
 # Create the GitHub release

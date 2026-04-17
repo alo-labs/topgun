@@ -17,6 +17,20 @@
 
 <!-- ENTRIES BELOW — newest first -->
 
+## 2026-04-18 — v1.4.1
+
+**What**: Patch release removing stale `/audit-security-of-skill` references from the public help center that v1.4.0 missed, and broadening the Stage 3 gate scope so the miss cannot recur.
+
+**Changed**:
+- `site/help/getting-started/index.html` — removed the "Alo Labs Audit Skill" prerequisite card and the install-order warning; replaced the SENTINEL prerequisites callout with bundled SENTINEL v2.3.0 content
+- `site/help/concepts/index.html` — updated the 4-stage pipeline step 3 description and the SENTINEL Audit section intro to reference the bundled path `skills/sentinel/SKILL.md`
+- `site/help/troubleshooting/index.html` — rewrote the "SENTINEL Not Found" troubleshooting card: the fix is now "reinstall TopGun to restore the bundled SENTINEL file," not "install the external audit skill first"
+- `site/help/search.js` — updated two stale search-index excerpts (Install TopGun, SENTINEL Not Found) to reflect bundled SENTINEL
+- `docs/pre-release-quality-gate.md` — broadened Stage 3 Step 3 scope from `site/index.html` to the full `site/**` tree (including `site/help/**/*.html` and `site/help/search.js`) so public help-center content is always audited before release
+- `plugin.json` / `marketplace.json` — bumped version to 1.4.1
+
+---
+
 ## 2026-04-18 — v1.4.0
 
 **What**: Added pre-release gate enforcement hook and fixed stale site references to the now-bundled SENTINEL.

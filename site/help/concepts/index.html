@@ -178,7 +178,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
           <div class="ps-num">3</div>
           <div class="ps-body">
             <h4>SecureSkills — Audit</h4>
-            <p>Invokes <code style="font-family:var(--font-mono);font-size:1em">/audit-security-of-skill</code> (SENTINEL) on the top candidate. Requires two consecutive clean passes. Findings are auto-fixed between passes when possible. SHA-256 is re-verified before each pass.</p>
+            <p>Invokes the bundled <strong>SENTINEL v2.3.0</strong> audit (<code style="font-family:var(--font-mono);font-size:1em">skills/sentinel/SKILL.md</code>, shipped inside the TopGun plugin) on the top candidate. Requires two consecutive clean passes. Findings are auto-fixed between passes when possible. SHA-256 is re-verified before each pass.</p>
           </div>
         </div>
         <div class="pipeline-step">
@@ -279,7 +279,7 @@ composite = (capability × 0.40)
       <div class="divider"></div>
 
       <h2 id="sentinel">SENTINEL Audit</h2>
-      <p>SENTINEL is Alo Labs' <code style="font-family:var(--font-mono);font-size:1em">/audit-security-of-skill</code> skill. TopGun invokes it as a sub-skill during the SecureSkills stage.</p>
+      <p>SENTINEL v2.3.0 is the adversarial security auditor that ships bundled inside the TopGun plugin at <code style="font-family:var(--font-mono);font-size:1em">skills/sentinel/SKILL.md</code>. TopGun loads it directly during the SecureSkills stage — no separate installation required.</p>
 
       <h3>The 2-pass requirement</h3>
       <p>TopGun requires <strong>two consecutive clean passes</strong> — not just one — before a skill is eligible for installation. This guards against a class of attacks where a first-pass fix introduces a new vulnerability.</p>
