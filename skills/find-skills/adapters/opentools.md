@@ -99,6 +99,14 @@ On complete failure:
 }
 ```
 
+## Degradation Notice
+
+The OpenTools.ai API (`/api/tools`) returns 200 with valid JSON but catalogues general AI
+tools (image generation, productivity, deepfakes) — not Claude Code skills. **The relevance
+filter (Step 3) is mandatory** to prevent noise. If the API changes or the filter yields 0
+results, the WebSearch fallback (Step 4) ensures the adapter remains useful. If both fail,
+the adapter returns `status: "unavailable"` and does not stall the pipeline.
+
 ## Notes
 
 - The API returns 200 with generic AI tools — the relevance filter is mandatory.

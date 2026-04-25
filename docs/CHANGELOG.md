@@ -17,6 +17,24 @@
 
 <!-- ENTRIES BELOW — newest first -->
 
+## 2026-04-26 — v1.7.1
+
+**What**: Patch release fixing the GitLab adapter, activating ClawHub via WebSearch, removing two confirmed-dead registry adapters, and updating stale "18 registry" references throughout docs and site.
+
+**Fixed**:
+- `adapters/gitlab.md` — `order_by=stars` is not a valid GitLab API v4 parameter (returns HTTP 400); corrected to `order_by=star_count`.
+- `adapters/clawhub.md` — replaced `status: skip` with a WebSearch fallback (`site:clawhub.com OR site:clawhub.ai {query} skill`); ClawHub is now an active registry.
+- `site/help/concepts/index.html` — removed stale OSM and vskill rows from the registry adapter table.
+- `docs/pre-release-quality-gate.md` — updated all "18 registries" references to "16" following removal of vskill and osm in v1.7.0.
+
+**Removed**:
+- `skills/find-skills/adapters/vskill.md` — domain `vskill.dev` confirmed ECONNREFUSED; fully removed (was added as SKIP marker in v1.7.0, now deleted).
+- `skills/find-skills/adapters/osm.md` — domain `openskillsmarket.org` confirmed ECONNREFUSED; fully removed (same pattern).
+
+**Migration**: zero user-facing migration. Registry count unchanged at 16 active registries.
+
+---
+
 ## 2026-04-26 — v1.7.0
 
 **What**: Fix finder hallucination — sub-agents were synthesising results from training data instead of making real HTTP calls because `$CLAUDE_PLUGIN_ROOT` was passed as an unresolved literal into Task prompts. Added WebSearch fallbacks for three API-blocked registries and SKIP markers for two confirmed-dead domains.

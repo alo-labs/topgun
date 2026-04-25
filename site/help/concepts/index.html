@@ -202,7 +202,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
 
       <h3>Adapter behavior rules</h3>
       <ul>
-        <li>Each adapter has a <strong>10-second timeout</strong>. If a registry doesn't respond in time, the adapter returns an empty result and logs a warning — it does not block the pipeline.</li>
+        <li>Each adapter has an <strong>8-second timeout</strong>. If a registry doesn't respond in time, the adapter returns an empty result and logs a warning — it does not block the pipeline.</li>
         <li>Adapters implement <strong>exponential backoff</strong> with up to 3 retries for transient errors (HTTP 429, 503).</li>
         <li>If <strong>3 or more adapters</strong> fail simultaneously, TopGun logs a connectivity warning but continues with the adapters that succeeded.</li>
         <li>Adapters that require auth tokens (GitHub, Smithery) skip silently if no token is configured rather than throwing errors.</li>
@@ -213,17 +213,15 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
           <tr><th>Registry</th><th>Auth required</th><th>Timeout</th><th>Notes</th></tr>
         </thead>
         <tbody>
-          <tr><td>skills.sh</td><td>No</td><td>10s</td><td>Primary registry — highest quality signal</td></tr>
-          <tr><td>agentskill.sh</td><td>No</td><td>10s</td><td>Agent-focused; good tool-pack coverage</td></tr>
-          <tr><td>Smithery</td><td>Optional</td><td>10s</td><td>Token unlocks private listings</td></tr>
-          <tr><td>GitHub Topics</td><td>Optional</td><td>10s</td><td>Token avoids rate limits (60→5000 req/hr)</td></tr>
-          <tr><td>GitLab</td><td>Optional</td><td>10s</td><td>Token required for private group repos</td></tr>
-          <tr><td>npm</td><td>No</td><td>10s</td><td>Searches <code style="font-size:.85em">@claude-skill</code> scope</td></tr>
-          <tr><td>LobeHub</td><td>No</td><td>10s</td><td>REST API; no auth needed</td></tr>
-          <tr><td>OSM</td><td>No</td><td>10s</td><td>Federated; may have regional latency</td></tr>
-          <tr><td>vskill</td><td>No</td><td>10s</td><td>Lockfile-compatible manifest format</td></tr>
-          <tr><td>SkillsMP</td><td>No</td><td>10s</td><td>Commercial; verified publisher badge in score</td></tr>
-          <tr><td>ClawHub</td><td>No</td><td>10s</td><td>Claude-native; auto compatibility checks</td></tr>
+          <tr><td>skills.sh</td><td>No</td><td>8s</td><td>Primary registry — highest quality signal</td></tr>
+          <tr><td>agentskill.sh</td><td>No</td><td>8s</td><td>Agent-focused; good tool-pack coverage</td></tr>
+          <tr><td>Smithery</td><td>Optional</td><td>8s</td><td>Token unlocks private listings</td></tr>
+          <tr><td>GitHub Topics</td><td>Optional</td><td>8s</td><td>Token avoids rate limits (60→5000 req/hr)</td></tr>
+          <tr><td>GitLab</td><td>Optional</td><td>8s</td><td>Token required for private group repos</td></tr>
+          <tr><td>npm</td><td>No</td><td>8s</td><td>Searches <code style="font-size:.85em">@claude-skill</code> scope</td></tr>
+          <tr><td>LobeHub</td><td>No</td><td>8s</td><td>REST API; no auth needed</td></tr>
+          <tr><td>SkillsMP</td><td>No</td><td>8s</td><td>Commercial; verified publisher badge in score</td></tr>
+          <tr><td>ClawHub</td><td>No</td><td>8s</td><td>Claude-native; auto compatibility checks</td></tr>
         </tbody>
       </table>
 
