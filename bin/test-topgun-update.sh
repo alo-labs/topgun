@@ -13,7 +13,7 @@ assert_eq() { [ "$2" = "$3" ] && pass "$1" || fail "$1" "$2" "$3"; }
 FIXTURE_DIR=$(mktemp -d)
 trap 'rm -rf "$FIXTURE_DIR"' EXIT
 
-# Fixtures
+# Fixtures — versions (1.5.0, 1.6.0) are hypothetical update-flow values, not actual releases.
 cat > "$FIXTURE_DIR/installed_plugins.json" << 'EOF'
 {"plugins":{"silver-bullet@silver-bullet":[{"version":"0.25.0","installPath":"/home/user/.claude/plugins/cache/silver-bullet/silver-bullet/0.25.0"}],"topgun@alo-labs":[{"version":"1.5.0","installPath":"/home/user/.claude/plugins/cache/alo-labs/topgun/1.5.0","lastUpdated":"2026-04-25T00:00:00Z"}],"other-plugin@org":[{"version":"2.0.0","installPath":"/home/user/.claude/plugins/cache/org/other-plugin/2.0.0"}]}}
 EOF
@@ -41,6 +41,8 @@ assert_eq "case-insensitive match (TopGun@AloLabs)" "TopGun@AloLabs" "$TOPGUN_KE
 echo ""; echo "=== SUITE 2: Semver comparison — canonical function from SKILL.md Step 3 ==="
 # NOTE: verbatim copy of the function embedded in SKILL.md Step 3.
 # Tests must stay in sync with that canonical implementation.
+# SAFETY: semver_gt returns exit 1 for "false". Always call it inside an `if` or
+# `&&`/`||` guard — never standalone — or set -e will abort the script on a "false" result.
 semver_gt() {
   local IFS=.
   read -r -a va <<< "$1"; read -r -a vb <<< "$2"
@@ -65,6 +67,9 @@ else fail "up-to-date detection" "eq=true,gt=false" "unexpected"; fi
 
 # ---------------------------------------------------------------------------
 echo ""; echo "=== SUITE 3: Cache path derivation (Step 5.1) ==="
+# NOTE: derive_cache_root mirrors the sed + guard logic in SKILL.md Step 5.1.
+# Trailing-slash installPath (e.g. ".../1.5.0/") causes sed to no-op and returns "",
+# which correctly triggers the hardcoded fallback in SKILL.md — safe for standard installs.
 derive_cache_root() {
   local result; result=$(echo "$1"|sed "s|/topgun/[^/]*$||")
   [[ -z "$result" || "$result" == "$1" ]] && echo "" || echo "$result"
@@ -78,6 +83,8 @@ ROOT_BAD=$(derive_cache_root "/home/user/.claude/plugins/cache/alo-labs/topgun")
 assert_eq "no version segment → empty (triggers fallback)" "" "$ROOT_BAD"
 ROOT_UNREL=$(derive_cache_root "/some/random/path/1.5.0")
 assert_eq "unrelated path → empty (triggers fallback)" "" "$ROOT_UNREL"
+ROOT_SLASH=$(derive_cache_root "/home/user/.claude/plugins/cache/alo-labs/topgun/1.5.0/")
+assert_eq "trailing slash → empty (triggers fallback)" "" "$ROOT_SLASH"
 
 # ---------------------------------------------------------------------------
 echo ""; echo "=== SUITE 4: Registry write-back (Step 6.2) ==="
@@ -100,7 +107,11 @@ assert_eq "other plugin not touched"    "0.25.0" \
                                         "$(echo "$UPDATED"|jq -r '.plugins["silver-bullet@silver-bullet"][0].version')"
 
 # ---------------------------------------------------------------------------
-echo ""; echo "=== SUITE 5: rm -rf safety guard (Step 5.4) ==="
+echo ""; echo "=== SUITE 5: rm -rf safety guard (Step 5.3 cancel / Step 5.4 install) ==="
+# NOTE: safe_rm takes a mock_home parameter to avoid touching the real $HOME during tests.
+# The production guard in SKILL.md uses the literal $HOME variable inline — same 3-part logic:
+#   [ -n ] && [[ path == $HOME/.claude/plugins/cache/* ]] && [ -d ] && rm -rf
+# If the production guard changes, update safe_rm here to match.
 FAKE_HOME="$FIXTURE_DIR/home"
 mkdir -p "$FAKE_HOME/.claude/plugins/cache/alo-labs/topgun/1.6.0"
 mkdir -p "$FAKE_HOME/.claude/plugins/cache/alo-labs/topgun/1.5.0"
