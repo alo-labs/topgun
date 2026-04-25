@@ -45,12 +45,11 @@ Run `/engineering:code-review` on each file below. Record findings, fix all acce
 - Verify the state file path (`~/.topgun/state.json`) is used consistently throughout
 
 **`skills/find-skills/SKILL.md`**
-- Verify the default registry list contains exactly 18 registries with correct names
-- Confirm all 18 registries are dispatched in a single parallel batch (no concurrency cap — changed in v1.2.0)
+- Verify the default registry list contains exactly 16 active registries with correct names
+- Confirm all 16 registries are dispatched in a single parallel batch (no concurrency cap — changed in v1.2.0)
 - Verify the unified contract shape `{registry, status, reason, results[], latency_ms}` is defined
-- Confirm the 5-parallel concurrency cap is stated
 
-**`skills/find-skills/adapters/*.md`** (all 18)
+**`skills/find-skills/adapters/*.md`** (all 16 active)
 - Each adapter specifies: endpoint URL, timeout (8s), retry strategy, response field mapping, `source_registry` value
 - All adapters returning descriptions apply sanitization: truncate to 500 chars, strip HTML/markdown
 - Adapters with speculative endpoints have a Degradation Notice
@@ -75,7 +74,7 @@ Run `/engineering:code-review` on each file below. Record findings, fix all acce
 - Confirm the script handles missing keys gracefully (returns empty string, not an error)
 
 **`site/index.html`**
-- Verify registry count displayed is 18
+- Verify registry count displayed is 16
 - Verify tagline and positioning copy matches current direction
 - Confirm no broken links, missing assets, or placeholder text
 
@@ -137,8 +136,8 @@ Spawn 5 parallel audit agents. Collect all findings. Fix all issues. Re-run unti
 
 Audit the orchestration chain: `topgun → find-skills → adapters → secure-skills → sentinel`:
 
-- **Registry count**: The number 18 appears consistently in `skills/find-skills/SKILL.md`, `site/index.html`, and `docs/CHANGELOG.md`. No divergence.
-- **Adapter names**: The 18 registry names in `find-skills/SKILL.md`'s default list exactly match the 18 `.md` files in `skills/find-skills/adapters/`. No missing files, no extra files.
+- **Registry count**: The number 16 appears consistently in `skills/find-skills/SKILL.md`, `site/index.html`, and `docs/CHANGELOG.md`. No divergence.
+- **Adapter names**: The 16 registry names in `find-skills/SKILL.md`'s default list exactly match the 16 `.md` files in `skills/find-skills/adapters/`. No missing files, no extra files.
 - **Contract shape**: The unified contract `{registry, status, reason, results[], latency_ms}` is used identically in `find-skills/SKILL.md` and each adapter's Return Value section.
 - **SENTINEL reference**: `secure-skills/SKILL.md` references `$CLAUDE_PLUGIN_ROOT/skills/sentinel/SKILL.md` — not an external skill. No stale references to `/audit-security-of-skill`.
 - **Completion markers**: The 4 completion markers documented in `secure-skills/SKILL.md` (`SECURE COMPLETE`, `SECURE REJECTED`, `SECURE ABORTED`, `SECURE ESCALATED`) match those checked for in `topgun/SKILL.md`.
@@ -146,7 +145,7 @@ Audit the orchestration chain: `topgun → find-skills → adapters → secure-s
 
 ### Dimension B — Adapter Coverage
 
-Audit all 18 adapters for completeness and correctness:
+Audit all 16 active adapters for completeness and correctness:
 
 - Every adapter has: Request section, Timeout + Retry section, Response Parsing table, Return Value section
 - Every adapter that accesses an API key uses `topgun-tools.cjs keychain-get` (never env vars, never hardcoded)
@@ -171,7 +170,7 @@ Audit the end-to-end security posture of the install flow:
 
 Audit `site/index.html`:
 
-- **Registry count**: Exactly "18" throughout — no "11", "18+", or other variants
+- **Registry count**: Exactly "16" throughout — no "18", "16+", or other variants
 - **Skill names**: `/topgun`, `/find-skills`, `/secure-skills` spelled consistently
 - **Feature descriptions**: Each described feature is implemented in the current codebase
 - **Tagline and positioning**: Reflects current direction ("Agentic AI Skills Finder and Security Enforcer")
@@ -210,7 +209,7 @@ After two consecutive clean passes across all 5 dimensions:
 
 ### Step 1 — GitHub Repository Metadata
 
-- **Description**: Verify the GitHub repo description accurately reflects current capabilities. Recommended: "Find the best AI skill for any job — searches 18 global registries, ranks candidates, runs SENTINEL security audit, and installs the winner."
+- **Description**: Verify the GitHub repo description accurately reflects current capabilities. Recommended: "Find the best AI skill for any job — searches 16 active registries, ranks candidates, runs SENTINEL security audit, and installs the winner."
 - **Topics/tags**: Recommended: `claude-code`, `ai-skills`, `mcp`, `security`, `sentinel`, `topgun`, `skill-finder`. Add missing, remove stale.
 - **Homepage URL**: Verify it points to `https://topgun.alolabs.dev`
 - **README preview**: No broken images, no dead badge URLs, no dead links
@@ -220,9 +219,9 @@ After two consecutive clean passes across all 5 dimensions:
 Read `README.md` in full and verify/update:
 
 - **Version**: Version badge or header matches the release being cut
-- **Description**: Accurately reflects 18 registries, SENTINEL audit, 4-stage orchestration
+- **Description**: Accurately reflects 16 active registries, SENTINEL audit, 4-stage orchestration
 - **Install command**: Copy-pasteable, tested, resolves to current URL
-- **Registry list**: If listed, all 18 registries are present
+- **Registry list**: If listed, all 16 active registries are present
 - **License**: Correct (MIT) and current year
 - **All links**: Every link resolves
 
@@ -241,7 +240,7 @@ Files to read in full and verify/update:
 
 For each file, verify:
 
-- **Registry count**: "18" everywhere — consistent with README and SKILL.md
+- **Registry count**: "16" everywhere — consistent with README and SKILL.md
 - **Feature section**: Each feature described is implemented; no vaporware
 - **Call-to-action links**: Primary CTAs (GitHub, install, docs) resolve correctly
 - **No broken assets**: All `<img>` and `<link>` references load
@@ -306,7 +305,7 @@ This file controls Claude's behavior during every TopGun session. A malformed or
 
 ### Target 2 — `skills/find-skills/adapters/*.md`
 
-All 18 adapter files instruct Claude to make network calls and parse responses. An adapter pointing to a malicious endpoint could attempt to inject instructions via API response content.
+All 16 active adapter files instruct Claude to make network calls and parse responses. An adapter pointing to a malicious endpoint could attempt to inject instructions via API response content.
 
 1. **Response treated as data**: Verify every adapter's Response Parsing section explicitly maps fields to unified schema fields. No adapter should instruct Claude to execute, interpret, or follow instructions found in API response content.
 
