@@ -190,13 +190,17 @@ After the registry write succeeds, delete all version directories under the TopG
 TOPGUN_CACHE_DIR="${CACHE_ROOT}/topgun"
 DELETED=()
 while IFS= read -r -d '' old_dir; do
-  rm -rf "$old_dir" && DELETED+=("$old_dir")
+  if rm -rf "$old_dir"; then
+    DELETED+=("$old_dir")
+  else
+    echo "⚠️ Could not delete $old_dir — remove manually."
+  fi
 done < <(find "$TOPGUN_CACHE_DIR" -mindepth 1 -maxdepth 1 -type d \
            ! -name "$LATEST_VERSION" -print0)
 ```
 
-On success: collect deleted paths into `DELETED` array for display in Step 7.
-On `rm` failure: warn `⚠️ Could not delete {old_dir} — remove manually.` and continue (non-fatal).
+On success: deleted paths are collected in `DELETED` for display in Step 7.
+On `rm` failure: warning is printed inline and the loop continues (non-fatal).
 
 ---
 

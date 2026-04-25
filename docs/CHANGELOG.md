@@ -17,6 +17,17 @@
 
 <!-- ENTRIES BELOW — newest first -->
 
+## 2026-04-26 — v1.7.2
+
+**What**: Patch release adding automatic old-cache cleanup to `/topgun-update` so stale plugin version directories are removed after every successful update.
+
+**Changed**:
+- `skills/topgun-update/SKILL.md` — added Step 6.3: after the registry write succeeds, all version directories under the TopGun plugin cache root are deleted except the newly installed one; deleted paths are collected and displayed in the Step 7 summary.
+
+**Migration**: zero user-facing migration. Existing installs continue to work; the next `/topgun-update` run will clean up any leftover version directories automatically.
+
+---
+
 ## 2026-04-26 — v1.7.1
 
 **What**: Patch release fixing the GitLab adapter, activating ClawHub via WebSearch, removing two confirmed-dead registry adapters, and updating stale "18 registry" references throughout docs and site.
