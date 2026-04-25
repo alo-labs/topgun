@@ -17,7 +17,7 @@ TopGun is a Claude Code plugin that automates skill discovery, evaluation, and i
 | Secure | `topgun-securer` | `~/.topgun/audit-{hash}.json` |
 | Install | `topgun-installer` | installed to `~/.claude/skills/{name}/` |
 
-**Find** — dispatches one subprocess per registry via `bin/topgun-tools.cjs dispatch-registries`, then aggregates 18 partial result files into the found-skills artifact. The aggregation write is enforced by a PreToolUse hook (see Registry Dispatch Architecture).
+**Find** — dispatches one in-process `Task` sub-agent per registry from `topgun-finder` (in a single parallel batch), then aggregates 18 partial result files into the found-skills artifact. The aggregation write is enforced by a PreToolUse hook (see Registry Dispatch Architecture).
 
 **Compare** — reads the found-skills artifact and ranks candidates using a multi-factor model: capability match, security posture signals, registry popularity, and recency.
 
@@ -34,37 +34,42 @@ TopGun is a Claude Code plugin that automates skill discovery, evaluation, and i
 | Comparator agent | `agents/topgun-comparator.md` | Ranks candidates; writes comparison artifact |
 | Securer agent | `agents/topgun-securer.md` | Runs SENTINEL audit; writes audit artifact |
 | Installer agent | `agents/topgun-installer.md` | Gets user approval; installs skill; writes audit trail |
-| topgun-tools binary | `bin/topgun-tools.cjs` | Node.js CLI: init, state I/O, sha256, dispatch-registries, validate-partials, cache, keychain, lock |
+| topgun-tools binary | `bin/topgun-tools.cjs` | Node.js CLI: init, state I/O, sha256, validate-partials, cache, keychain, lock |
 | Validate-partials hook | `bin/hooks/validate-partials.sh` | PreToolUse:Write enforcement — blocks aggregation write if < 18 partials |
 | Registry adapters | `skills/find-skills/adapters/` | 18 self-contained instruction files, one per registry |
 | SENTINEL | `skills/sentinel/SKILL.md` | Bundled SENTINEL v2.3.0 security auditor |
 
-## Registry Dispatch Architecture (v1.3.0)
+## Registry Dispatch Architecture (v1.5.0)
 
-This is the most architecturally significant component. Before v1.3.0, the finder dispatched registry searches via LLM `Agent` sub-calls. This was unreliable: the model synthesized plausible-looking output from training data instead of actually dispatching (issue #2). v1.3.0 moved dispatch entirely out of the LLM.
+This is the most architecturally significant component. The dispatch model has now been through three iterations:
 
-### Dispatch flow
+| Version | Model | Why it failed |
+|---------|-------|---------------|
+| ≤ v1.2 | LLM `Agent` fan-out (model dispatches 18 sub-agents inline) | Model hallucinated plausible-looking outputs instead of actually dispatching (issue #2) |
+| v1.3 – v1.4 | Mechanical `child_process.spawn('claude --bare', ...)` from `bin/topgun-tools.cjs dispatch-registries` | Spawned subprocesses cannot inherit OAuth tokens — silently broke FindSkills for Pro/Teams users (issue #3) |
+| v1.5+ | In-process parallel `Task` dispatch from `topgun-finder` | Inherits parent agent auth context for both OAuth and API-key |
 
-1. The finder calls `bin/topgun-tools.cjs dispatch-registries` via `Bash`.
-2. The Node.js command reads the 18 adapter file paths and spawns one `claude --bare` subprocess per registry using `child_process.spawn` + `Promise.allSettled`. All 18 run concurrently.
-3. Each subprocess writes a partial file: `~/.topgun/registry-{hash}-{registry}.json`. On failure or timeout the binary writes `{ "status": "unavailable" }` rather than omitting the file. Aggregation always sees exactly 18 files; missing registries are visible rather than silently absent.
-4. The finder calls `bin/topgun-tools.cjs validate-partials` to self-verify the count.
+### Dispatch flow (v1.5+)
+
+1. `topgun-finder` parses the registry list (defaults to all 18) and computes the query hash.
+2. The agent emits **one assistant turn containing 18 `Task` tool blocks**, one per registry, all using `subagent_type: "general-purpose"`. The runtime executes them concurrently.
+3. Each adapter sub-agent reads the adapter instruction file, performs registry-specific HTTP calls under the parent's auth, applies the structural envelope and HTTPS scheme check, and writes `~/.topgun/registry-{hash}-{registry}.json`.
+4. After all 18 Tasks complete, `topgun-finder` runs `ls ~/.topgun/registry-{hash}-*.json | wc -l`. Any missing registries are treated as `status: "unavailable"` during aggregation; missing registries are still visible rather than silently absent.
 5. The finder writes the aggregated `found-skills-{hash}.json` artifact.
 6. Before the write lands, `bin/hooks/validate-partials.sh` fires as a `PreToolUse:Write` hook. It extracts the hash from the target filename, counts `registry-{hash}-*.json` files, and exits 1 (blocking the write) if fewer than 18 are present.
 
-### Why three layers of enforcement
+### Why two layers of enforcement
 
 | Layer | Mechanism | Can be bypassed by agent? |
 |-------|-----------|--------------------------|
-| Prompt instruction | Text in SKILL.md | Yes — model can ignore |
-| Binary self-check | `validate-partials` Node.js command | Theoretically yes (Bash call omitted) |
+| Prompt instruction | Text in SKILL.md and `topgun-finder.md` | Yes — model can ignore |
 | PreToolUse hook | `validate-partials.sh` in `settings.json` | No — OS-level interception |
 
-The hook is the only enforcement layer that cannot be bypassed by agent behavior.
+The hook is the only enforcement layer that cannot be bypassed by agent behavior. With v1.3's intermediate `validate-partials` Node.js self-check now removed (the binary still exposes the command, but the dispatch path no longer relies on it), the hook is the canonical guarantee.
 
-### `--bare` flag on adapter subprocesses
+### Auth inheritance — why in-process dispatch works
 
-Adapter subprocesses use `claude --bare` to skip hooks, LSP, and plugin sync for speed. `CLAUDE.md` is not auto-discovered; adapter prompts must be fully self-contained.
+A `Task` sub-agent runs inside the same Claude Code session as its parent and uses the same auth context: OAuth session tokens, API keys, or first-party credentials. A `child_process.spawn('claude', ...)` subprocess starts a fresh CLI invocation that re-authenticates from `ANTHROPIC_API_KEY` env var alone — OAuth refresh tokens, the Pro/Teams default, are not inheritable across process boundaries. v1.5 picks the model that works for the majority case.
 
 ## State Machine
 
@@ -90,7 +95,7 @@ bin/
   hooks/
     validate-partials.sh     # PreToolUse:Write enforcement hook
 agents/
-  topgun-finder.md           # Find agent (tools: Read, Write, Bash, Grep, WebFetch, WebSearch)
+  topgun-finder.md           # Find agent (tools: Read, Write, Bash, Grep, Glob, Task, WebFetch, WebSearch)
   topgun-comparator.md       # Compare agent
   topgun-securer.md          # Secure agent
   topgun-installer.md        # Install agent
@@ -130,9 +135,11 @@ skills/
 
 ## Design Principles
 
-**Mechanical dispatch over LLM fan-out** — LLM-driven Agent dispatch (even with `Agent` in the tools list) proved unreliable because the model synthesizes expected output shapes from training data instead of spawning actual sub-calls. Node.js subprocess fan-out via `child_process.spawn` is the only approach that provides dispatch guarantees.
+**In-process `Task` dispatch over LLM-narrated `Agent` fan-out** — early `Agent`-tool dispatch (≤ v1.2) was unreliable because the model synthesized plausible-looking outputs without spawning actual sub-calls. The structured `Task` tool is the right primitive for parallel adapter dispatch: the runtime, not the model, guarantees the sub-calls execute.
 
-**Unavailable partials always written** — if a registry subprocess fails or times out, the binary writes an `unavailable` status partial rather than omitting the file. Aggregation always sees exactly 18 files, making failures visible rather than silently absent.
+**In-process `Task` dispatch over `child_process.spawn`** — the v1.3-v1.4 subprocess approach gave dispatch guarantees but broke OAuth auth (issue #3). `Task` sub-agents inherit the parent's auth context, work for both OAuth and API-key, and remove the dependency on `claude` being on `$PATH`.
+
+**Unavailable partials are inferred from set difference** — with subprocess dispatch retired, missing partials are detected by comparing the 18 expected registry names against the basenames of present `registry-{hash}-*.json` files. Missing registries become `status: "unavailable"` during aggregation, preserving the v1.3 visibility guarantee.
 
 **Hook as final enforcement gate** — prompt instructions and binary self-checks can both be bypassed by agent behavior in different ways. A `PreToolUse:Write` hook intercepts at the OS tool-use level and cannot be bypassed.
 

@@ -42,12 +42,16 @@ default to all registries: `["skills-sh", "agentskill-sh", "smithery", "github",
 ## Step 3: Adapter Dispatch
 
 For each enabled registry, the `topgun-finder` agent dispatches one parallel sub-agent
-per registry using the Agent tool. All registries are searched simultaneously — no
+per registry using the `Task` tool with `subagent_type: "general-purpose"` (v1.5+ —
+this replaces the v1.3-v1.4 `child_process.spawn` subprocess path, which broke
+OAuth auth; see issue #3). All registries are searched simultaneously — no
 concurrency cap. Each sub-agent reads its adapter instruction file at
-`$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/{registry}.md`, executes the search,
-and writes a partial results file to `~/.topgun/registry-{hash}-{registry}.json`.
+`$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/{registry}.md`, executes the search
+under the parent session's auth context, and writes a partial results file to
+`~/.topgun/registry-{hash}-{registry}.json`.
 
-All 18 sub-agents are launched in a **single parallel batch**.
+All 18 sub-agents are launched in a **single assistant turn containing 18 `Task`
+tool blocks** so they execute concurrently.
 
 Each adapter must return the following contract object:
 

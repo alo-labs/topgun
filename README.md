@@ -24,7 +24,7 @@ npx skills add alo-labs/topgun
 ```
 
 TopGun will:
-1. **Search** 18+ skill registries via parallel subprocess dispatch
+1. **Search** 18+ skill registries via parallel in-process Task dispatch
 2. **Compare** candidates across capability, security, popularity, and recency
 3. **Audit** the top pick with bundled SENTINEL v2.3.0 (2 clean passes required)
 4. **Present** the audit manifest for your approval
@@ -40,7 +40,7 @@ The `/topgun` orchestrator dispatches four sub-skills in sequence:
 
 | Step | Skill | What it does |
 |------|-------|--------------|
-| 1 | `find-skills` | 18 registries searched via parallel subprocess dispatch |
+| 1 | `find-skills` | 18 registries searched in parallel via in-process `Task` sub-agents (v1.5+) |
 | 2 | `compare-skills` | Multi-factor ranking: capability, security posture, popularity, recency |
 | 3 | `secure-skills` | Bundled SENTINEL v2.3.0 audit — 2 consecutive clean passes required |
 | 4 | `install-skills` | Installs the approved skill and writes the audit trail |
