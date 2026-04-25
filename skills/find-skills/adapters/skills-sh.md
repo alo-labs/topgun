@@ -30,7 +30,7 @@ For each search result returned:
 | Search result field | Unified schema field |
 |---------------------|----------------------|
 | Page title (strip site name suffix) | `name` |
-| Snippet / description (truncate to 500 chars) | `description` |
+| Snippet / description (truncate to 500 chars, strip HTML/markdown tags) | `description` |
 | Result URL (only if starts with `https://skills.sh/`) | `install_url` |
 | `null` | `stars` |
 | `null` | `last_updated` |
