@@ -17,12 +17,12 @@ TopGun is a Claude Code plugin — its "tests" are pipeline runs and security au
 # Attempt write — hook should exit 1 and block it
 ```
 
-**Dispatch verification** — verify `dispatch-registries` spawns real subprocesses:
+**Dispatch verification** — verify the in-process `Task` dispatch in `agents/topgun-finder.md` Step 4 produces all 18 partial files (v1.5+):
 ```bash
-# Run dispatch-registries
-# Check partial file count immediately after
+# Run /topgun <task> end-to-end and immediately check
 ls ~/.topgun/registry-*.json | wc -l  # should be 18
 ```
+Each partial corresponds to a `general-purpose` `Task` sub-agent dispatched by `topgun-finder` in a single parallel batch. Sub-agents inherit the parent session's auth context, so this works for both OAuth (Pro/Teams) and API-key auth — see ARCHITECTURE.md "Auth inheritance" and issue #3 for the rationale.
 
 ## Coverage Goals
 

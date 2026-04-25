@@ -17,6 +17,22 @@
 
 <!-- ENTRIES BELOW — newest first -->
 
+## 2026-04-25 — v1.5.0
+
+**What**: Fix #3 — replace the `dispatch-registries` subprocess (which silently broke FindSkills for OAuth-authenticated Claude Code users) with in-process parallel `Task()` dispatch. Also eliminates the secondary issue where Silver Bullet's `dev-cycle-check.sh` hook was blocking the orchestrator's `dispatch-registries` Bash call on substring-match for "install".
+
+**Changed**:
+- `agents/topgun-finder.md` — Step 4 rewritten to dispatch all 18 registry adapter sub-agents in a single message via the `Task` tool (`subagent_type: "general-purpose"`). Inherits the parent session's authentication context, so OAuth and API-key auth both work. `Task` and `Glob` added to the agent's `tools` list.
+- `bin/topgun-tools.cjs` — `dispatch-registries` command removed; calling it now prints a deprecation message pointing to issue #3 and exits 2. The `spawn` import was dropped.
+
+**Fixed**:
+- `#3` — FindSkills returning "all 18 registries unavailable" for users on Claude Code Pro/Teams (OAuth auth, the default). Root cause: spawned `claude` subprocesses cannot inherit the parent's OAuth session token, so they exit 1 with "Not logged in" before any adapter logic runs.
+- Secondary: orchestrator no longer triggers SB's path+keyword hook because `dispatch-registries` is no longer invoked at all.
+
+**Migration**: zero user-facing migration. The orchestrator and `topgun-finder` interface are unchanged; only the internal dispatch mechanism is different.
+
+---
+
 ## 2026-04-18 — v1.4.1
 
 **What**: Patch release removing stale `/audit-security-of-skill` references from the public help center that v1.4.0 missed, and broadening the Stage 3 gate scope so the miss cannot recur.

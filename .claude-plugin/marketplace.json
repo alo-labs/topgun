@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Find, compare, security-audit, and install the best available skill for any job from 18+ registries.",
-    "version": "1.4.1"
+    "version": "1.5.0"
   },
   "plugins": [
     {
@@ -16,7 +16,7 @@
         "url": "https://github.com/alo-labs/topgun.git"
       },
       "description": "Find, compare, security-audit, and install the best available skill for any job from 18+ registries.",
-      "version": "1.4.1",
+      "version": "1.5.0",
       "strict": true
     }
   ]
