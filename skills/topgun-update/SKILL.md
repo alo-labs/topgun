@@ -188,6 +188,8 @@ After the registry write succeeds, delete all version directories under the TopG
 
 ```bash
 TOPGUN_CACHE_DIR="${CACHE_ROOT}/topgun"
+[[ "$TOPGUN_CACHE_DIR" == "$HOME/.claude/plugins/cache/"* ]] \
+  || { echo "❌ Cache dir outside safe prefix: $TOPGUN_CACHE_DIR"; exit 1; }
 DELETED=()
 while IFS= read -r -d '' old_dir; do
   if rm -rf "$old_dir"; then
