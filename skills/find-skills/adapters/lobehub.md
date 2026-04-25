@@ -2,119 +2,86 @@
 adapter: lobehub
 registry: LobeHub
 tier: 2
-status: unconfirmed
+status: websearch-fallback
 auth_required: false
 timeout_ms: 8000
-max_retries: 3
-degradation_reason: "API endpoint is best-guess — not officially documented"
+degradation_reason: "API endpoint returns 403 Forbidden — bot/API-key protection active"
 ---
 
 # LobeHub Adapter
 
-Searches the LobeHub agents/skills directory. The API endpoint is a best-guess based on observed URL patterns; it is not officially documented. This adapter gracefully skips on any failure.
+**Registry:** LobeHub
+**Method:** WebSearch (API returns 403 as of 2026-04-26)
+**Timeout:** N/A (WebSearch)
 
-## Degradation Notice
+---
 
-The endpoint `https://chat-agents.lobehub.com/api/agents` is a best-guess — it is not officially documented by LobeHub. If the endpoint returns any non-200 response or an unexpected format, this adapter returns `status: "unavailable"` and the pipeline continues without LobeHub results.
+## Status
 
-## Endpoint
+`https://chat-agents.lobehub.com/api/agents` returns 403 Forbidden. This adapter uses
+WebSearch to find LobeHub agents relevant to the query.
 
-```
-GET https://chat-agents.lobehub.com/api/agents?q={query}
-```
+Note: LobeHub agents are primarily designed for LobeChat, not Claude Code. Results may
+be tangentially relevant (agent prompts/tools that could be adapted).
 
-No authentication required (assumed).
+---
 
 ## Execution Instructions
 
-### Step 1 — Build request URL
+### Step 1 — WebSearch
+
+Run a WebSearch with the following query:
 
 ```
-https://chat-agents.lobehub.com/api/agents?q={url_encode(query)}
+lobehub agent {query}
 ```
 
-### Step 2 — WebFetch with timeout
+### Step 2 — Parse results
 
-Perform a WebFetch GET to the constructed URL.
+For each search result with a URL starting with `https://lobehub.com/` or
+`https://chat-agents.lobehub.com/`:
 
-- Timeout: **8 seconds**
-- On timeout: return unavailable (see Step 4)
+| Search result field | Unified schema field |
+|---------------------|----------------------|
+| Page title (strip " - LobeHub" suffix) | `name` |
+| Snippet (truncate to 500 chars) | `description` |
+| Result URL | `install_url` |
+| `null` | `stars` |
+| `null` | `last_updated` |
+| `null` | `content_sha` |
+| `"lobehub"` | `source_registry` |
+| `{ "search_result": { "title": "...", "url": "...", "snippet": "..." } }` | `raw_metadata` |
 
-### Step 3 — Retry on 429
+Filter out results whose URLs don't start with `https://lobehub.com/` or
+`https://chat-agents.lobehub.com/`. Skip results with missing names.
 
-If the response status is `429 Too Many Requests`:
+### Step 3 — Handle no results
 
-| Attempt | Wait before retry |
-|---------|-------------------|
-| 1st retry | 1 second |
-| 2nd retry | 2 seconds |
-| 3rd retry | 4 seconds |
-
-After 3 retries with no success, return unavailable result.
-
-### Step 4 — Handle any non-200
-
-On any non-200 status code, timeout, or network error, return immediately:
+If 0 results found, return:
 
 ```json
 {
-  "status": "unavailable",
-  "reason": "LobeHub API not reachable or changed",
+  "registry": "lobehub",
+  "status": "ok",
+  "reason": "no results found",
   "results": [],
-  "registry": "LobeHub",
-  "latency_ms": {elapsed_ms}
+  "latency_ms": 0
 }
 ```
 
-Do not attempt to parse partial responses.
-
-### Step 5 — Parse success response (if 200)
-
-If the API returns 200, attempt to map the response array to unified schema:
-
-| response field | unified field | notes |
-|---------------|---------------|-------|
-| `identifier` or `name` | `name` | prefer `identifier` if present |
-| `description` or `systemRole` (truncate to 500 chars, strip markdown/HTML tags before storing) | `description` | |
-| `"lobehub"` | `source_registry` | hardcoded |
-| `null` | `install_count` | not available |
-| `null` | `stars` | not available |
-| `null` | `security_score` | computed by SecureSkills |
-| `createdAt` or `updatedAt` | `last_updated` | ISO-8601 if available |
-| `null` | `content_sha` | computed by SecureSkills |
-| construct from identifier | `install_url` | `https://chat-agents.lobehub.com/agent/{identifier}` if identifier exists, else `null` |
-| full response item | `raw_metadata` | preserve entire object |
-
-If the response is not a parseable JSON array (unexpected format), treat as unavailable:
+### Step 4 — Return success
 
 ```json
 {
-  "status": "unavailable",
-  "reason": "LobeHub API response format unexpected",
-  "results": [],
-  "registry": "LobeHub",
-  "latency_ms": {elapsed_ms}
-}
-```
-
-### Step 6 — Return success result
-
-```json
-{
+  "registry": "lobehub",
   "status": "ok",
   "reason": null,
   "results": [ /* mapped array */ ],
-  "registry": "LobeHub",
-  "latency_ms": {elapsed_ms}
+  "latency_ms": 0
 }
 ```
 
-## Threat Mitigations
-
-- **T-02-05 (Spoofing):** All raw response data is stored in `raw_metadata`. The topgun-finder orchestrator applies structural envelope before downstream processing.
-- **T-02-06 (DoS):** Any non-200 triggers immediate unavailable return. 8-second hard timeout + exponential backoff on 429 prevents stalling.
-
 ## Notes
 
-- The endpoint `https://chat-agents.lobehub.com/api/agents?q=...` is a best-guess. If it becomes confirmed or changes, update this file.
-- This adapter is designed for future activation — current graceful-skip behavior ensures pipeline continuity.
+- If LobeHub publishes a public API, replace this adapter with a WebFetch approach.
+- Confirmed 403 on 2026-04-26: `GET https://chat-agents.lobehub.com/api/agents?q=test`.

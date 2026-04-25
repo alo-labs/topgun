@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # TopGun PreToolUse:Write hook
-# Blocks writing found-skills-*.json unless 18 partial registry files exist
+# Blocks writing found-skills-*.json unless 16 partial registry files exist
 
 set -euo pipefail
 
@@ -20,8 +20,8 @@ TOPGUN_HOME="$HOME/.topgun"
 
 COUNT=$(ls "$TOPGUN_HOME/registry-${HASH}-"*.json 2>/dev/null | wc -l | tr -d ' ')
 
-if [ "$COUNT" -lt 18 ]; then
-  echo "TopGun hook BLOCKED: found-skills write rejected — only ${COUNT}/18 partial registry files exist at ${TOPGUN_HOME}/registry-${HASH}-*.json. The in-process Task dispatch in agents/topgun-finder.md (Step 4) did not complete for all 18 registries. This write is not allowed." >&2
+if [ "$COUNT" -lt 16 ]; then
+  echo "TopGun hook BLOCKED: found-skills write rejected — only ${COUNT}/16 partial registry files exist at ${TOPGUN_HOME}/registry-${HASH}-*.json. The in-process Task dispatch in agents/topgun-finder.md (Step 4) did not complete for all 16 registries. This write is not allowed." >&2
   exit 1
 fi
 

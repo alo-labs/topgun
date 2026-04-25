@@ -1,70 +1,85 @@
 # Adapter: skills.sh
 
-**Registry:** skills.sh  
-**Method:** WebFetch GET  
-**Timeout:** 8 seconds
+**Registry:** skills.sh
+**Method:** WebSearch (API endpoint confirmed 404 on 2026-04-26)
+**Timeout:** N/A (WebSearch)
 
 ---
 
-## Request
+## Status
+
+The REST API endpoint `https://skills.sh/api/skills` returns 404. The domain exists but
+has no public search API. This adapter uses WebSearch to find skills listed on skills.sh.
+
+---
+
+## Execution Instructions
+
+### Step 1 — WebSearch
+
+Run a WebSearch with the following query (substitute `{query}` with the task description):
 
 ```
-GET https://skills.sh/api/skills?q={query}
+site:skills.sh {query} skill
 ```
 
-- URL-encode the query string before inserting it.
-- No authentication required.
+### Step 2 — Parse results
 
----
+For each search result returned:
 
-## Timeout + Retry
+| Search result field | Unified schema field |
+|---------------------|----------------------|
+| Page title (strip site name suffix) | `name` |
+| Snippet / description (truncate to 500 chars) | `description` |
+| Result URL (only if starts with `https://skills.sh/`) | `install_url` |
+| `null` | `stars` |
+| `null` | `last_updated` |
+| `null` | `content_sha` |
+| `"skills-sh"` | `source_registry` |
+| `{ "search_result": { "title": "...", "url": "...", "snippet": "..." } }` | `raw_metadata` |
 
-- Set fetch timeout to 8 seconds.
-- On HTTP 429: wait 1s, retry; wait 2s, retry; wait 4s, retry. After 3 retries
-  return `status: "unavailable"`, `reason: "rate limited by skills.sh"`.
-- On timeout or HTTP 5xx: return `status: "unavailable"`, `reason: "<error detail>"`.
+Filter out any result whose URL does not start with `https://skills.sh/`. Skip results
+with empty or missing names.
 
----
+### Step 3 — Handle no results
 
-## Response Parsing
+If WebSearch returns 0 results for the site-scoped query, try a broader query:
 
-Parse the JSON response body. The expected shape is an array of skill objects.
-Extract the following fields from each entry (use `null` if absent):
+```
+skills.sh claude code skill {query}
+```
 
-| Response field | Unified schema field |
-|----------------|----------------------|
-| `name` | `name` |
-| `description` (truncate to 500 chars, strip markdown/HTML tags before storing) | `description` |
-| `install_url` or `url` | `install_url` |
-| `stars` or `installs` | `stars` |
-| `updated_at` or `last_updated` | `last_updated` |
-| *(whole object)* | `raw_metadata` |
-
-Set `source_registry: "skills.sh"` on every result.  
-Set `content_sha: null` (not available from this registry).
-
----
-
-## Return Value
+If still 0 results, return:
 
 ```json
 {
-  "registry": "skills.sh",
+  "registry": "skills-sh",
   "status": "ok",
-  "reason": null,
-  "results": [ /* unified schema objects */ ],
-  "latency_ms": 0
-}
-```
-
-On failure:
-
-```json
-{
-  "registry": "skills.sh",
-  "status": "unavailable",
-  "reason": "<reason string>",
+  "reason": "no results found",
   "results": [],
   "latency_ms": 0
 }
 ```
+
+### Step 4 — Return success
+
+```json
+{
+  "registry": "skills-sh",
+  "status": "ok",
+  "reason": null,
+  "results": [ /* mapped array */ ],
+  "latency_ms": 0
+}
+```
+
+## Threat Mitigations
+
+- **T-02-05 (Spoofing):** Filter install_url to `https://skills.sh/` prefix only.
+- Structural envelope applied by parent agent to all `raw_metadata` values.
+
+## Notes
+
+- If skills.sh publishes a REST API in future, replace this adapter with a WebFetch-based approach
+  using `smithery.md` as a template.
+- Confirmed 404 on 2026-04-26: `GET https://skills.sh/api/skills?q=test` → 404 Not Found.

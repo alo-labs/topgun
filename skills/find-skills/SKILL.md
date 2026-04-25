@@ -35,7 +35,8 @@ Search locally installed skills **before** querying any external registry.
 ## Step 2: Parse Registries Filter
 
 Read `registries` from `~/.topgun/state.json`. If the field is absent or empty,
-default to all registries: `["skills-sh", "agentskill-sh", "smithery", "github", "gitlab", "npm", "lobehub", "osm", "vskill", "skillsmp", "clawhub", "glama", "huggingface", "langchain-hub", "claude-plugins-official", "cursor-directory", "mcp-so", "opentools"]`.
+default to all 16 active registries: `["skills-sh", "agentskill-sh", "smithery", "github", "gitlab", "npm", "lobehub", "skillsmp", "clawhub", "glama", "huggingface", "langchain-hub", "claude-plugins-official", "cursor-directory", "mcp-so", "opentools"]`.
+Note: `vskill` and `osm` are excluded — their domains are confirmed dead (ECONNREFUSED 2026-04-26).
 
 ---
 
@@ -50,7 +51,7 @@ concurrency cap. Each sub-agent reads its adapter instruction file at
 under the parent session's auth context, and writes a partial results file to
 `~/.topgun/registry-{hash}-{registry}.json`.
 
-All 18 sub-agents are launched in a **single assistant turn containing 18 `Task`
+All 16 sub-agents are launched in a **single assistant turn containing 16 `Task`
 tool blocks** so they execute concurrently.
 
 Each adapter must return the following contract object:
@@ -106,24 +107,24 @@ being placed in context. See topgun-finder.md for the envelope format.
 
 | Registry | File | Tier |
 |----------|------|------|
-| skills.sh | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/skills-sh.md` | 1 |
+| skills.sh | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/skills-sh.md` | 1 — WebSearch (API 404) |
 | agentskill.sh | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/agentskill-sh.md` | 1 — WebFetch primary, CLI fallback |
-| Smithery | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/smithery.md` | 1 |
-| GitHub | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/github.md` | 1 |
-| GitLab | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/gitlab.md` | 1 |
-| npm | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/npm.md` | 2 |
-| LobeHub | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/lobehub.md` | 2 |
-| OSM | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/osm.md` | 2 |
-| vSkill | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/vskill.md` | 2 |
-| SkillsMP | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/skillsmp.md` | 2 |
+| Smithery | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/smithery.md` | 1 — confirmed REST API |
+| GitHub | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/github.md` | 1 — confirmed REST API |
+| GitLab | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/gitlab.md` | 1 — confirmed REST API |
+| npm | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/npm.md` | 2 — confirmed REST API |
+| LobeHub | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/lobehub.md` | 2 — WebSearch (API 403) |
+| SkillsMP | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/skillsmp.md` | 2 — confirmed REST API (active) |
 | ClawHub | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/clawhub.md` | 2 — skip (no API) |
 | Glama.ai | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/glama.md` | 3 — confirmed REST API |
 | Hugging Face | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/huggingface.md` | 3 — confirmed REST API |
 | LangChain Hub | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/langchain-hub.md` | 3 — confirmed REST API |
 | Claude Plugins Official | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/claude-plugins-official.md` | 3 — static manifest |
 | Cursor Directory | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/cursor-directory.md` | 3 — GitHub Contents API |
-| MCP.so | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/mcp-so.md` | 3 — best-guess, graceful skip |
-| OpenTools.ai | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/opentools.md` | 3 — best-guess, graceful skip |
+| MCP.so | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/mcp-so.md` | 3 — WebSearch (API 403) |
+| OpenTools.ai | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/opentools.md` | 3 — WebFetch + relevance filter + WebSearch fallback |
+| ~~vSkill~~ | ~~`adapters/vskill.md`~~ | **DEAD** — domain ECONNREFUSED, excluded from defaults |
+| ~~OSM~~ | ~~`adapters/osm.md`~~ | **DEAD** — domain ECONNREFUSED, excluded from defaults |
 
 ---
 

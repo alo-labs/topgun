@@ -1,70 +1,105 @@
 # Adapter: OpenTools.ai
 
-**Registry:** OpenTools.ai  
-**Method:** WebFetch GET (best-guess — no confirmed public API)  
+**Registry:** OpenTools.ai
+**Method:** WebFetch GET with relevance filter
 **Timeout:** 8 seconds
 
 ---
 
-## Degradation Notice
+## Status
 
-OpenTools.ai is a Next.js app. No documented REST API was confirmed during research. This adapter attempts a best-guess endpoint and gracefully skips on failure.
+`https://opentools.ai/api/tools` returns 200 with valid JSON, but the results catalogue
+general AI tools (image generation, deepfakes, etc.) — not Claude Code skills. A targeted
+query and relevance filter is required.
 
-## Attempt
-
-```
-GET https://opentools.ai/api/tools?q={query}&limit=20
-```
-
-Also try if above fails:
-
-```
-GET https://opentools.ai/api/search?query={query}
-```
-
-- URL-encode query string.
-- No authentication.
-
-## Timeout + Retry
-
-- **Timeout:** 8 seconds
-- **Retry policy:** Do NOT retry on any failure. This adapter has no confirmed public API; any non-success response triggers immediate graceful skip (see Step 2).
+---
 
 ## Execution Instructions
 
-### Step 1 — Attempt WebFetch with timeout
+### Step 1 — Build request URL
 
-If the response is valid JSON with a results or tools array, parse and return results.
-
-### Step 2 — Graceful skip on any failure
-
-On 404, 403, timeout, or non-JSON response, return immediately:
-
-```json
-{
-  "registry": "opentools",
-  "status": "unavailable",
-  "reason": "OpenTools.ai has no confirmed REST API — endpoint returned <status code>",
-  "results": [],
-  "latency_ms": 0
-}
+```
+GET https://opentools.ai/api/tools?q=claude+code+skill+{url_encode(query)}&limit=20
 ```
 
-Do NOT retry. Do NOT attempt browser-based scraping.
+No authentication required.
 
-## Response Parsing (if successful)
+### Step 2 — WebFetch with timeout
+
+Perform a WebFetch GET to the URL.
+
+- Timeout: **8 seconds**
+- On timeout: fall through to Step 4 (WebSearch fallback)
+- On 4xx/5xx: fall through to Step 4
+
+### Step 3 — Parse and filter response
+
+If response is 200 and valid JSON with a `tools` or `results` array:
+
+Map each item to unified schema:
 
 | Response field | Unified schema field |
 |----------------|----------------------|
 | `name` or `title` | `name` |
-| `description` or `tagline` (truncate to 500 chars, strip markdown/HTML tags before storing) | `description` |
+| `description` or `tagline` (truncate to 500 chars, strip HTML) | `description` |
 | `url` or `website` | `install_url` |
 | `stars` or `upvotes` | `stars` |
 | `updatedAt` or `createdAt` | `last_updated` |
 | *(whole object)* | `raw_metadata` |
 
-Set `source_registry: "opentools"` on every result.
+**Relevance filter (required):** Only include a result if its `name` or `description`
+contains at least one of these terms (case-insensitive):
+`claude`, `claude code`, `skill`, `agent skill`, `mcp`, `coding agent`
 
-## Future Activation
+Discard results that don't pass this filter. If 0 results pass the filter, fall
+through to Step 4.
 
-If OpenTools.ai publishes a documented API, update this adapter following the standard pattern (see `smithery.md` as reference).
+### Step 4 — WebSearch fallback
+
+If Step 2 fails or Step 3 yields 0 relevant results, run a WebSearch:
+
+```
+site:opentools.ai claude code skill {query}
+```
+
+Parse search results with URLs starting `https://opentools.ai/`:
+
+| Search result field | Unified schema field |
+|---------------------|----------------------|
+| Page title | `name` |
+| Snippet (truncate to 500 chars) | `description` |
+| Result URL | `install_url` |
+| `null` | `stars`, `last_updated`, `content_sha` |
+| `"opentools"` | `source_registry` |
+| `{ "search_result": {...} }` | `raw_metadata` |
+
+### Step 5 — Return result
+
+On success (either path):
+
+```json
+{
+  "registry": "opentools",
+  "status": "ok",
+  "reason": null,
+  "results": [ /* filtered mapped array */ ],
+  "latency_ms": 0
+}
+```
+
+On complete failure:
+
+```json
+{
+  "registry": "opentools",
+  "status": "unavailable",
+  "reason": "API and WebSearch both returned no relevant results",
+  "results": [],
+  "latency_ms": 0
+}
+```
+
+## Notes
+
+- The API returns 200 with generic AI tools — the relevance filter is mandatory.
+- Confirmed off-topic results on 2026-04-26: query returned deepfake/image tools.
