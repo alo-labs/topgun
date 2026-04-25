@@ -1,7 +1,7 @@
 <!-- generated-by: gsd-doc-writer -->
 # TopGun
 
-TopGun is a Claude Code plugin that automatically finds, compares, security-audits, and installs the best available skill for any job — searching 18+ registries in parallel so you never settle for a suboptimal tool.
+TopGun is a Claude Code plugin that automatically finds, compares, security-audits, and installs the best available skill for any job — searching 16 active registries in parallel so you never settle for a suboptimal tool.
 
 ## Quick Start
 
@@ -24,7 +24,7 @@ npx skills add alo-labs/topgun
 ```
 
 TopGun will:
-1. **Search** 18+ skill registries via parallel in-process Task dispatch
+1. **Search** 16 active skill registries via parallel in-process Task dispatch
 2. **Compare** candidates across capability, security, popularity, and recency
 3. **Audit** the top pick with bundled SENTINEL v2.3.0 (2 clean passes required)
 4. **Present** the audit manifest for your approval
@@ -40,7 +40,7 @@ The `/topgun` orchestrator dispatches four sub-skills in sequence:
 
 | Step | Skill | What it does |
 |------|-------|--------------|
-| 1 | `find-skills` | 18 registries searched in parallel via in-process `Task` sub-agents (v1.5+) |
+| 1 | `find-skills` | 16 active registries searched in parallel via in-process `Task` sub-agents (v1.5+) |
 | 2 | `compare-skills` | Multi-factor ranking: capability, security posture, popularity, recency |
 | 3 | `secure-skills` | Bundled SENTINEL v2.3.0 audit — 2 consecutive clean passes required |
 | 4 | `install-skills` | Installs the approved skill and writes the audit trail |
@@ -66,11 +66,11 @@ TopGun uses **SENTINEL v2.3.0** — bundled directly in the plugin — to audit 
 
 ## Hook Setup
 
-TopGun v1.4.0 ships a `PreToolUse:Write` enforcement hook that guarantees all 18 registry partial files are written before the finder aggregates results. The hook must be registered in `~/.claude/settings.json`.
+TopGun ships a `PreToolUse:Write` enforcement hook that guarantees all 16 active registry partial files are written before the finder aggregates results. The hook must be registered in `~/.claude/settings.json`.
 
 ### What the hook does
 
-`bin/hooks/validate-partials.sh` intercepts any write to a `found-skills-*.json` file. It extracts the run hash from the filename, counts the corresponding `registry-{hash}-*.json` partial files, and blocks the write (exit 1) if fewer than 18 are present. This prevents the finder from producing an incomplete result set regardless of agent behavior.
+`bin/hooks/validate-partials.sh` intercepts any write to a `found-skills-*.json` file. It extracts the run hash from the filename, counts the corresponding `registry-{hash}-*.json` partial files, and blocks the write (exit 1) if fewer than 16 are present. This prevents the finder from producing an incomplete result set regardless of agent behavior.
 
 ### Installing the hook
 

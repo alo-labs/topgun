@@ -182,7 +182,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
       <p>TopGun is a Claude Code plugin that solves a simple but critical problem: <strong>finding and installing the right skill, safely</strong>. Without TopGun, you search one registry at a time, install code you've never audited, and have no way to know if a better option exists elsewhere.</p>
       <p>TopGun fixes all three problems with a four-stage pipeline:</p>
       <ol>
-        <li><strong>FindSkills</strong> — searches 18+ registries in parallel</li>
+        <li><strong>FindSkills</strong> — searches 16 active registries in parallel</li>
         <li><strong>CompareSkills</strong> — ranks candidates by capability, security, popularity, and recency</li>
         <li><strong>SecureSkills</strong> — runs SENTINEL audit until 2 consecutive clean passes</li>
         <li><strong>InstallSkills</strong> — installs the winner after your approval</li>
@@ -253,7 +253,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
           <div class="step-num">1</div>
           <div class="step-body">
             <h4>FindSkills searches all registries in parallel</h4>
-            <p>18+ registries are queried simultaneously. Results are normalized to a unified schema and deduplicated by contentSha. This typically completes in 2–5 seconds.</p>
+            <p>16 active registries are queried simultaneously. Results are normalized to a unified schema and deduplicated by contentSha. This typically completes in 2–5 seconds.</p>
           </div>
         </li>
         <li>
@@ -285,7 +285,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
       <p>As TopGun runs, it emits a real-time audit trail in the Claude Code terminal. Here's what a successful run looks like:</p>
 
       <div class="audit-output">
-<span class="ao-label">TopGun</span> <span class="ao-dim">›</span> <span class="ao-ok">✓</span> Searching 18 registries…
+<span class="ao-label">TopGun</span> <span class="ao-dim">›</span> <span class="ao-ok">✓</span> Searching 16 active registries…
 <span class="ao-label">TopGun</span> <span class="ao-dim">›</span> <span class="ao-ok">✓</span> Found 14 candidates across 9 registries in 2.3s
 <span class="ao-label">TopGun</span> <span class="ao-dim">›</span> <span class="ao-ok">✓</span> Deduplicated to 11 unique skills (by contentSha)
 <span class="ao-label">TopGun</span> <span class="ao-dim">›</span> <span class="ao-ok">✓</span> Top score: <strong style="color:var(--text-primary)">web-scraper-pro</strong> · composite 0.94

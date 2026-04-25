@@ -17,6 +17,46 @@
 
 <!-- ENTRIES BELOW — newest first -->
 
+## 2026-04-26 — v1.7.0
+
+**What**: Fix finder hallucination — sub-agents were synthesising results from training data instead of making real HTTP calls because `$CLAUDE_PLUGIN_ROOT` was passed as an unresolved literal into Task prompts. Added WebSearch fallbacks for three API-blocked registries and SKIP markers for two confirmed-dead domains.
+
+**Changed**:
+- `agents/topgun-finder.md` — added explicit CLAUDE_PLUGIN_ROOT resolution step before dispatching Tasks; injected concrete path into all 16 sub-agent prompts; added NO-HALLUCINATION POLICY block requiring each sub-agent to emit `FETCHED: {url} → HTTP {status}` after every real network call; updated registry count from 18 to 16.
+- `bin/hooks/validate-partials.sh` — corrected partial-file threshold from 18 to 16 (was blocking the pipeline after the active registry count was reduced).
+- `skills/find-skills/SKILL.md` — default registry list now enumerates exactly 16 active registries; vskill and osm removed from dispatch list; adapter table updated with current statuses.
+
+**Added**:
+- `skills/find-skills/adapters/vskill.md` (SKIP marker) — domain `vskill.dev` confirmed ECONNREFUSED; adapter returns `status: unavailable` immediately without a network call.
+- `skills/find-skills/adapters/osm.md` (SKIP marker) — domain `openskillsmarket.org` confirmed ECONNREFUSED; same immediate-return pattern.
+
+**Fixed**:
+- `adapters/skills-sh.md` — primary API returns 404; replaced with WebSearch `site:skills.sh` query with domain-filtered results.
+- `adapters/lobehub.md` — API returns 403; replaced with WebSearch with `lobehub.com` URL filter.
+- `adapters/mcp-so.md` — API returns 403; replaced with WebSearch `site:mcp.so` query.
+- `adapters/opentools.md` — primary WebFetch returns off-topic results; added relevance filter (claude/mcp/skill keywords) and WebSearch fallback.
+- `adapters/skillsmp.md` — `source_registry` casing corrected from `"SkillsMP"` to `"skillsmp"` (Step 7 validation was silently dropping all SkillsMP results); status updated from degraded to active (confirmed 200 on 2026-04-26).
+
+**Migration**: zero user-facing migration. The orchestrator and topgun-finder interface are unchanged.
+
+---
+
+## 2026-04-26 — v1.6.0
+
+**What**: Added `/topgun-update` skill for in-place plugin upgrades with changelog diff and SHA verification.
+
+**Added**:
+- `skills/topgun-update/SKILL.md` — new `/topgun-update` skill: checks installed vs. latest GitHub release, displays changelog delta, verifies commit SHA before touching anything, and updates the plugin cache and registry atomically. `--check` flag for dry-run.
+- Full test suite for topgun-update (240 tests passing).
+
+**Changed**:
+- `skills/secure-skills/SKILL.md` — pinned SENTINEL version reference to "bundled SENTINEL v2.3.0" explicitly to prevent floating references.
+- `README.md` — documented `/topgun-update` usage, `--check` flag, and state-preservation guarantee.
+
+**Migration**: zero user-facing migration. Existing installations get the update skill automatically on next plugin refresh.
+
+---
+
 ## 2026-04-25 — v1.5.0
 
 **What**: Fix #3 — replace the `dispatch-registries` subprocess (which silently broke FindSkills for OAuth-authenticated Claude Code users) with in-process parallel `Task()` dispatch. Also eliminates the secondary issue where Silver Bullet's `dev-cycle-check.sh` hook was blocking the orchestrator's `dispatch-registries` Bash call on substring-match for "install".

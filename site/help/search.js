@@ -9,7 +9,7 @@ const SEARCH_DATA = [
   {
     page: 'Getting Started',
     title: 'Your First /topgun Invocation',
-    excerpt: 'Run /topgun followed by a plain-English description of the skill you need. TopGun will search 18+ registries, score candidates, and run the SENTINEL audit.',
+    excerpt: 'Run /topgun followed by a plain-English description of the skill you need. TopGun will search 16 active registries, score candidates, and run the SENTINEL audit.',
     url: 'getting-started/#first-run'
   },
   {
