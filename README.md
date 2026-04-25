@@ -139,6 +139,28 @@ To list TopGun on skills.sh:
 
 TopGun is configured with `autoUpdate.enabled: true` in marketplace.json. When a new GitHub release is tagged, installations will auto-update within 24 hours.
 
+## Updating TopGun
+
+Keep your TopGun installation current with the built-in update skill:
+
+```
+/topgun-update
+```
+
+TopGun will:
+1. **Check** the installed version against the latest GitHub release
+2. **Display** the changelog delta since your installed version
+3. **Verify** the commit SHA before touching anything
+4. **Update** the plugin cache and registry atomically
+
+```
+/topgun-update --check   # check for updates without installing
+```
+
+State preserved across updates: `~/.topgun/` audit cache, keychain tokens, and hook config.
+
+---
+
 ## Releases
 
 TopGun uses GitHub release tags for versioning. To create a release:
