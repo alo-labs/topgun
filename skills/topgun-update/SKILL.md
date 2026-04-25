@@ -182,6 +182,22 @@ jq --arg key "$TOPGUN_KEY" --arg version "$LATEST_VERSION" \
 
 On failure: display path to `NEW_CACHE` and suggest `/plugin install alo-labs/topgun`. STOP.
 
+**6.3 Purge old cache versions:**
+
+After the registry write succeeds, delete all version directories under the TopGun cache root except the newly installed one:
+
+```bash
+TOPGUN_CACHE_DIR="${CACHE_ROOT}/topgun"
+DELETED=()
+while IFS= read -r -d '' old_dir; do
+  rm -rf "$old_dir" && DELETED+=("$old_dir")
+done < <(find "$TOPGUN_CACHE_DIR" -mindepth 1 -maxdepth 1 -type d \
+           ! -name "$LATEST_VERSION" -print0)
+```
+
+On success: collect deleted paths into `DELETED` array for display in Step 7.
+On `rm` failure: warn `⚠️ Could not delete {old_dir} — remove manually.` and continue (non-fatal).
+
 ---
 
 ## Step 7: Re-initialize and Display Result
@@ -197,8 +213,8 @@ Then display:
 ╚══════════════════════════════════════════════╝
 ⚠️  Restart Claude Desktop / Claude Code to activate.
 Commit SHA: {COMMIT_SHA}
-Old cache:  {INSTALL_PATH}  (safe to delete manually after confirming)
 New cache:  {NEW_CACHE}
+Cleaned up: {DELETED paths, or "none" if DELETED is empty}
 ~/.topgun/ state, audit cache, and keychain tokens unchanged.
 🔗 https://github.com/alo-labs/topgun/releases/tag/v{LATEST_VERSION}
 ```
