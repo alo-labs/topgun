@@ -41,7 +41,7 @@ Map each item to unified schema:
 | Response field | Unified schema field |
 |----------------|----------------------|
 | `name` or `title` | `name` |
-| `description` or `tagline` (truncate to 500 chars, strip HTML) | `description` |
+| `description` or `tagline` (truncate to 500 chars, strip HTML/markdown tags) | `description` |
 | `url` or `website` | `install_url` |
 | `stars` or `upvotes` | `stars` |
 | `updatedAt` or `createdAt` | `last_updated` |
@@ -67,7 +67,7 @@ Parse search results with URLs starting `https://opentools.ai/`:
 | Search result field | Unified schema field |
 |---------------------|----------------------|
 | Page title | `name` |
-| Snippet (truncate to 500 chars) | `description` |
+| Snippet (truncate to 500 chars, strip HTML/markdown tags) | `description` |
 | Result URL | `install_url` |
 | `null` | `stars`, `last_updated`, `content_sha` |
 | `"opentools"` | `source_registry` |
