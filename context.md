@@ -60,7 +60,7 @@ Adapters live in `skills/find-skills/adapters/`:
 - `tests/smoke.test.cjs` — structural validity (JSON, frontmatter, adapter count)
 - `tests/failure-contracts.test.cjs` — agent STAGE FAILED contracts, keychain roundtrip
 - **Count:** 240/240 passing (as of v1.1.0)
-- Smoke test asserts adapter count = 18; must be updated when adding new adapters
+- Smoke test asserts adapter count = 18 (counts files on disk — vskill.md and osm.md remain as SKIP markers); active dispatch count is 16
 
 ---
 

@@ -6,7 +6,7 @@ Detailed phase-level designs live in `docs/specs/YYYY-MM-DD-<topic>-design.md`.
 
 ## System Overview
 
-TopGun is a Claude Code plugin that automates skill discovery, evaluation, and installation. When a user describes a task, TopGun searches 18 registries in parallel, compares candidates on multiple dimensions, runs a two-pass security audit via bundled SENTINEL v2.3.0, and installs the approved skill — all without the user needing to know which registries exist or how to evaluate security manually. The system is structured as a four-stage sequential pipeline orchestrated by a single `/topgun` skill, with each stage producing a JSON artifact consumed by the next.
+TopGun is a Claude Code plugin that automates skill discovery, evaluation, and installation. When a user describes a task, TopGun searches up to 16 active registries in parallel (18 adapter files exist; 2 are marked SKIP for dead domains), compares candidates on multiple dimensions, runs a two-pass security audit via bundled SENTINEL v2.3.0, and installs the approved skill — all without the user needing to know which registries exist or how to evaluate security manually. The system is structured as a four-stage sequential pipeline orchestrated by a single `/topgun` skill, with each stage producing a JSON artifact consumed by the next.
 
 ## Pipeline Stages
 
@@ -17,7 +17,7 @@ TopGun is a Claude Code plugin that automates skill discovery, evaluation, and i
 | Secure | `topgun-securer` | `~/.topgun/audit-{hash}.json` |
 | Install | `topgun-installer` | installed to `~/.claude/skills/{name}/` |
 
-**Find** — dispatches one in-process `Task` sub-agent per registry from `topgun-finder` (in a single parallel batch), then aggregates 18 partial result files into the found-skills artifact. The aggregation write is enforced by a PreToolUse hook (see Registry Dispatch Architecture).
+**Find** — dispatches one in-process `Task` sub-agent per registry from `topgun-finder` (in a single parallel batch), then aggregates 16 partial result files into the found-skills artifact. The aggregation write is enforced by a PreToolUse hook (see Registry Dispatch Architecture).
 
 **Compare** — reads the found-skills artifact and ranks candidates using a multi-factor model: capability match, security posture signals, registry popularity, and recency.
 
@@ -35,7 +35,7 @@ TopGun is a Claude Code plugin that automates skill discovery, evaluation, and i
 | Securer agent | `agents/topgun-securer.md` | Runs SENTINEL audit; writes audit artifact |
 | Installer agent | `agents/topgun-installer.md` | Gets user approval; installs skill; writes audit trail |
 | topgun-tools binary | `bin/topgun-tools.cjs` | Node.js CLI: init, state I/O, sha256, validate-partials, cache, keychain, lock |
-| Validate-partials hook | `bin/hooks/validate-partials.sh` | PreToolUse:Write enforcement — blocks aggregation write if < 18 partials |
+| Validate-partials hook | `bin/hooks/validate-partials.sh` | PreToolUse:Write enforcement — blocks aggregation write if < 16 partials |
 | Registry adapters | `skills/find-skills/adapters/` | 18 self-contained instruction files, one per registry |
 | SENTINEL | `skills/sentinel/SKILL.md` | Bundled SENTINEL v2.3.0 security auditor |
 
@@ -51,12 +51,12 @@ This is the most architecturally significant component. The dispatch model has n
 
 ### Dispatch flow (v1.5+)
 
-1. `topgun-finder` parses the registry list (defaults to all 18) and computes the query hash.
-2. The agent emits **one assistant turn containing 18 `Task` tool blocks**, one per registry, all using `subagent_type: "general-purpose"`. The runtime executes them concurrently.
-3. Each adapter sub-agent reads the adapter instruction file, performs registry-specific HTTP calls under the parent's auth, applies the structural envelope and HTTPS scheme check, and writes `~/.topgun/registry-{hash}-{registry}.json`.
-4. After all 18 Tasks complete, `topgun-finder` runs `ls ~/.topgun/registry-{hash}-*.json | wc -l`. Any missing registries are treated as `status: "unavailable"` during aggregation; missing registries are still visible rather than silently absent.
+1. `topgun-finder` parses the registry list (defaults to all 16 active registries) and computes the query hash.
+2. The agent emits **one assistant turn containing 16 `Task` tool blocks**, one per active registry, all using `subagent_type: "general-purpose"`. The runtime executes them concurrently.
+3. Each adapter sub-agent reads the adapter instruction file, performs registry-specific HTTP/WebSearch calls under the parent's auth, applies the structural envelope and HTTPS scheme check, and writes `~/.topgun/registry-{hash}-{registry}.json`.
+4. After all 16 Tasks complete, `topgun-finder` runs `ls ~/.topgun/registry-{hash}-*.json | wc -l`. Any missing registries are treated as `status: "unavailable"` during aggregation; missing registries are still visible rather than silently absent.
 5. The finder writes the aggregated `found-skills-{hash}.json` artifact.
-6. Before the write lands, `bin/hooks/validate-partials.sh` fires as a `PreToolUse:Write` hook. It extracts the hash from the target filename, counts `registry-{hash}-*.json` files, and exits 1 (blocking the write) if fewer than 18 are present.
+6. Before the write lands, `bin/hooks/validate-partials.sh` fires as a `PreToolUse:Write` hook. It extracts the hash from the target filename, counts `registry-{hash}-*.json` files, and exits 1 (blocking the write) if fewer than 16 are present.
 
 ### Why two layers of enforcement
 
@@ -139,7 +139,7 @@ skills/
 
 **In-process `Task` dispatch over `child_process.spawn`** — the v1.3-v1.4 subprocess approach gave dispatch guarantees but broke OAuth auth (issue #3). `Task` sub-agents inherit the parent's auth context, work for both OAuth and API-key, and remove the dependency on `claude` being on `$PATH`.
 
-**Unavailable partials are inferred from set difference** — with subprocess dispatch retired, missing partials are detected by comparing the 18 expected registry names against the basenames of present `registry-{hash}-*.json` files. Missing registries become `status: "unavailable"` during aggregation, preserving the v1.3 visibility guarantee.
+**Unavailable partials are inferred from set difference** — with subprocess dispatch retired, missing partials are detected by comparing the 16 active registry names against the basenames of present `registry-{hash}-*.json` files. Missing registries become `status: "unavailable"` during aggregation, preserving the v1.3 visibility guarantee.
 
 **Hook as final enforcement gate** — prompt instructions and binary self-checks can both be bypassed by agent behavior in different ways. A `PreToolUse:Write` hook intercepts at the OS tool-use level and cannot be bypassed.
 
