@@ -2,53 +2,103 @@
 adapter: clawhub
 registry: ClawHub
 tier: 2
-status: skip
+status: websearch-fallback
 auth_required: false
 timeout_ms: 0
-max_retries: 0
-degradation_reason: "No confirmed REST API exists — research phase confirmed no queryable endpoint"
+degradation_reason: "No public REST API — uses site WebSearch"
 ---
 
 # ClawHub Adapter
 
-ClawHub does not expose a confirmed REST API for programmatic skill search. Research during Phase 1 confirmed no queryable endpoint exists. This adapter immediately returns unavailable without making any network call.
+**Registry:** ClawHub
+**Method:** WebSearch (`site:clawhub.com`)
+**Timeout:** N/A (WebSearch)
+
+---
+
+## Status
+
+ClawHub is a skills marketplace for OpenClaw/Claude Code agents accessible at both
+`clawhub.com` and `clawhub.ai`. It has no confirmed public REST API. Individual skill
+pages follow the pattern `https://clawhub.com/{username}/{skill-name}` or
+`https://clawhub.ai/{username}/{skill-name}`. The search URL is
+`https://clawhub.com/skills?q={query}`. This adapter uses WebSearch to find skills.
+
+---
 
 ## Execution Instructions
 
-### Step 1 — Return immediately (no network call)
+### Step 1 — WebSearch
 
-Do NOT perform any WebFetch. Return the following result immediately:
+Run a WebSearch with the following query (substitute `{query}` with the task description):
+
+```
+site:clawhub.com OR site:clawhub.ai {query} skill
+```
+
+### Step 2 — Parse results
+
+For each search result with a URL starting with `https://clawhub.com/`,
+`https://www.clawhub.com/`, or `https://clawhub.ai/`:
+
+| Search result field | Unified schema field |
+|---------------------|----------------------|
+| Page title (strip " — ClawHub" or " - ClawHub" suffix) | `name` |
+| Snippet (truncate to 500 chars, strip HTML/markdown tags) | `description` |
+| Result URL | `install_url` |
+| `null` | `stars` |
+| `null` | `last_updated` |
+| `null` | `content_sha` |
+| `"clawhub"` | `source_registry` |
+| `{ "search_result": { "title": "...", "url": "...", "snippet": "..." } }` | `raw_metadata` |
+
+Filter out results whose URLs don't start with `https://clawhub.com/`,
+`https://www.clawhub.com/`, or `https://clawhub.ai/`. Skip results with missing
+names. Skip URLs that point to `/skills` (the search page itself), `/login`,
+`/register`, or `/docs`.
+
+### Step 3 — Handle no results
+
+If 0 results found, try a broader query:
+
+```
+clawhub claude code skill {query}
+```
+
+If still 0 results, return:
 
 ```json
 {
-  "status": "unavailable",
-  "reason": "ClawHub has no confirmed REST API — skipped per research findings",
+  "registry": "clawhub",
+  "status": "ok",
+  "reason": "no results found",
   "results": [],
-  "registry": "ClawHub",
   "latency_ms": 0
 }
 ```
 
-That is the complete execution of this adapter. No further steps.
+### Step 4 — Return success
 
-## Why This Adapter Exists
-
-This file serves three purposes:
-
-1. **Completeness** — ClawHub is a known registry in the ecosystem. Its absence from results is documented, not accidental.
-2. **Future activation** — If ClawHub publishes a REST API, this file can be updated to implement the full adapter contract (endpoint, auth, field mapping, timeout/backoff).
-3. **Audit trail** — Operators reviewing pipeline output can confirm ClawHub was considered and intentionally skipped, not missed.
-
-## Future Activation
-
-If a ClawHub API becomes available:
-
-1. Update `status: skip` to `status: active`
-2. Add `endpoint` to the frontmatter
-3. Implement Steps 1–6 following the standard adapter pattern (see `npm.md` as a reference)
-4. Test that 403/5xx/timeout all return `status: "unavailable"`
+```json
+{
+  "registry": "clawhub",
+  "status": "ok",
+  "reason": null,
+  "results": [ /* mapped array */ ],
+  "latency_ms": 0
+}
+```
 
 ## Threat Mitigations
 
-- **T-02-05 (Spoofing):** Not applicable — no network call is made.
-- **T-02-06 (DoS):** Not applicable — immediate return with zero latency; cannot stall the pipeline.
+- **T-02-05 (Spoofing):** Filter install_url to `https://clawhub.com/`,
+  `https://www.clawhub.com/`, or `https://clawhub.ai/` prefix only. Skip the search index page itself.
+- Structural envelope applied by parent agent to all `raw_metadata` values.
+
+## Notes
+
+- If ClawHub publishes a REST API, replace this adapter with a WebFetch-based approach
+  using `smithery.md` as a template.
+- Search URL pattern confirmed 2026-04-26: `https://clawhub.com/skills?q={query}`
+- Individual skill URL patterns: `https://clawhub.com/{username}/{skill-name}` and `https://clawhub.ai/{username}/{skill-name}`
+- Live domain confirmed 2026-04-26: both `clawhub.com` and `clawhub.ai` are active
