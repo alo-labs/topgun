@@ -23,7 +23,7 @@ node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" keychain-get gitlab_token
 ## Request
 
 ```
-GET https://gitlab.com/api/v4/projects?search={query}+claude-skill&order_by=stars&per_page=20
+GET https://gitlab.com/api/v4/projects?search={query}+claude-skill&order_by=star_count&per_page=20
 ```
 
 - URL-encode the query before inserting it (do not encode the `+claude-skill` suffix separately — append it after encoding the query).
