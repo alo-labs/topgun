@@ -170,12 +170,14 @@ On cancel — clean up cloned dir then STOP:
 
 ```bash
 NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+TMPFILE=$(mktemp)
 jq --arg key "$TOPGUN_KEY" --arg version "$LATEST_VERSION" \
    --arg path "$NEW_CACHE" --arg sha "$COMMIT_SHA" --arg now "$NOW" \
    '.plugins[$key][0].version=$version | .plugins[$key][0].installPath=$path |
     .plugins[$key][0].lastUpdated=$now | .plugins[$key][0].gitCommitSha=$sha' \
-   "$HOME/.claude/plugins/installed_plugins.json" > /tmp/topgun-plugins-update.json \
-   && mv /tmp/topgun-plugins-update.json "$HOME/.claude/plugins/installed_plugins.json"
+   "$HOME/.claude/plugins/installed_plugins.json" > "$TMPFILE" \
+   && mv "$TMPFILE" "$HOME/.claude/plugins/installed_plugins.json" \
+   || { rm -f "$TMPFILE"; false; }
 ```
 
 On failure: display path to `NEW_CACHE` and suggest `/plugin install alo-labs/topgun`. STOP.
