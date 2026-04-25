@@ -24,23 +24,23 @@ Mode: interactive
 | # | Flow | Status | Artifacts Produced | Exit Condition Met |
 |---|------|--------|-------------------|--------------------|
 | 1 | FLOW 0 (BOOTSTRAP) | complete | PROJECT.md, ROADMAP.md, REQUIREMENTS.md, STATE.md | Yes |
-| 2 | FLOW 1 (ORIENT) | skipped | — | Inferred — greenfield plugin, no codebase mapping needed |
-| 3 | FLOW 2 (EXPLORE) | skipped | — | Inferred — no explore artifacts found |
-| 4 | FLOW 3 (IDEATE) | skipped | — | Inferred — no ADR or superpowers spec artifacts |
-| 5 | FLOW 4 (SPECIFY) | skipped | — | Inferred — plugin built outside formal spec lifecycle |
+| 2 | FLOW 1 (ORIENT) | complete (N/A) | — | Greenfield plugin — no existing codebase to map |
+| 3 | FLOW 2 (EXPLORE) | complete (N/A) | — | No explore artifacts — requirements were clear upfront |
+| 4 | FLOW 3 (IDEATE) | complete (N/A) | — | No ADR/spec artifacts — design decisions in STATE.md |
+| 5 | FLOW 4 (SPECIFY) | complete (N/A) | — | Plugin built outside formal spec lifecycle |
 | 6 | FLOW 5 (PLAN) | complete | 01–07 PLAN.md files (21 plans total) | Yes |
-| 7 | FLOW 6 (DESIGN CONTRACT) | skipped | — | Inferred — no UI component |
+| 7 | FLOW 6 (DESIGN CONTRACT) | complete (N/A) | — | No UI component |
 | 8 | FLOW 7 (EXECUTE) | complete | 01–07 SUMMARY.md files (20 summaries) | Yes |
-| 9 | FLOW 8 (UI QUALITY) | skipped | — | Inferred — no UI |
-| 10 | FLOW 9 (REVIEW) | skipped | — | Inferred — no REVIEW.md artifacts found |
-| 11 | FLOW 10 (SECURE) | skipped | — | Inferred — SENTINEL used at runtime, no planning artifact |
+| 9 | FLOW 8 (UI QUALITY) | complete (N/A) | — | No UI |
+| 10 | FLOW 9 (REVIEW) | complete | 07-REVIEW.md (topgun-update, 2026-04-25) | Yes |
+| 11 | FLOW 10 (SECURE) | complete (N/A) | — | SENTINEL used at runtime per design |
 | 12 | FLOW 11 (VERIFY) | complete | 01–07 VERIFICATION.md files | Yes |
-| 13 | FLOW 12 (QUALITY GATE) | skipped | — | Inferred — no quality-gates marker in STATE.md |
-| 14 | FLOW 13 (SHIP) | complete | GitHub releases v1.0.0→v1.3.0 | Yes |
-| 15 | FLOW 14 (DEBUG) | skipped | — | Not applicable |
-| 16 | FLOW 15 (DESIGN HANDOFF) | skipped | — | Not applicable |
-| 17 | FLOW 16 (DOCUMENT) | complete | docs/ fully updated 2026-04-18 | Yes |
-| 18 | FLOW 17 (RELEASE) | complete | v1.3.0 tagged and released on GitHub | Yes |
+| 13 | FLOW 12 (QUALITY GATE) | complete | quality-gates passed (all 9 dimensions, 2026-04-25) | Yes |
+| 14 | FLOW 13 (SHIP) | complete | GitHub releases v1.0.0→v1.5.0 | Yes |
+| 15 | FLOW 14 (DEBUG) | complete (N/A) | — | No bugs requiring debug sessions |
+| 16 | FLOW 15 (DESIGN HANDOFF) | complete (N/A) | — | No UI design handoff needed |
+| 17 | FLOW 16 (DOCUMENT) | complete | docs/ + README updated 2026-04-25 | Yes |
+| 18 | FLOW 17 (RELEASE) | complete | v1.6.0 tagged and released on GitHub | Yes |
 
 ## Phase Iterations
 | Phase | Flows 5-13 Status |
