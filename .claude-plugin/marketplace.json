@@ -11,9 +11,21 @@
   "plugins": [
     {
       "name": "topgun",
-      "source": "github:alo-labs/topgun",
+      "source": {
+        "source": "github",
+        "repo": "alo-labs/topgun"
+      },
       "description": "Find, compare, security-audit, and install the best available skill for any job from 16 active registries.",
       "version": "1.7.0",
+      "author": {
+        "name": "Alo Labs",
+        "url": "https://github.com/alo-labs/topgun"
+      },
+      "homepage": "https://github.com/alo-labs/topgun",
+      "repository": "https://github.com/alo-labs/topgun",
+      "license": "MIT",
+      "keywords": ["topgun", "skills", "discovery", "security-audit", "registry", "installation"],
+      "category": "productivity",
       "strict": true
     }
   ]
