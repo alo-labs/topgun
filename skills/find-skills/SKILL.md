@@ -36,7 +36,6 @@ Search locally installed skills **before** querying any external registry.
 
 Read `registries` from `~/.topgun/state.json`. If the field is absent or empty,
 default to all 16 active registries: `["skills-sh", "agentskill-sh", "smithery", "github", "gitlab", "npm", "lobehub", "skillsmp", "clawhub", "glama", "huggingface", "langchain-hub", "claude-plugins-official", "cursor-directory", "mcp-so", "opentools"]`.
-Note: `vskill` and `osm` are excluded — their domains are confirmed dead (ECONNREFUSED 2026-04-26).
 
 ---
 
@@ -115,7 +114,7 @@ being placed in context. See topgun-finder.md for the envelope format.
 | npm | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/npm.md` | 2 — confirmed REST API |
 | LobeHub | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/lobehub.md` | 2 — WebSearch (API 403) |
 | SkillsMP | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/skillsmp.md` | 2 — confirmed REST API (active) |
-| ClawHub | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/clawhub.md` | 2 — skip (no API) |
+| ClawHub | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/clawhub.md` | 2 — WebSearch (no API) |
 | Glama.ai | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/glama.md` | 3 — confirmed REST API |
 | Hugging Face | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/huggingface.md` | 3 — confirmed REST API |
 | LangChain Hub | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/langchain-hub.md` | 3 — confirmed REST API |
@@ -123,8 +122,6 @@ being placed in context. See topgun-finder.md for the envelope format.
 | Cursor Directory | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/cursor-directory.md` | 3 — GitHub Contents API |
 | MCP.so | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/mcp-so.md` | 3 — WebSearch (API 403) |
 | OpenTools.ai | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/opentools.md` | 3 — WebFetch + relevance filter + WebSearch fallback |
-| ~~vSkill~~ | ~~`adapters/vskill.md`~~ | **DEAD** — domain ECONNREFUSED, excluded from defaults |
-| ~~OSM~~ | ~~`adapters/osm.md`~~ | **DEAD** — domain ECONNREFUSED, excluded from defaults |
 
 ---
 
