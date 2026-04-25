@@ -33,7 +33,7 @@ For each search result with a URL starting with `https://mcp.so/`:
 | Search result field | Unified schema field |
 |---------------------|----------------------|
 | Page title (strip " - MCP.so" suffix) | `name` |
-| Snippet (truncate to 500 chars) | `description` |
+| Snippet (truncate to 500 chars, strip HTML/markdown tags) | `description` |
 | Result URL | `install_url` |
 | `null` | `stars` |
 | `null` | `last_updated` |
