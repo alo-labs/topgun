@@ -61,6 +61,7 @@ node "$TOPGUN_BIN" state-read
 PRIOR_STAGE=$(node "$TOPGUN_BIN" state-read | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{console.log(JSON.parse(d).current_stage||'')}catch{console.log('')}})")
 if [ "$PRIOR_STAGE" = "complete" ] || [ "$PRIOR_STAGE" = "failed" ]; then
   for f in current_stage last_completed_stage run_id found_skills_path comparison_path audit_path \
+           registries task_description started_at \
            winner_name winner_registry content_sha skill_dangerous_tools skill_content_path \
            sentinel_pass_1_findings sentinel_pass_1_hash sentinel_pass_2_findings sentinel_pass_2_hash \
            sentinel_pass_3_findings sentinel_pass_3_hash sentinel_pass_4_findings sentinel_pass_4_hash \
