@@ -16,15 +16,65 @@ You are the TopGun orchestrator. You sequence four sub-agents to find, compare, 
 
 ## Step 0: Initialize
 
-Run:
+**0.1 Resolve TOPGUN_BIN.** The skill must work whether or not `$CLAUDE_PLUGIN_ROOT` is set in the shell session. Resolve a stable path to `topgun-tools.cjs` once at the top, then use `$TOPGUN_BIN` everywhere below:
+
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" init
+TOPGUN_TOOLS_REL="bin/topgun-tools.cjs"
+if [ -n "$CLAUDE_PLUGIN_ROOT" ] && [ -f "$CLAUDE_PLUGIN_ROOT/$TOPGUN_TOOLS_REL" ]; then
+  TOPGUN_BIN="$CLAUDE_PLUGIN_ROOT/$TOPGUN_TOOLS_REL"
+else
+  # Fallback: read installed_plugins.json to find any installed copy of topgun.
+  TOPGUN_BIN=$(node -e '
+    const fs=require("fs"), path=require("path"), home=process.env.HOME;
+    const reg=path.join(home,".claude/plugins/installed_plugins.json");
+    if (!fs.existsSync(reg)) { console.error("topgun not installed"); process.exit(1); }
+    const r=JSON.parse(fs.readFileSync(reg,"utf8"));
+    const keys=Object.keys(r.plugins||{}).filter(k=>k.startsWith("topgun@"));
+    for (const k of keys) {
+      const inst=r.plugins[k][0];
+      const p=path.join(inst.installPath,"bin/topgun-tools.cjs");
+      if (fs.existsSync(p)) { console.log(p); process.exit(0); }
+    }
+    console.error("no usable topgun install"); process.exit(1);
+  ')
+  if [ -z "$TOPGUN_BIN" ]; then
+    echo "❌ TopGun is not installed. Run: /plugin install alo-labs/topgun"
+    exit 1
+  fi
+  export CLAUDE_PLUGIN_ROOT="$(dirname "$(dirname "$TOPGUN_BIN")")"
+fi
 ```
 
-Then read current state:
+**0.2 Init storage:**
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-read
+node "$TOPGUN_BIN" init
 ```
+
+**0.3 Read current state:**
+```bash
+node "$TOPGUN_BIN" state-read
+```
+
+**0.4 Implicit reset (auto-clear stale state).** If `current_stage === "complete"` or `current_stage === "failed"` AND a NEW user prompt is starting (i.e. the user just typed a fresh `/topgun ...` command), all per-run fields from the prior pipeline are stale and would otherwise leak into Step 2 resume logic. Auto-clear them — no `--reset` required:
+
+```bash
+PRIOR_STAGE=$(node "$TOPGUN_BIN" state-read | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{console.log(JSON.parse(d).current_stage||'')}catch{console.log('')}})")
+if [ "$PRIOR_STAGE" = "complete" ] || [ "$PRIOR_STAGE" = "failed" ]; then
+  for f in current_stage last_completed_stage run_id found_skills_path comparison_path audit_path \
+           winner_name winner_registry content_sha skill_dangerous_tools skill_content_path \
+           sentinel_pass_1_findings sentinel_pass_1_hash sentinel_pass_2_findings sentinel_pass_2_hash \
+           sentinel_pass_3_findings sentinel_pass_3_hash sentinel_pass_4_findings sentinel_pass_4_hash \
+           sentinel_total_passes sentinel_clean_passes secured_path approval approved_at \
+           install_method install_path install_verified plugins_json_status test_invoke_status \
+           audit_status findings_tracker enveloped_content_path skill_name skill_source \
+           audit_rejection_reason audit_abort_reason; do
+    node "$TOPGUN_BIN" state-write "$f" null >/dev/null
+  done
+  echo "(auto-cleared stale state from prior $PRIOR_STAGE pipeline)"
+fi
+```
+
+This makes the prior-run-completed UX seamless: users don't have to remember `--reset` after every successful or failed pipeline.
 
 ## Step 1: Parse Input
 
@@ -34,12 +84,12 @@ Check for the following flags and extract them before parsing the task descripti
 
 **`--reset` flag:** If present, clear state and start fresh BEFORE any other logic:
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write current_stage null
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write last_completed_stage null
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write run_id null
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write found_skills_path null
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write comparison_path null
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write audit_path null
+node "$TOPGUN_BIN" state-write current_stage null
+node "$TOPGUN_BIN" state-write last_completed_stage null
+node "$TOPGUN_BIN" state-write run_id null
+node "$TOPGUN_BIN" state-write found_skills_path null
+node "$TOPGUN_BIN" state-write comparison_path null
+node "$TOPGUN_BIN" state-write audit_path null
 ```
 Output: "State cleared. Starting fresh pipeline." Then proceed normally with the remaining flags and task description.
 
@@ -55,14 +105,14 @@ Output: "State cleared. Starting fresh pipeline." Then proceed normally with the
 
 Write the parsed input to state:
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write task_description "<extracted task>"
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write run_id "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write started_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+node "$TOPGUN_BIN" state-write task_description "<extracted task>"
+node "$TOPGUN_BIN" state-write run_id "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+node "$TOPGUN_BIN" state-write started_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
 If `--registries` was provided:
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write registries "<comma-separated list>"
+node "$TOPGUN_BIN" state-write registries "<comma-separated list>"
 ```
 
 ## Step 1.5: Auth Token Check
@@ -72,15 +122,15 @@ node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write registries "<comma-s
 Check for registry auth tokens in the OS keychain:
 
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" keychain-get github_token
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" keychain-get smithery_token
+node "$TOPGUN_BIN" keychain-get github_token
+node "$TOPGUN_BIN" keychain-get smithery_token
 ```
 
 For each token where the result is `{ "found": false }`:
 - Prompt the user: "GitHub/Smithery API token not found. Some registries require authentication for higher rate limits (60 → 5000 req/hr). Enter your {service} token (or press Enter to skip):"
 - If the user provides a token (non-empty input), store it:
   ```bash
-  node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" keychain-set {service} topgun {token}
+  node "$TOPGUN_BIN" keychain-set {service} topgun {token}
   ```
 - If the user presses Enter with no value, continue without the token — searches will still work but may hit rate limits.
 - Tokens are stored in the OS keychain ONLY — never written to files, state.json, or any log.
@@ -91,7 +141,7 @@ For each token where the result is `{ "found": false }`:
 
 Check whether cached output files exist for this query before proceeding. Compute the query hash:
 ```bash
-QUERY_HASH=$(node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" sha256 "<task_description>" | node -e "process.stdin.resume();let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>console.log(JSON.parse(d).hash))")
+QUERY_HASH=$(node "$TOPGUN_BIN" sha256 "<task_description>" | node -e "process.stdin.resume();let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>console.log(JSON.parse(d).hash))")
 ```
 
 Check for cached FindSkills output:
@@ -154,7 +204,7 @@ For each stage, verify the expected output file ACTUALLY EXISTS on disk before t
 
 Update state:
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write current_stage find
+node "$TOPGUN_BIN" state-write current_stage find
 ```
 
 Dispatch the finder agent. If `offline=true`, include "(offline mode — use only cached data, do not fetch from registries)" in the prompt:
@@ -176,15 +226,15 @@ Parse the sub-agent's output:
 
 Update state, including the output file path:
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write last_completed_stage find
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write found_skills_path "$HOME/.topgun/found-skills-{hash}.json"
+node "$TOPGUN_BIN" state-write last_completed_stage find
+node "$TOPGUN_BIN" state-write found_skills_path "$HOME/.topgun/found-skills-{hash}.json"
 ```
 
 ## Step 4: CompareSkills
 
 Update state:
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write current_stage compare
+node "$TOPGUN_BIN" state-write current_stage compare
 ```
 
 Dispatch the comparator agent. If `offline=true`, include "(offline mode — use only cached data, do not fetch from registries)" in the prompt:
@@ -206,20 +256,20 @@ Parse the sub-agent's output:
 
 Update state, including the output file path:
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write last_completed_stage compare
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write comparison_path "$HOME/.topgun/comparison-{hash}.json"
+node "$TOPGUN_BIN" state-write last_completed_stage compare
+node "$TOPGUN_BIN" state-write comparison_path "$HOME/.topgun/comparison-{hash}.json"
 ```
 
 ## Step 5: SecureSkills
 
 Update state:
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write current_stage secure
+node "$TOPGUN_BIN" state-write current_stage secure
 ```
 
 **Offline check (T-06-05):** If `offline=true`, verify a cached audit exists for the winning skill's SHA before dispatching:
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" cache-lookup "<winning_skill_sha>"
+node "$TOPGUN_BIN" cache-lookup "<winning_skill_sha>"
 ```
 If result is `{ "hit": false }`: output "No cached audit available. Cannot proceed offline." and STOP.
 
@@ -245,15 +295,15 @@ Parse the sub-agent's output:
 
 Update state, including the output file path:
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write last_completed_stage secure
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write audit_path "$HOME/.topgun/audit-{hash}.json"
+node "$TOPGUN_BIN" state-write last_completed_stage secure
+node "$TOPGUN_BIN" state-write audit_path "$HOME/.topgun/audit-{hash}.json"
 ```
 
 ## Step 6: User Approval Gate
 
 Update state:
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write current_stage approve
+node "$TOPGUN_BIN" state-write current_stage approve
 ```
 
 Read the audit results file written by SecureSkills:
@@ -289,9 +339,9 @@ Present the audit manifest to the user:
   - Print the full audit manifest (as formatted above).
   - Update state:
     ```bash
-    node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write last_completed_stage approve
-    node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write approval "approved"
-    node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write approved_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    node "$TOPGUN_BIN" state-write last_completed_stage approve
+    node "$TOPGUN_BIN" state-write approval "approved"
+    node "$TOPGUN_BIN" state-write approved_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     ```
   - Proceed directly to Step 7 (InstallSkills). Do NOT prompt the user.
 
@@ -312,9 +362,9 @@ Then ask the user: "Do you approve installation of this skill? (yes/no)"
 
 Update state:
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write last_completed_stage approve
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write approval "approved"
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write approved_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+node "$TOPGUN_BIN" state-write last_completed_stage approve
+node "$TOPGUN_BIN" state-write approval "approved"
+node "$TOPGUN_BIN" state-write approved_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
 Proceed to Step 7 (InstallSkills).
@@ -323,9 +373,9 @@ Proceed to Step 7 (InstallSkills).
 
 Update state:
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write last_completed_stage approve
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write approval "rejected"
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write current_stage complete
+node "$TOPGUN_BIN" state-write last_completed_stage approve
+node "$TOPGUN_BIN" state-write approval "rejected"
+node "$TOPGUN_BIN" state-write current_stage complete
 ```
 
 Output: "Installation rejected by user. Pipeline complete — no skill installed."
@@ -336,7 +386,7 @@ STOP. Do NOT proceed to Step 7.
 
 Update state:
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write current_stage install
+node "$TOPGUN_BIN" state-write current_stage install
 ```
 
 Dispatch the installer agent:
@@ -358,8 +408,8 @@ Parse the sub-agent's output:
 
 Update state:
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write last_completed_stage install
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write current_stage complete
+node "$TOPGUN_BIN" state-write last_completed_stage install
+node "$TOPGUN_BIN" state-write current_stage complete
 ```
 
 ## Step 8: Audit Trail Header
@@ -369,7 +419,7 @@ This step only executes if approval was "approved" (Step 6) and InstallSkills re
 Read current state to get install data:
 
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-read
+node "$TOPGUN_BIN" state-read
 ```
 
 Read the audit and comparison JSON files for scores:
@@ -405,9 +455,9 @@ Immediately after the header, display the disclaimer:
 Write the lock entry for pipeline reproducibility (REQ-23):
 
 ```bash
-QUERY_HASH=$(node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" sha256 "<task_description>" | node -e "process.stdin.resume();let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>console.log(JSON.parse(d).hash))")
+QUERY_HASH=$(node "$TOPGUN_BIN" sha256 "<task_description>" | node -e "process.stdin.resume();let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>console.log(JSON.parse(d).hash))")
 
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" lock-write '{
+node "$TOPGUN_BIN" lock-write '{
   "query_hash": "'"$QUERY_HASH"'",
   "skill_name": "{skill_name}",
   "source_registry": "{source_registry}",

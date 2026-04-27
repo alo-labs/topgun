@@ -17,6 +17,25 @@
 
 <!-- ENTRIES BELOW — newest first -->
 
+## 2026-04-28 — v1.7.3
+
+**What**: Patch release tightening the comparator's ranking and pre-filter, making the orchestrator self-bootstrap, and extending `/topgun-update` cache cleanup across multiple marketplace install paths.
+
+**Changed**:
+- `agents/topgun-comparator.md`, `skills/compare-skills/SKILL.md` — re-weighted scoring (capability 0.40→0.55, security 0.25→0.20, popularity 0.20→0.15, recency 0.15→0.10) and added a capability floor: candidates with `capability_match < 30` have their composite multiplied by 0.5, preventing low-fit-but-popular skills from out-ranking true matches with low star counts.
+- `agents/topgun-comparator.md`, `skills/compare-skills/SKILL.md` — replaced the broad `[U+2001-U+FFFF]` "high Unicode" pre-filter (which rejected legitimate emoji and CJK skills) with a tight set of abuse-prone ranges only: Variation Selectors (U+FE00-U+FE0F), Tag chars (U+E0000-U+E007F), Variation Selectors Supplement (U+E0100-U+E01EF), Bidi-isolate controls (U+2066-U+2069), Bidi-override controls (U+202A-U+202E), Private Use Area (U+E000-U+F8FF). Added a unicode-density check (>30% non-printable-ASCII AND >200 chars) with local-source skills exempted.
+- `agents/topgun-comparator.md` — capability_match is now the primary tiebreak after composite (was security_posture).
+- `skills/topgun/SKILL.md` Step 0 — the orchestrator now self-resolves `TOPGUN_BIN` from `installed_plugins.json` if `$CLAUDE_PLUGIN_ROOT` is not set in the shell session, removing a hard dependency on harness-provided env vars when the skill is invoked directly via the Skill tool.
+- `skills/topgun/SKILL.md` Step 0.4 — implicit reset: when `current_stage` is `complete` or `failed` on entry, all per-run fields are auto-cleared, so users no longer need to remember `--reset` between pipeline runs.
+- `skills/topgun-update/SKILL.md` Step 6.3 — cache purge now scans BOTH `~/.claude/plugins/cache/topgun/` and `~/.claude/plugins/cache/alo-labs/topgun/` (and is extensible via `SIBLING_CACHE_DIRS`). Stale registry entries in `installed_plugins.json` are pruned automatically after the on-disk cleanup.
+- `agents/topgun-{finder,comparator,securer,installer}.md`, `skills/find-skills/SKILL.md` — all `node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs"` calls now use `${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}` as defense in depth when sub-agents inherit a partial environment.
+
+**Known interaction (not fixed in this release)**: external `Stop` hooks (e.g. Silver Bullet's quality-gate enforcement) fire on TopGun sub-agent completion and demand release/quality skills that are out of scope for search-only agents. Recommended user setting: scope your Stop hook to skip when `agent_type` matches `topgun-*`. TopGun cannot suppress external hooks from its own source.
+
+**Migration**: zero user-facing migration. The new ranking will surface different top-1 winners for some queries (specifically: high-capability/low-popularity skills now win over low-capability/high-popularity skills). Old `comparison-{hash}.json` files written under the v1.7.2 weights remain readable but should be re-generated for fresh ranking.
+
+---
+
 ## 2026-04-26 — v1.7.2
 
 **What**: Patch release adding automatic old-cache cleanup to `/topgun-update` so stale plugin version directories are removed after every successful update.

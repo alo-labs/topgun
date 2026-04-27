@@ -44,7 +44,7 @@ Reason: All registries unavailable and no local skills matched
 Read task input from `~/.topgun/state.json`:
 
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-read
+node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-read
 ```
 
 Extract the following fields:
@@ -61,7 +61,7 @@ ERROR: task_description not found in ~/.topgun/state.json
 ## Step 2: Compute Query Hash
 
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" sha256 "{task_description}"
+node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" sha256 "{task_description}"
 ```
 
 Store the output as `{hash}`. This is used for the output filename and deduplication.
@@ -80,7 +80,7 @@ Use Glob with pattern `~/.claude/skills/*/SKILL.md`. For each file found:
    from `task_description` (substring or keyword match).
 3. If matched, compute a content_sha:
    ```bash
-   node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" sha256 "{file_contents}"
+   node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" sha256 "{file_contents}"
    ```
 4. Add to results with `source_registry: "local"`.
 
@@ -244,7 +244,7 @@ For each result after normalization, compute `content_sha` as follows:
 1. **Registry provides `contentSha` field** (e.g., agentskill.sh ecosystem): use the value as-is.
 2. **Result has `install_url` pointing to a raw SKILL.md file** (URL ending in `/SKILL.md` or containing `raw` path): fetch the file content, then compute:
    ```bash
-   node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" sha256 "{file_contents}"
+   node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" sha256 "{file_contents}"
    ```
    Set the result as `content_sha`.
 3. **Local results**: always compute SHA-256 from the SKILL.md file content read during local search (Step 3). This was already done in Step 3 — reuse that value.
@@ -353,7 +353,7 @@ Write the result to `~/.topgun/found-skills-{hash}.json`:
 
 Use:
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" sha256 "{task_description}"
+node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" sha256 "{task_description}"
 ```
 for `query_hash`, and:
 ```bash
@@ -366,7 +366,7 @@ for `searched_at`.
 ## Step 8: Update State
 
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" state-write found_skills_path "~/.topgun/found-skills-{hash}.json"
+node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write found_skills_path "~/.topgun/found-skills-{hash}.json"
 ```
 
 ---

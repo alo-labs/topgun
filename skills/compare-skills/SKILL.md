@@ -18,10 +18,11 @@ Evaluates skill candidates from FindSkills output across four scoring dimensions
 
 Candidates are rejected before scoring if any string field contains:
 1. **Base64 blobs** — sequences of 100+ base64 characters
-2. **High Unicode** — codepoints above U+2000 (excluding standard punctuation)
-3. **Zero-width characters** — U+200B through U+200F, U+2028 through U+202F, U+FEFF
+2. **Zero-width characters** — U+200B-U+200F, U+2028-U+202F, U+FEFF
+3. **Abuse-prone Unicode** — Variation Selectors (U+FE00-U+FE0F), Tag chars (U+E0000-U+E007F), Variation Selectors Supplement (U+E0100-U+E01EF), Bidi-isolate controls (U+2066-U+2069), Bidi-override controls (U+202A-U+202E), Private Use Area (U+E000-U+F8FF)
+4. **Unicode density** — > 30% non-printable-ASCII codepoints AND > 200 chars long. Local-source skills are exempt.
 
-Rejected candidates are logged with reason and excluded from scoring.
+Regular emoji, CJK characters, and accented Latin are NOT rejected — only abuse-prone codepoint ranges. Rejected candidates are logged with reason and excluded from scoring.
 
 ## Structural Envelope
 
@@ -35,14 +36,16 @@ Each candidate is scored 0-100 on four dimensions:
 
 | Dimension | Weight | Source Field | Null Default |
 |-----------|--------|-------------|--------------|
-| Capability Match | 40% | name + description vs query | 0 |
-| Security Posture | 25% | security_score | 50 |
-| Popularity | 20% | stars + install_count | 0 |
-| Recency | 15% | last_updated | 10 |
+| Capability Match | 55% | name + description vs query | 0 |
+| Security Posture | 20% | security_score | 50 |
+| Popularity | 15% | stars + install_count | 0 |
+| Recency | 10% | last_updated | 10 |
 
-**Composite:** `(capability_match * 0.40) + (security_posture * 0.25) + (popularity * 0.20) + (recency * 0.15)`
+**Composite (raw):** `(capability_match * 0.55) + (security_posture * 0.20) + (popularity * 0.15) + (recency * 0.10)`
 
-**Tie-breaking:** composite DESC, then security_posture DESC, then recency DESC, then name ASC.
+**Capability floor:** if `capability_match < 30`, the composite is multiplied by `0.5`. Low-fit candidates are heavily demoted so popular/recent skills can't displace true matches just because the true match has zero stars.
+
+**Tie-breaking:** composite DESC, then capability_match DESC, then security_posture DESC, then recency DESC, then name ASC.
 
 **Security Warning:** Candidates with security_score < 30 are flagged with `security_warning: true` and a logged warning. They are NOT disqualified — the user sees the warning in output.
 
@@ -57,7 +60,7 @@ Writes `~/.topgun/comparison-{hash}.json` containing:
 - Winner with full score breakdown
 - `shortlist` — ranked list of all non-rejected candidates
 - `rejected` — array of rejected candidates with their rejection reasons
-- `scores_by_dimension` — weight configuration used: `{"capability_weight": 0.40, "security_weight": 0.25, "popularity_weight": 0.20, "recency_weight": 0.15}`
+- `scores_by_dimension` — weight configuration used: `{"capability_weight": 0.55, "security_weight": 0.20, "popularity_weight": 0.15, "recency_weight": 0.10, "capability_floor": 30, "capability_floor_penalty": 0.5}`
 
 Updates `~/.topgun/state.json` with `comparison_path`, `winner_name`, `winner_registry`.
 
