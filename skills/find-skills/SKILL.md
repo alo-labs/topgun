@@ -26,7 +26,7 @@ Search locally installed skills **before** querying any external registry.
    sufficient.
 4. For each match, compute a `content_sha`:
    ```bash
-   node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" sha256 "<SKILL.md file contents>"
+   node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" sha256 "<SKILL.md file contents>"
    ```
 5. Add each match to results using the unified schema with `source_registry: "local"`.
 

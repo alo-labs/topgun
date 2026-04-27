@@ -184,24 +184,67 @@ On failure: display path to `NEW_CACHE` and suggest `/plugin install alo-labs/to
 
 **6.3 Purge old cache versions:**
 
-After the registry write succeeds, delete all version directories under the TopGun cache root except the newly installed one:
+After the registry write succeeds, delete all version directories under the TopGun cache root except the newly installed one. **Important:** TopGun can be installed from multiple marketplaces — each lives at its own cache root (e.g. `~/.claude/plugins/cache/topgun/` for the top-level marketplace, `~/.claude/plugins/cache/alo-labs/topgun/` for the alo-labs marketplace). Purge ALL known cache roots so sibling installs from older marketplace listings are also cleaned up:
 
 ```bash
+# Primary cache dir derived from the current INSTALL_PATH
 TOPGUN_CACHE_DIR="${CACHE_ROOT}/topgun"
-[[ "$TOPGUN_CACHE_DIR" == "$HOME/.claude/plugins/cache/"* ]] \
-  || { echo "❌ Cache dir outside safe prefix: $TOPGUN_CACHE_DIR"; exit 1; }
+
+# Sibling cache dirs to scan (other marketplace install paths).
+# Add new entries here as additional marketplace listings appear.
+SIBLING_CACHE_DIRS=(
+  "$HOME/.claude/plugins/cache/topgun"
+  "$HOME/.claude/plugins/cache/alo-labs/topgun"
+)
+
 DELETED=()
-while IFS= read -r -d '' old_dir; do
-  if rm -rf "$old_dir"; then
-    DELETED+=("$old_dir")
-  else
-    echo "⚠️ Could not delete $old_dir — remove manually."
-  fi
-done < <(find "$TOPGUN_CACHE_DIR" -mindepth 1 -maxdepth 1 -type d \
-           ! -name "$LATEST_VERSION" -print0)
+
+purge_cache_dir() {
+  local dir="$1"
+  [[ ! -d "$dir" ]] && return 0
+  [[ "$dir" == "$HOME/.claude/plugins/cache/"* ]] \
+    || { echo "❌ Cache dir outside safe prefix: $dir"; return 1; }
+  while IFS= read -r -d '' old_dir; do
+    # Don't delete the directory we just installed into
+    [[ "$old_dir" == "$NEW_CACHE" ]] && continue
+    if rm -rf "$old_dir"; then
+      DELETED+=("$old_dir")
+    else
+      echo "⚠️ Could not delete $old_dir — remove manually."
+    fi
+  done < <(find "$dir" -mindepth 1 -maxdepth 1 -type d \
+             ! -name "$LATEST_VERSION" -print0)
+}
+
+# Purge primary first, then siblings (deduplicated)
+purge_cache_dir "$TOPGUN_CACHE_DIR"
+for sibling in "${SIBLING_CACHE_DIRS[@]}"; do
+  [[ "$sibling" == "$TOPGUN_CACHE_DIR" ]] && continue
+  purge_cache_dir "$sibling"
+done
+
+# Also remove stale registry entries pointing at directories that no longer exist
+node -e '
+  const fs=require("fs"), path=require("path");
+  const reg=path.join(process.env.HOME,".claude/plugins/installed_plugins.json");
+  if (!fs.existsSync(reg)) process.exit(0);
+  const r=JSON.parse(fs.readFileSync(reg,"utf8"));
+  let changed=false;
+  for (const k of Object.keys(r.plugins||{})) {
+    if (!k.startsWith("topgun@")) continue;
+    const filtered = r.plugins[k].filter(inst => {
+      const exists = fs.existsSync(inst.installPath);
+      if (!exists) { console.log("Pruned stale registry entry: " + k + " → " + inst.installPath); changed=true; }
+      return exists;
+    });
+    if (filtered.length === 0) { delete r.plugins[k]; changed=true; }
+    else r.plugins[k] = filtered;
+  }
+  if (changed) fs.writeFileSync(reg, JSON.stringify(r, null, 2));
+'
 ```
 
-On success: deleted paths are collected in `DELETED` for display in Step 7.
+On success: deleted paths are collected in `DELETED` for display in Step 7. Stale registry entries (entries whose `installPath` was just rm'd) are pruned from `installed_plugins.json` so they don't leak forward.
 On `rm` failure: warning is printed inline and the loop continues (non-fatal).
 
 ---
