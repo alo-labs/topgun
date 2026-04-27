@@ -176,7 +176,7 @@ Round `composite` to 2 decimal places.
 
 ## Step 6 — Rank and select winner
 
-After sorting candidates by composite DESC (tie-break: security_posture DESC, then recency DESC, then name ASC), the winner is the first candidate in the sorted list (index 0).
+After sorting candidates by composite DESC (tie-break: capability_match DESC, then security_posture DESC, then recency DESC, then name ASC), the winner is the first candidate in the sorted list (index 0).
 
 Build the `shortlist` array from the sorted candidates. Each entry contains:
 
@@ -219,7 +219,7 @@ Write to `~/.topgun/comparison-${HASH}.json`:
     {
       "name": "...",
       "source_registry": "...",
-      "reason": "base64|high-unicode|zero-width"
+      "reason": "base64|zero-width|abuse-unicode|unicode-density"
     }
   ],
   "scores_by_dimension": {

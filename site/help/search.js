@@ -21,7 +21,7 @@ const SEARCH_DATA = [
   {
     page: 'Core Concepts',
     title: 'Scoring Rubric',
-    excerpt: 'Candidates are scored on capability match (40%), security posture (25%), popularity (20%), and recency (15%). Composite score determines the winner.',
+    excerpt: 'Candidates are scored on capability match (55%), security posture (20%), popularity (15%), and recency (10%). A capability floor demotes low-fit candidates; the composite score determines the winner.',
     url: 'concepts/#scoring'
   },
   {

@@ -17,6 +17,24 @@
 
 <!-- ENTRIES BELOW — newest first -->
 
+## 2026-04-28 — v1.7.4
+
+**What**: Patch release applying fixes surfaced by the pre-release quality gate after v1.7.3. Comparator schema/tiebreak alignment, public-content scoring weights, and orchestrator state-clear coverage.
+
+**Fixed**:
+- `agents/topgun-comparator.md` Step 6 — tiebreak ordering documentation now lists `capability_match DESC` as the primary tiebreak after composite, matching Step 5's narrative and `compare-skills/SKILL.md`. Previously Step 6 omitted `capability_match` from the tiebreak chain.
+- `agents/topgun-comparator.md` `rejected[]` schema example — reason enum updated from the deprecated `base64|high-unicode|zero-width` to the v1.7.3 set `base64|zero-width|abuse-unicode|unicode-density`.
+- `site/index.html` line 479 — CompareSkills feature copy updated from the old 40/25/20/15 weights to the current 55/20/15/10 + capability floor mention.
+- `site/help/concepts/index.html` Scoring Rubric — table percentages, score-bar widths, and composite formula updated to match v1.7.3 weights and capability floor.
+- `site/help/search.js` Scoring Rubric excerpt — updated to 55/20/15/10 + capability floor mention so the search index matches the page content.
+- `skills/topgun/SKILL.md` Step 0.4 implicit-reset clear list — added `registries`, `task_description`, `started_at` to prevent stale per-run state from leaking across pipeline runs (notably `--registries` filters from prior runs).
+
+**Process**: Two consecutive clean rounds of the full 4-stage `pre-release-quality-gate.md` confirmed before release.
+
+**Migration**: zero user-facing migration. Internal documentation and public-content fixes only; ranking behavior unchanged from v1.7.3.
+
+---
+
 ## 2026-04-28 — v1.7.3
 
 **What**: Patch release tightening the comparator's ranking and pre-filter, making the orchestrator self-bootstrap, and extending `/topgun-update` cache cleanup across multiple marketplace install paths.

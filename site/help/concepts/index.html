@@ -237,41 +237,45 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
         <tbody>
           <tr>
             <td>Capability match</td>
-            <td><strong>40%</strong></td>
+            <td><strong>55%</strong></td>
             <td><div class="score-bar"><div class="score-fill" style="width:100%"></div></div></td>
             <td>How closely the skill's described capabilities match the requested task, scored by semantic similarity</td>
           </tr>
           <tr>
             <td>Security posture</td>
-            <td><strong>25%</strong></td>
-            <td><div class="score-bar"><div class="score-fill" style="width:62%"></div></div></td>
+            <td><strong>20%</strong></td>
+            <td><div class="score-bar"><div class="score-fill" style="width:36%"></div></div></td>
             <td>Pre-scan signals: no network calls in SKILL.md, minimal allowed-tools, no eval/exec patterns</td>
           </tr>
           <tr>
             <td>Popularity</td>
-            <td><strong>20%</strong></td>
-            <td><div class="score-bar"><div class="score-fill" style="width:50%"></div></div></td>
+            <td><strong>15%</strong></td>
+            <td><div class="score-bar"><div class="score-fill" style="width:27%"></div></div></td>
             <td>Stars, installs, or download count from the source registry, normalized logarithmically</td>
           </tr>
           <tr>
             <td>Recency</td>
-            <td><strong>15%</strong></td>
-            <td><div class="score-bar"><div class="score-fill" style="width:38%"></div></div></td>
+            <td><strong>10%</strong></td>
+            <td><div class="score-bar"><div class="score-fill" style="width:18%"></div></div></td>
             <td>Days since last commit or publish; skills updated within 90 days score highest</td>
           </tr>
         </tbody>
       </table>
 
       <p>The composite score formula:</p>
-      <div class="code-block"><span class="comment">// composite = weighted sum</span>
-composite = (capability × 0.40)
-          + (security  × 0.25)
-          + (popularity × 0.20)
-          + (recency   × 0.15)</div>
+      <div class="code-block"><span class="comment">// composite_raw = weighted sum</span>
+composite_raw = (capability × 0.55)
+              + (security    × 0.20)
+              + (popularity  × 0.15)
+              + (recency     × 0.10)
+
+<span class="comment">// capability floor — demote low-fit candidates</span>
+if (capability_match &lt; 30) composite = composite_raw × 0.5
+else                        composite = composite_raw</div>
 
       <div class="callout callout-tip">
         <span class="callout-icon"><i data-lucide="check-circle"></i></span>
-        <div class="callout-body">All four sub-scores and the composite are included in the audit manifest shown at the approval gate, so you can always see exactly why a skill was selected.</div>
+        <div class="callout-body">All four sub-scores and the composite are included in the audit manifest shown at the approval gate, so you can always see exactly why a skill was selected. The capability floor (added in v1.7.3) prevents popular-but-irrelevant skills from displacing true matches with low star counts.</div>
       </div>
 
       <div class="divider"></div>
