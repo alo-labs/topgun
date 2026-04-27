@@ -16,7 +16,7 @@
         "repo": "alo-labs/topgun"
       },
       "description": "Find, compare, security-audit, and install the best available skill for any job from 16 active registries.",
-      "version": "1.7.4",
+      "version": "1.7.5",
       "author": {
         "name": "Alo Labs",
         "url": "https://github.com/alo-labs/topgun"

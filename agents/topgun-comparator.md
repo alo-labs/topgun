@@ -117,14 +117,92 @@ This structural envelope ensures no metadata field can break out of its designat
 
 For each candidate that passed the pre-filter and structural envelope, compute four dimension scores (each 0-100).
 
-### 4a. Capability Match (weight: 0.55)
+### 4a. Capability Match (weight: 0.55) — Rubric-First
 
-Compare candidate `name` + `description` against the user's original task query (from state).
+Capability_match is **not** a flat keyword-hit count. It is computed via 3 phases. Refer to `skills/compare-skills/SKILL.md` ("Capability Match — Rubric-First Scoring") for the full methodology; the operational steps follow.
 
+**Fallback:** If fewer than 3 candidates remain after pre-filter, skip Phases A-C and use keyword-hit scoring instead:
 1. Extract keywords from user query: split on spaces, remove stopwords (`the`, `a`, `an`, `for`, `to`, `of`, `in`, `and`, `or`, `with`, `best`, `find`)
-2. Count keyword hits in candidate `name` + `description` (case-insensitive). Phrase keywords (e.g. "deep research") count as one hit when both words appear within 5 tokens of each other.
-3. `capability_match = min(100, (hits / total_keywords) * 100)`
-4. If 0 keywords match, `capability_match = 0`
+2. Count keyword hits in candidate `name` + `description` (case-insensitive). Phrase keywords count as one hit when both words appear within 5 tokens.
+3. `capability_match = min(100, (hits / total_keywords) * 100)`. If 0 hits, `capability_match = 0`.
+4. Set `scoring_version = "v1-keyword"` in the output JSON and add a `notes` line explaining the fallback.
+
+#### Phase A — Feature extraction (≥3 candidates)
+
+Read every non-rejected candidate's `name`, `description`, and `raw_metadata`. Build the union of distinguishing features observed across the field. Group features into 5 buckets:
+
+1. **Architecture / pipeline / phase signals** — named phases, iteration loops, multi-step pipelines, depth tiers
+2. **Quality / verification signals** — citation tracking, evidence persistence, validation passes, hallucination detection, critique loops, contrarian passes
+3. **Output / artifact signals** — file formats produced, persistence shape, deliverable shape (one-shot report vs persistent store vs MCP tool)
+4. **Operational / control signals** — mode control, time bounds, depth tiers, human-in-the-loop, automation level
+5. **Credibility signals** — benchmark placements, parent-repo stars, registry curation, official-marketplace listing
+
+Observational only — no scoring yet.
+
+#### Phase B — Rubric synthesis
+
+Synthesize 5 sub-criteria summing to weight 100. The first 4 are domain-specific (derived from what features actually distinguish candidates in this query); the 5th is **always** `external_quality_signal` with weight 10-15.
+
+Template:
+```yaml
+sub_criteria:
+  - name: <domain-specific architecture criterion>
+    weight: <20-25>
+    bands:
+      "20-25": "<top-band evidence required>"
+      "15-19": "<good evidence>"
+      "10-14": "<implied or partial>"
+      "5-9":   "<weak>"
+      "0-4":   "<absent>"
+  - name: <domain-specific quality / verification criterion>
+    weight: <20-25>
+    bands:
+      "<top-band-range>":  "<sub-criterion-appropriate top-band evidence>"
+      "<good-range>":      "<good evidence>"
+      "<partial-range>":   "<implied or partial>"
+      "<weak-range>":      "<weak>"
+      "<absent-range>":    "<absent>"
+  - name: <domain-specific output / artifact criterion>
+    weight: <15-20>
+    bands: { 5 ranges as above, summing to weight }
+  - name: <domain-specific operational / control criterion>
+    weight: <10-15>
+    bands: { 5 ranges as above, summing to weight }
+  - name: external_quality_signal
+    weight: <10-15>
+    bands:
+      "12-15": "Independent benchmark win OR >1000★ parent-repo OR official-marketplace curation"
+      "8-11":  "Modest stars OR curated registry placement"
+      "4-7":   "Active maintenance, low traction"
+      "0-3":   "No external signal"
+```
+
+Constraints:
+- Sub-criterion weights are integers and MUST sum to exactly 100.
+- The `external_quality_signal` sub-criterion is mandatory and capped at 15 — credibility signals never dominate a capability score.
+- Bands within each sub-criterion MUST be non-overlapping integer ranges covering 0-(weight).
+- Sub-criterion names use snake_case.
+
+Record the synthesized rubric under `capability_rubric` in the comparison output JSON.
+
+#### Phase C — Per-candidate scoring
+
+For each candidate, score each sub-criterion against its bands using only the candidate's extracted features (Phase A). Each sub-score is an integer within the band ranges. Sum sub-scores → `capability_match` (0-100).
+
+For each candidate, record `capability_breakdown` in the shortlist entry: dict of `{sub_criterion_name: int}` plus `total`. Example:
+
+```json
+"capability_breakdown": {
+  "named_pipeline_phases": 18,
+  "citation_evidence_architecture": 22,
+  "output_formats": 14,
+  "depth_mode_control": 6,
+  "external_quality_signal": 10,
+  "total": 70
+}
+```
+
+`capability_match = capability_breakdown.total`.
 
 ### 4b. Security Posture (weight: 0.20)
 
@@ -172,7 +250,7 @@ else:
 
 Round `composite` to 2 decimal places.
 
-**Determinism guarantee:** Sort candidates by `composite` DESC. On tie, sort by `capability_match` DESC, then `security_posture` DESC, then `recency` DESC, then `name` ASC (lexicographic). This ensures identical input always produces identical ranking, with capability acting as the primary tiebreak after composite.
+**Determinism guarantee:** Sort candidates by `composite` DESC. On tie, sort by `capability_match` DESC, then `security_posture` DESC, then `recency` DESC, then `name` ASC (lexicographic). This ensures the sort is deterministic given the dimension scores. The non-capability dimensions (security, popularity, recency) are pure arithmetic; capability_match under v2-subdecomposed uses LLM judgment for rubric synthesis and per-sub-criterion scoring, bounded by integer bands — same candidate field yields the same rubric within ~±2/sub-criterion noise. The v1 keyword-hit fallback (< 3 candidates) is bit-identical between runs.
 
 ## Step 6 — Rank and select winner
 
@@ -192,12 +270,20 @@ Build the `shortlist` array from the sorted candidates. Each entry contains:
     "popularity": 70,
     "recency": 50
   },
+  "capability_breakdown": {
+    "<sub_criterion_1>": 22,
+    "<sub_criterion_2>": 20,
+    "<sub_criterion_3>": 16,
+    "<sub_criterion_4>": 12,
+    "external_quality_signal": 10,
+    "total": 80
+  },
   "security_warning": false,
   "install_url": "..."
 }
 ```
 
-`rank` is 1-based (winner = rank 1).
+`rank` is 1-based (winner = rank 1). When the v1 fallback path is used (< 3 candidates), `capability_breakdown` is omitted from each entry — see Step 7 fallback schema.
 
 ## Step 7 — Write comparison-{hash}.json
 
@@ -212,6 +298,7 @@ Write to `~/.topgun/comparison-${HASH}.json`:
 ```json
 {
   "generated_at": "<ISO 8601 timestamp>",
+  "scoring_version": "v2-subdecomposed",
   "input_hash": "<hash from found-skills filename>",
   "query": "<original user task query>",
   "candidate_count": 5,
@@ -230,6 +317,48 @@ Write to `~/.topgun/comparison-${HASH}.json`:
     "capability_floor": 30,
     "capability_floor_penalty": 0.5
   },
+  "capability_rubric": {
+    "domain": "<domain label inferred from query>",
+    "rationale": "<one-paragraph explanation of why these sub-criteria distinguish candidates in this domain>",
+    "sub_criteria": [
+      {
+        "name": "<sub_criterion_1_snake_case>",
+        "weight": 25,
+        "bands": {
+          "20-25": "...",
+          "15-19": "...",
+          "10-14": "...",
+          "5-9": "...",
+          "0-4": "..."
+        }
+      },
+      {
+        "name": "<sub_criterion_2>",
+        "weight": 25,
+        "bands": { "...": "..." }
+      },
+      {
+        "name": "<sub_criterion_3>",
+        "weight": 20,
+        "bands": { "...": "..." }
+      },
+      {
+        "name": "<sub_criterion_4>",
+        "weight": 15,
+        "bands": { "...": "..." }
+      },
+      {
+        "name": "external_quality_signal",
+        "weight": 15,
+        "bands": {
+          "12-15": "Independent benchmark win OR >1000★ parent-repo OR official-marketplace curation",
+          "8-11": "Modest stars OR curated registry placement",
+          "4-7": "Active maintenance, low traction",
+          "0-3": "No external signal"
+        }
+      }
+    ]
+  },
   "winner": {
     "name": "...",
     "source_registry": "...",
@@ -239,6 +368,14 @@ Write to `~/.topgun/comparison-${HASH}.json`:
       "security_posture": 60,
       "popularity": 70,
       "recency": 50
+    },
+    "capability_breakdown": {
+      "<sub_criterion_1>": 22,
+      "<sub_criterion_2>": 20,
+      "<sub_criterion_3>": 16,
+      "<sub_criterion_4>": 12,
+      "external_quality_signal": 10,
+      "total": 80
     },
     "security_warning": false,
     "install_url": "..."
@@ -255,6 +392,14 @@ Write to `~/.topgun/comparison-${HASH}.json`:
         "popularity": 70,
         "recency": 50
       },
+      "capability_breakdown": {
+        "<sub_criterion_1>": 22,
+        "<sub_criterion_2>": 20,
+        "<sub_criterion_3>": 16,
+        "<sub_criterion_4>": 12,
+        "external_quality_signal": 10,
+        "total": 80
+      },
       "security_warning": false,
       "install_url": "..."
     }
@@ -269,6 +414,8 @@ Write to `~/.topgun/comparison-${HASH}.json`:
   }
 }
 ```
+
+When the v1 fallback is used (< 3 candidates), `capability_rubric` is omitted, `capability_breakdown` is omitted from each entry, and `scoring_version` is `"v1-keyword"`. A `notes` field MUST explain why fallback was used.
 
 Use the Write tool to write this JSON file to `~/.topgun/comparison-${HASH}.json`.
 
@@ -286,5 +433,9 @@ node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write winne
 ## COMPARE COMPLETE
 
 Compared {candidate_count} candidates ({rejected_count} rejected by pre-filter).
+Scoring: {scoring_version}
+Rubric: {sub_criterion_1}, {sub_criterion_2}, {sub_criterion_3}, {sub_criterion_4}, external_quality_signal
 Winner: {winner.name} from {winner.source_registry} (score: {winner.composite_score}).
 ```
+
+For the v1 fallback path, omit the `Rubric:` line.

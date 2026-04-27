@@ -132,7 +132,7 @@ To list TopGun on skills.sh:
 
 1. Ensure the GitHub repository is public at `https://github.com/alo-labs/topgun`
 2. Verify `plugin.json` and `marketplace.json` are in `.claude-plugin/`
-3. Tag a release: `git tag v1.7.4 && git push origin v1.7.4`
+3. Tag a release: `git tag v1.7.5 && git push origin v1.7.5`
 4. Submit via: `npx skills submit alo-labs/topgun`
 
 ### Auto-Update

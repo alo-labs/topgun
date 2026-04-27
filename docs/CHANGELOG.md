@@ -17,6 +17,26 @@
 
 <!-- ENTRIES BELOW — newest first -->
 
+## 2026-04-28 — v1.7.5
+
+**What**: Minor release replacing the comparator's coarse keyword-hit capability scoring with a rubric-first methodology that synthesizes a domain-specific 5-sub-criterion rubric from observed candidate features, then scores each candidate against weighted bands. Eliminates the v1.7.4 failure mode where multiple architecturally-different candidates landed in the same coarse capability bucket (e.g. four candidates tied at capability=70 in a deep-research-skill comparison).
+
+**Changed**:
+- `skills/compare-skills/SKILL.md` — added "Capability Match — Rubric-First Scoring" section documenting the 3-phase methodology (Phase A feature extraction, Phase B rubric synthesis, Phase C per-candidate scoring). Output schema now records `capability_rubric` (the synthesized rubric) and per-candidate `capability_breakdown` for full audit trail. v1 keyword-hit scoring is preserved as a fallback when fewer than 3 candidates remain after pre-filter.
+- `agents/topgun-comparator.md` Step 4a — replaced flat keyword-hit scoring with the 3-phase rubric-first procedure. The 5th sub-criterion (`external_quality_signal`, weight 10-15) is mandatory — credibility signals like benchmark wins and parent-repo stars are capped so they cannot dominate a sparse-pipeline candidate.
+- `agents/topgun-comparator.md` Step 7 — output JSON schema now includes `capability_rubric` (5 sub-criteria, weights summing to 100, banded score ranges) and `capability_breakdown` (per-candidate sub-criterion scores) on every shortlist entry. `scoring_version` field added (`v2-subdecomposed` for rubric path, `v1-keyword` for fallback).
+- `agents/topgun-comparator.md` Step 9 — completion marker now reports the synthesized rubric's 5 sub-criterion names so users can audit the methodology before reading scores.
+
+**Why**: User feedback in a `/topgun` deep-research-skill comparison surfaced four candidates tied at capability=70 — the v1 rubric was too coarse to distinguish between architecturally-different candidates with overlapping feature sets. Sub-decomposition produces meaningful spread (57-93 across the same field) and exposes which capability dimension drove each ranking decision.
+
+**Determinism**: Rubric synthesis uses LLM judgment over the candidate field but is bounded by a fixed 5-sub-criterion template + mandatory `external_quality_signal` slot + integer-weighted bands. Same candidate field yields the same rubric within ~±2/sub-criterion noise; tie-breaking remains lexicographic.
+
+**Migration**: zero user-facing migration. Existing `comparison-{hash}.json` files under v1.7.4 schema remain readable. Re-running `/topgun` on the same query under v1.7.5 will produce a new comparison file with `capability_rubric` and per-candidate `capability_breakdown` populated.
+
+**Process**: Two consecutive clean rounds of the full 4-stage `pre-release-quality-gate.md` confirmed before release.
+
+---
+
 ## 2026-04-28 — v1.7.4
 
 **What**: Patch release applying fixes surfaced by the pre-release quality gate after v1.7.3. Comparator schema/tiebreak alignment, public-content scoring weights, and orchestrator state-clear coverage.
