@@ -1,0 +1,38 @@
+{
+  "name": "topgun",
+  "version": "0.7.6",
+  "description": "Find, compare, security-audit, and install the best available skill for any job from 16 active registries.",
+  "author": {
+    "name": "Alo Labs",
+    "url": "https://github.com/alo-labs/topgun"
+  },
+  "repository": "https://github.com/alo-labs/topgun",
+  "license": "MIT",
+  "skills": "./skills/",
+  "hooks": "./hooks/hooks.json",
+  "agents": [
+    "./agents/topgun-finder.md",
+    "./agents/topgun-comparator.md",
+    "./agents/topgun-securer.md",
+    "./agents/topgun-installer.md"
+  ],
+  "interface": {
+    "displayName": "TopGun",
+    "shortDescription": "Find, compare, audit, and install the best available skill for any job.",
+    "longDescription": "TopGun packages the shared skills bundle for Codex and Claude, exposing the same orchestrated skill-discovery pipeline, bundled hook enforcement, and installation workflow from a single plugin repository.",
+    "developerName": "Alo Labs",
+    "category": "Development",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/alo-labs/topgun",
+    "defaultPrompt": [
+      "Use TopGun to find the best skill for this task.",
+      "Search registries, compare candidates, and audit the winner with TopGun.",
+      "Install the safest available skill with TopGun."
+    ],
+    "brandColor": "#0F172A"
+  }
+}

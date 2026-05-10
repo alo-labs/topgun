@@ -195,7 +195,7 @@ TopGun › ✓ Found 3 candidates across 2 registries (reduced coverage)</div>
 TopGun › Bundled SENTINEL v2.3.0 missing from plugin
 TopGun › Pipeline aborted at SecureSkills stage</div>
         <div class="issue-section-label" style="margin-top:16px">Cause</div>
-        <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:16px">As of v1.1.0 SENTINEL ships bundled directly inside the TopGun plugin at <code style="font-family:var(--font-mono);font-size:1em">skills/sentinel/SKILL.md</code>. If that file is missing, the plugin cache is corrupted or incomplete. The SecureSkills stage cannot run without it.</p>
+        <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:16px">SENTINEL ships bundled directly inside the TopGun plugin at <code style="font-family:var(--font-mono);font-size:1em">skills/sentinel/SKILL.md</code>. If that file is missing, the plugin cache is corrupted or incomplete. The SecureSkills stage cannot run without it.</p>
         <div class="issue-section-label">Fix</div>
         <ul class="fix-steps">
           <li><strong>Reinstall TopGun.</strong> Run <code style="font-family:var(--font-mono);font-size:1em">/plugin install alo-labs/topgun</code> in Claude Code. This will fetch the latest plugin release, which includes the bundled SENTINEL file.</li>

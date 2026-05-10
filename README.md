@@ -66,7 +66,7 @@ TopGun uses **SENTINEL v2.3.0** — bundled directly in the plugin — to audit 
 
 ## Hook Setup
 
-TopGun's `PreToolUse:Write` hook is bundled in `.claude-plugin/hooks/hooks.json` and loaded by `.claude-plugin/plugin.json`, so Codex Settings > Hooks shows it as `Plugin · topgun` instead of `User config`.
+TopGun ships matching `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json` manifests, both pointing at the shared `skills/` tree and the plugin-owned `.claude-plugin/hooks/hooks.json` hook bundle, so Codex Settings > Hooks shows it as `Plugin · topgun` instead of `User config`.
 
 ### What the hook does
 
@@ -96,20 +96,21 @@ npx skills add alo-labs/topgun
 
 ### Compatibility
 
-TopGun's `.claude-plugin/` structure is natively compatible with the skills.sh ecosystem. The `plugin.json` and `marketplace.json` files provide all metadata needed for discovery and installation.
+TopGun's `.claude-plugin/` structure is natively compatible with the skills.sh ecosystem, and the Codex-facing `.codex-plugin/plugin.json` points to the same shared skills bundle. The Claude marketplace metadata lives in `.claude-plugin/marketplace.json` for `alo-labs/claude-plugins`, and the Codex marketplace metadata lives in `.agents/plugins/marketplace.json` for `alo-labs/codex-plugins`. Both marketplace entries are named `Ālo Labs`.
 
 ### Registry Submission
 
 To list TopGun on skills.sh:
 
 1. Ensure the GitHub repository is public at `https://github.com/alo-labs/topgun`
-2. Verify `plugin.json` and `marketplace.json` are in `.claude-plugin/`
-3. Tag a release: `git tag v1.7.6 && git push origin v1.7.6`
-4. Submit via: `npx skills submit alo-labs/topgun`
+2. Verify `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` are in `.claude-plugin/` for `alo-labs/claude-plugins`
+3. Verify `.codex-plugin/plugin.json` exists and `.agents/plugins/marketplace.json` is present for `alo-labs/codex-plugins`
+4. Tag a release: `git tag v0.7.6 && git push origin v0.7.6`
+5. Submit via: `npx skills submit alo-labs/topgun`
 
 ### Auto-Update
 
-TopGun is configured with `autoUpdate.enabled: true` in marketplace.json. When a new GitHub release is tagged, installations will auto-update within 24 hours.
+TopGun keeps the Claude marketplace metadata in `.claude-plugin/marketplace.json` and the Codex marketplace metadata in `.agents/plugins/marketplace.json`, so both `Ālo Labs` marketplace entries stay aligned with the release tags.
 
 ## Updating TopGun
 
