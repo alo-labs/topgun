@@ -14,6 +14,7 @@ const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..');
 const CURRENT_VERSION = '0.7.6';
+const TOPGUN_SKILL_SHA256 = 'c648ae758fd9ad0d66b0b788a2f58af5818b926e6a9a92118834e360c7824820';
 
 function readJSON(relPath) {
   const absPath = path.join(ROOT, relPath);
@@ -50,6 +51,7 @@ function assertPluginManifest(relPath) {
   assert.ok(typeof data === 'object' && data !== null, `${relPath} must parse as JSON`);
   assert.equal(data.name, 'topgun', `${relPath} must have name topgun`);
   assert.equal(data.version, CURRENT_VERSION, `${relPath} must stay aligned to version ${CURRENT_VERSION}`);
+  assert.equal(data.forge_skill_md_sha256, TOPGUN_SKILL_SHA256, `${relPath} must carry the TopGun skill SHA-256`);
   assert.equal(data.skills, './skills/', `${relPath} must point skills at ./skills/`);
   assert.equal(data.hooks, './hooks/hooks.json', `${relPath} must point hooks at ./hooks/hooks.json`);
   assert.ok(Array.isArray(data.agents) && data.agents.length > 0, `${relPath} must have a non-empty agents array`);

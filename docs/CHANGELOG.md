@@ -23,6 +23,7 @@
 
 **Changed**:
 - `.claude-plugin/plugin.json` — added `"hooks": "./hooks/hooks.json"` so the plugin manifest now points at the bundled hook manifest.
+- `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json` — added `forge_skill_md_sha256` so both manifests carry the TopGun SKILL.md integrity hash.
 - `.claude-plugin/hooks/hooks.json` — added the plugin-owned `PreToolUse:Write` hook definition for `bin/hooks/validate-partials.sh`.
 - `bin/topgun-tools.cjs` — `init` now prunes only legacy TopGun hook entries from Codex user config files and leaves unrelated hooks untouched.
 - `README.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`, `context.md`, `site/index.html`, `site/help/concepts/index.html` — updated hook packaging and release/version references to the plugin-owned Codex layout.
