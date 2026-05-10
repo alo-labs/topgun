@@ -6,7 +6,7 @@ Detailed phase-level designs live in `docs/specs/YYYY-MM-DD-<topic>-design.md`.
 
 ## System Overview
 
-TopGun is a Claude Code plugin that automates skill discovery, evaluation, and installation. When a user describes a task, TopGun searches up to 16 active registries in parallel (18 adapter files exist; 2 are marked SKIP for dead domains), compares candidates on multiple dimensions, runs a two-pass security audit via bundled SENTINEL v2.3.0, and installs the approved skill — all without the user needing to know which registries exist or how to evaluate security manually. The system is structured as a four-stage sequential pipeline orchestrated by a single `/topgun` skill, with each stage producing a JSON artifact consumed by the next.
+TopGun is a Claude Code plugin that automates skill discovery, evaluation, and installation. When a user describes a task, TopGun searches 16 active registries in parallel, compares candidates on multiple dimensions, runs a two-pass security audit via bundled SENTINEL v2.3.0, and installs the approved skill — all without the user needing to know which registries exist or how to evaluate security manually. The system is structured as a four-stage sequential pipeline orchestrated by a single `/topgun` skill, with each stage producing a JSON artifact consumed by the next.
 
 ## Pipeline Stages
 
@@ -35,8 +35,11 @@ TopGun is a Claude Code plugin that automates skill discovery, evaluation, and i
 | Securer agent | `agents/topgun-securer.md` | Runs SENTINEL audit; writes audit artifact |
 | Installer agent | `agents/topgun-installer.md` | Gets user approval; installs skill; writes audit trail |
 | topgun-tools binary | `bin/topgun-tools.cjs` | Node.js CLI: init, state I/O, sha256, validate-partials, cache, keychain, lock |
+| Claude plugin manifest | `.claude-plugin/plugin.json` | Claude-facing plugin manifest; points at shared `skills/`, `agents/`, and plugin-owned hooks |
+| Codex plugin manifest | `.codex-plugin/plugin.json` | Codex-facing plugin manifest; points at the same shared `skills/` tree |
+| Codex marketplace manifest | `.agents/plugins/marketplace.json` | Codex-facing marketplace metadata for the shared `.codex-plugin/` bundle |
 | Plugin hook manifest | `.claude-plugin/hooks/hooks.json` | PreToolUse:Write enforcement — blocks aggregation write if < 16 partials |
-| Registry adapters | `skills/find-skills/adapters/` | 18 self-contained instruction files, one per registry |
+| Registry adapters | `skills/find-skills/adapters/` | 16 self-contained instruction files, one per active registry |
 | SENTINEL | `skills/sentinel/SKILL.md` | Bundled SENTINEL v2.3.0 security auditor |
 
 ## Registry Dispatch Architecture (v1.5.0)
@@ -102,7 +105,7 @@ agents/
 skills/
   topgun/SKILL.md            # Main orchestrator skill
   find-skills/SKILL.md       # Find sub-skill spec
-  find-skills/adapters/      # 18 registry adapter instruction files
+  find-skills/adapters/      # 16 registry adapter instruction files
   compare-skills/SKILL.md
   secure-skills/SKILL.md
   install-skills/SKILL.md
@@ -111,6 +114,11 @@ skills/
   plugin.json                # version, agents array, skills path
   hooks/hooks.json           # Plugin-owned hook manifest
   marketplace.json           # version (must match plugin.json)
+.codex-plugin/
+  plugin.json                # Codex manifest pointing at the shared skills tree
+.agents/
+  plugins/
+    marketplace.json         # Codex marketplace metadata
 
 ~/.topgun/                   # Runtime directory (not in repo)
   state.json                 # Pipeline state
@@ -146,4 +154,4 @@ skills/
 
 **Security bundled, not external** — SENTINEL is versioned with the plugin. An external audit skill dependency could be unavailable, outdated, or itself compromised. Bundling eliminates this attack surface.
 
-**Version alignment invariant** — `plugin.json` and `marketplace.json` must carry identical version strings. Mismatch causes Claude Desktop to not expose skills or agents.
+**Version alignment invariant** — `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`, and `.claude-plugin/marketplace.json` must carry identical version strings. Mismatch causes the runtime to not expose skills or agents.

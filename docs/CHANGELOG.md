@@ -17,9 +17,9 @@
 
 <!-- ENTRIES BELOW — newest first -->
 
-## 2026-05-10 — v1.7.6
+## 2026-05-10 — v0.7.6
 
-**What**: Patch release moving the `validate-partials.sh` hook into plugin-owned Codex metadata so `Codex Settings > Hooks` shows `Plugin · topgun` instead of `User config`, plus a targeted migration that removes only legacy TopGun hook entries from `~/.codex/hooks.json` and `~/.Codex/hooks.json`.
+**What**: Major-version rebase to `0.7.6`, carrying forward the `validate-partials.sh` hook into plugin-owned Codex metadata so `Codex Settings > Hooks` shows `Plugin · topgun` instead of `User config`, plus a targeted migration that removes only legacy TopGun hook entries from `~/.codex/hooks.json` and `~/.Codex/hooks.json`.
 
 **Changed**:
 - `.claude-plugin/plugin.json` — added `"hooks": "./hooks/hooks.json"` so the plugin manifest now points at the bundled hook manifest.

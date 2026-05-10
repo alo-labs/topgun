@@ -1,11 +1,11 @@
 {
-  "name": "alo-labs",
+  "name": "Ālo Labs",
   "owner": {
     "name": "Ālo Labs",
     "email": "hello@alolabs.io"
   },
   "metadata": {
-    "description": "Ālo Labs Claude Code plugin marketplace",
+    "description": "Ālo Labs Claude plugins marketplace",
     "version": "1.0.0"
   },
   "plugins": [
@@ -16,7 +16,7 @@
         "repo": "alo-labs/topgun"
       },
       "description": "Find, compare, security-audit, and install the best available skill for any job from 16 active registries.",
-      "version": "1.7.6",
+      "version": "0.7.6",
       "author": {
         "name": "Alo Labs",
         "url": "https://github.com/alo-labs/topgun"

@@ -1,17 +1,17 @@
 # TopGun — Session Context
 
-**Date:** 2026-04-13  
-**Session:** v1.1.0 release completion + registry research
+**Date:** 2026-05-10
+**Session:** v0.7.6 major-version rebase + registry research
 
 ---
 
 ## Project
 
 - **Name:** @alo-labs/topgun
-- **Version:** 1.1.0 (released)
+- **Version:** 0.7.6 (released)
 - **Repo:** https://github.com/alo-labs/topgun.git
 - **Stack:** Node.js (CJS), no runtime dependencies
-- **Description:** Finds, compares, secures, and installs Claude skills across 18 registries
+- **Description:** Finds, compares, secures, and installs Claude skills across 16 registries
 
 ---
 
@@ -28,7 +28,7 @@ Orchestrated by `skills/topgun/SKILL.md`.
 
 ---
 
-## Current Registries (18)
+## Current Active Registries (16)
 
 Adapters live in `skills/find-skills/adapters/`:
 
@@ -47,11 +47,9 @@ Adapters live in `skills/find-skills/adapters/`:
 | 11 | mcp-so.md | MCP.so |
 | 12 | npm.md | npm |
 | 13 | opentools.md | OpenTools |
-| 14 | osm.md | OpenSkillsMarket |
-| 15 | skills-sh.md | Skills.sh |
-| 16 | skillsmp.md | SkillsMP |
-| 17 | smithery.md | Smithery |
-| 18 | vskill.md | VSkill |
+| 14 | skills-sh.md | Skills.sh |
+| 15 | skillsmp.md | SkillsMP |
+| 16 | smithery.md | Smithery |
 
 ---
 
@@ -59,12 +57,12 @@ Adapters live in `skills/find-skills/adapters/`:
 
 - `tests/smoke.test.cjs` — structural validity (JSON, frontmatter, adapter count)
 - `tests/failure-contracts.test.cjs` — agent STAGE FAILED contracts, keychain roundtrip
-- **Count:** 240/240 passing (as of v1.1.0)
-- Smoke test asserts adapter count = 18 (counts files on disk — vskill.md and osm.md remain as SKIP markers); active dispatch count is 16
+- **Count:** 253/253 passing (as of v0.7.6)
+- Smoke test asserts adapter count = 16; active dispatch count is 16
 
 ---
 
-## v1.1.0 Release
+## Historical v1.1.0 Release
 
 - **Tag:** v1.1.0 (pushed)
 - **GitHub Release:** Created at alo-labs/topgun
@@ -75,6 +73,7 @@ Adapters live in `skills/find-skills/adapters/`:
   - `--auto-approve` flag for non-interactive installs
   - `keychain-get/set` via `bin/topgun-tools.cjs`
   - .claude-plugin/hooks/hooks.json for plugin-owned Codex hooks integration
+  - .codex-plugin/plugin.json for Codex skill exposure over the shared `skills/` tree
 
 ---
 
@@ -112,9 +111,11 @@ When adding:
 | `agents/topgun-securer.md` | Securer agent |
 | `agents/topgun-installer.md` | Installer agent |
 | `bin/topgun-tools.cjs` | CLI tool (keychain, etc.) |
-| `.claude-plugin/plugin.json` | Plugin manifest |
+| `.claude-plugin/plugin.json` | Claude manifest |
+| `.codex-plugin/plugin.json` | Codex manifest |
 | `.claude-plugin/marketplace.json` | Marketplace metadata |
-| `.claude-plugin/hooks/hooks.json` | Codex plugin hooks |
+| `.agents/plugins/marketplace.json` | Codex marketplace metadata |
+| `.claude-plugin/hooks/hooks.json` | Plugin-owned hooks |
 
 ---
 

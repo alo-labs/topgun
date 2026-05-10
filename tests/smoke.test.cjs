@@ -13,6 +13,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..');
+const CURRENT_VERSION = '0.7.6';
 
 function readJSON(relPath) {
   const absPath = path.join(ROOT, relPath);
@@ -44,47 +45,41 @@ function parseFrontmatter(content) {
 
 // ─── Plugin JSON files ────────────────────────────────────────────────────────
 
+function assertPluginManifest(relPath) {
+  const data = readJSON(relPath);
+  assert.ok(typeof data === 'object' && data !== null, `${relPath} must parse as JSON`);
+  assert.equal(data.name, 'topgun', `${relPath} must have name topgun`);
+  assert.equal(data.version, CURRENT_VERSION, `${relPath} must stay aligned to version ${CURRENT_VERSION}`);
+  assert.equal(data.skills, './skills/', `${relPath} must point skills at ./skills/`);
+  assert.equal(data.hooks, './hooks/hooks.json', `${relPath} must point hooks at ./hooks/hooks.json`);
+  assert.ok(Array.isArray(data.agents) && data.agents.length > 0, `${relPath} must have a non-empty agents array`);
+  for (const agentPath of data.agents) {
+    assert.ok(typeof agentPath === 'string' && agentPath.length > 0, `${relPath} agent entries must be non-empty string paths`);
+    const resolved = agentPath.startsWith('./') ? agentPath.slice(2) : agentPath;
+    assert.ok(fs.existsSync(path.join(ROOT, resolved)), `${relPath} declared agent file not found: ${agentPath}`);
+  }
+}
+
 describe('.claude-plugin/plugin.json', () => {
-  test('parses as valid JSON', () => {
-    const data = readJSON('.claude-plugin/plugin.json');
-    assert.ok(typeof data === 'object' && data !== null);
+  test('parses as valid JSON and exposes shared skills', () => {
+    assertPluginManifest('.claude-plugin/plugin.json');
   });
+});
 
-  test('has required field: name', () => {
-    const data = readJSON('.claude-plugin/plugin.json');
-    assert.ok(data.name, 'plugin.json must have name field');
-  });
-
-  test('has required field: version', () => {
-    const data = readJSON('.claude-plugin/plugin.json');
-    assert.ok(data.version, 'plugin.json must have version field');
-  });
-
-  test('has required field: skills', () => {
-    const data = readJSON('.claude-plugin/plugin.json');
-    assert.ok(data.skills, 'plugin.json must have skills field');
-  });
-
-  test('points hooks at plugin-owned hooks/hooks.json', () => {
-    const data = readJSON('.claude-plugin/plugin.json');
-    assert.equal(data.hooks, './hooks/hooks.json', 'plugin.json must point hooks at ./hooks/hooks.json');
-  });
-
-  test('has required field: agents (non-empty array of paths)', () => {
-    const data = readJSON('.claude-plugin/plugin.json');
-    assert.ok(Array.isArray(data.agents) && data.agents.length > 0, 'plugin.json must have non-empty agents array');
-    for (const agentPath of data.agents) {
-      assert.ok(typeof agentPath === 'string' && agentPath.length > 0, 'each agent entry must be a non-empty string path');
-    }
-  });
-
-  test('all declared agent files exist on disk', () => {
-    const data = readJSON('.claude-plugin/plugin.json');
-    assert.ok(Array.isArray(data.agents), 'agents must be an array');
-    for (const agentPath of data.agents) {
-      const resolved = agentPath.startsWith('./') ? agentPath.slice(2) : agentPath;
-      assert.ok(fs.existsSync(path.join(ROOT, resolved)), `agent file declared in plugin.json not found: ${agentPath}`);
-    }
+describe('.codex-plugin/plugin.json', () => {
+  test('parses as valid JSON and exposes shared skills', () => {
+    assertPluginManifest('.codex-plugin/plugin.json');
+    const data = readJSON('.codex-plugin/plugin.json');
+    assert.ok(data.interface && typeof data.interface === 'object', '.codex-plugin/plugin.json must include interface metadata');
+    assert.equal(data.interface.displayName, 'TopGun', 'codex interface displayName must be TopGun');
+    assert.ok(typeof data.interface.shortDescription === 'string' && data.interface.shortDescription.length > 0, 'codex interface shortDescription must exist');
+    assert.ok(typeof data.interface.longDescription === 'string' && data.interface.longDescription.length > 0, 'codex interface longDescription must exist');
+    assert.equal(data.interface.developerName, 'Alo Labs', 'codex interface developerName must be Alo Labs');
+    assert.equal(data.interface.category, 'Development', 'codex interface category must be Development');
+    assert.ok(Array.isArray(data.interface.capabilities) && data.interface.capabilities.length > 0, 'codex interface capabilities must be a non-empty array');
+    assert.ok(typeof data.interface.websiteURL === 'string' && data.interface.websiteURL.length > 0, 'codex interface websiteURL must exist');
+    assert.ok(Array.isArray(data.interface.defaultPrompt) && data.interface.defaultPrompt.length > 0, 'codex interface defaultPrompt must be a non-empty array');
+    assert.ok(typeof data.interface.brandColor === 'string' && data.interface.brandColor.length > 0, 'codex interface brandColor must exist');
   });
 });
 
@@ -94,9 +89,9 @@ describe('.claude-plugin/marketplace.json', () => {
     assert.ok(typeof data === 'object' && data !== null);
   });
 
-  test('has required field: name (string)', () => {
+  test('has required field: name = Ālo Labs', () => {
     const data = readJSON('.claude-plugin/marketplace.json');
-    assert.ok(typeof data.name === 'string' && data.name.length > 0, 'marketplace.json must have name string');
+    assert.equal(data.name, 'Ālo Labs', 'marketplace.json must be named Ālo Labs');
   });
 
   test('has required field: owner with name and email', () => {
@@ -125,11 +120,51 @@ describe('.claude-plugin/marketplace.json', () => {
       assert.ok(typeof plugin.name === 'string' && plugin.name.length > 0, `plugin.name must be a non-empty string`);
       assert.ok(plugin.source && typeof plugin.source === 'object', `plugin.source must be an object`);
       assert.ok(typeof plugin.source.source === 'string', `plugin.source.source must be a string`);
-      assert.ok(typeof plugin.source.url === 'string' && plugin.source.url.length > 0, `plugin.source.url must be a non-empty string`);
+      assert.ok(typeof plugin.source.repo === 'string' && plugin.source.repo.length > 0, `plugin.source.repo must be a non-empty string`);
       assert.ok(typeof plugin.description === 'string' && plugin.description.length > 0, `plugin.description must be a non-empty string`);
       assert.ok(typeof plugin.version === 'string' && plugin.version.length > 0, `plugin.version must be a non-empty string`);
       assert.ok(typeof plugin.strict === 'boolean', `plugin.strict must be a boolean`);
     }
+  });
+});
+
+describe('.agents/plugins/marketplace.json', () => {
+  test('parses as valid JSON', () => {
+    const data = readJSON('.agents/plugins/marketplace.json');
+    assert.ok(typeof data === 'object' && data !== null);
+  });
+
+  test('has required field: name = Ālo Labs', () => {
+    const data = readJSON('.agents/plugins/marketplace.json');
+    assert.equal(data.name, 'Ālo Labs', 'marketplace.json must be named Ālo Labs');
+  });
+
+  test('has required field: interface.displayName', () => {
+    const data = readJSON('.agents/plugins/marketplace.json');
+    assert.ok(data.interface && typeof data.interface === 'object', 'marketplace.json must have interface object');
+    assert.equal(data.interface.displayName, 'Ālo Labs', 'interface.displayName must be Ālo Labs');
+  });
+
+  test('has required field: plugins (non-empty array)', () => {
+    const data = readJSON('.agents/plugins/marketplace.json');
+    assert.ok(Array.isArray(data.plugins) && data.plugins.length > 0, 'marketplace.json must have non-empty plugins array');
+  });
+
+  test('plugin entry points at the shared Codex bundle', () => {
+    const data = readJSON('.agents/plugins/marketplace.json');
+    assert.equal(data.plugins.length, 1, 'codex marketplace should contain exactly one plugin');
+    const [plugin] = data.plugins;
+    assert.equal(plugin.name, 'topgun', 'codex marketplace plugin name must be topgun');
+    assert.ok(plugin.source && typeof plugin.source === 'object', 'plugin.source must be an object');
+    assert.equal(plugin.source.source, 'local', 'codex marketplace must use local source');
+    assert.equal(plugin.source.path, '../../.codex-plugin', 'codex marketplace must point at ../../.codex-plugin');
+    assert.ok(plugin.policy && typeof plugin.policy === 'object', 'plugin.policy must be an object');
+    assert.equal(plugin.policy.installation, 'AVAILABLE', 'codex marketplace installation policy must be AVAILABLE');
+    assert.equal(plugin.policy.authentication, 'ON_INSTALL', 'codex marketplace authentication policy must be ON_INSTALL');
+    assert.equal(plugin.category, 'Development', 'codex marketplace category must be Development');
+
+    const pluginRoot = path.join(ROOT, '.agents/plugins', plugin.source.path);
+    assert.ok(fs.existsSync(path.join(pluginRoot, 'plugin.json')), 'codex marketplace source must resolve to a plugin.json');
   });
 });
 
@@ -144,6 +179,11 @@ describe('package.json', () => {
   test('has @alo-labs/topgun name', () => {
     const data = readJSON('package.json');
     assert.equal(data.name, '@alo-labs/topgun');
+  });
+
+  test('has 0.7.6 version', () => {
+    const data = readJSON('package.json');
+    assert.equal(data.version, CURRENT_VERSION, 'package.json version must match the current release version');
   });
 
   test('has claude-skill keyword', () => {
@@ -216,7 +256,7 @@ describe('Agent .md files — existence and frontmatter', () => {
   }
 });
 
-// ─── Adapter files (11 total) ─────────────────────────────────────────────────
+// ─── Adapter files (16 active) ────────────────────────────────────────────────
 
 const EXPECTED_ADAPTERS = [
   'agentskill-sh.md',
@@ -232,14 +272,12 @@ const EXPECTED_ADAPTERS = [
   'mcp-so.md',
   'npm.md',
   'opentools.md',
-  'osm.md',
   'skills-sh.md',
   'skillsmp.md',
   'smithery.md',
-  'vskill.md',
 ];
 
-describe('adapter files — all 11 present', () => {
+describe('adapter files — all 16 active present', () => {
   const adaptersDir = path.join(ROOT, 'skills', 'find-skills', 'adapters');
 
   test('adapters directory exists', () => {
@@ -253,9 +291,9 @@ describe('adapter files — all 11 present', () => {
     });
   }
 
-  test('adapter count is exactly 18', () => {
+  test('adapter count is exactly 16', () => {
     const files = fs.readdirSync(adaptersDir).filter(f => f.endsWith('.md'));
-    assert.equal(files.length, 18, `expected 18 adapters, found ${files.length}: ${files.join(', ')}`);
+    assert.equal(files.length, 16, `expected 16 adapters, found ${files.length}: ${files.join(', ')}`);
   });
 });
 

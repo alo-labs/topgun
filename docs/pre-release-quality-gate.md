@@ -179,7 +179,7 @@ Audit `site/index.html`:
 
 ### Dimension E — Plugin Manifest
 
-Audit `.claude-plugin/plugin.json` (if present):
+Audit `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`, `.claude-plugin/marketplace.json`, and `.agents/plugins/marketplace.json` (if present):
 
 - **SHA-256 accuracy**: The `forge_skill_md_sha256` (or equivalent hash field) matches the actual SHA-256 of the primary SKILL.md:
   ```bash
@@ -187,7 +187,8 @@ Audit `.claude-plugin/plugin.json` (if present):
   ```
 - **Version field**: Matches the release version being cut
 - **Skill paths**: All skill paths referenced in `plugin.json` exist in the repo
-- **Marketplace metadata**: Name, description, and category are accurate and current
+- **Codex parity**: Both manifests point `skills` at `./skills/` and `hooks` at `./hooks/hooks.json`
+- **Marketplace metadata**: Claude and Codex marketplaces are both named `Ālo Labs`; names, descriptions, and categories are accurate and current
 
 ### Completion
 
@@ -252,7 +253,7 @@ For each file, verify:
 
 Verify the new release entry:
 
-- **Version header**: Matches the tag being created (e.g., `## 2026-04-13 — topgun-v1.1.0`)
+- **Version header**: Matches the tag being created (e.g., `## 2026-05-10 — topgun-v0.7.6`)
 - **Date**: Correct release date
 - **Changes**: All new adapters, fixes, and capability changes listed accurately
 - **No placeholder text**: No "TODO", "TBD", or unfilled sections
