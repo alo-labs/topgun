@@ -16,7 +16,7 @@ degradation_reason: "API endpoint returns 403 Forbidden — bot/API-key protecti
 
 ---
 
-## Status
+## Request
 
 `https://chat-agents.lobehub.com/api/agents` returns 403 Forbidden. This adapter uses
 WebSearch to find LobeHub agents relevant to the query.
@@ -24,9 +24,12 @@ WebSearch to find LobeHub agents relevant to the query.
 Note: LobeHub agents are primarily designed for LobeChat, not Claude Code. Results may
 be tangentially relevant (agent prompts/tools that could be adapted).
 
----
+## Timeout + Retry
 
-## Execution Instructions
+- WebSearch is handled by the parent agent, so there is no registry-side HTTP retry loop.
+- If the search backend stalls or errors, broaden the query once as described below; do not loop indefinitely.
+
+---
 
 ### Step 1 — WebSearch
 
@@ -36,7 +39,7 @@ Run a WebSearch with the following query:
 lobehub agent {query}
 ```
 
-### Step 2 — Parse results
+## Response Parsing
 
 For each search result with a URL starting with `https://lobehub.com/` or
 `https://chat-agents.lobehub.com/`:
@@ -69,7 +72,7 @@ If 0 results found, return:
 }
 ```
 
-### Step 4 — Return success
+## Return Value
 
 ```json
 {

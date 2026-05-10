@@ -6,14 +6,17 @@
 
 ---
 
-## Status
+## Request
 
 The REST API endpoint `https://skills.sh/api/skills` returns 404. The domain exists but
 has no public search API. This adapter uses WebSearch to find skills listed on skills.sh.
 
----
+## Timeout + Retry
 
-## Execution Instructions
+- WebSearch is handled by the parent agent, so there is no registry-side HTTP retry loop.
+- If the search backend stalls or errors, broaden the query once as described below; do not loop indefinitely.
+
+---
 
 ### Step 1 — WebSearch
 
@@ -23,7 +26,7 @@ Run a WebSearch with the following query (substitute `{query}` with the task des
 site:skills.sh {query} skill
 ```
 
-### Step 2 — Parse results
+## Response Parsing
 
 For each search result returned:
 
@@ -61,7 +64,7 @@ If still 0 results, return:
 }
 ```
 
-### Step 4 — Return success
+## Return Value
 
 ```json
 {

@@ -12,15 +12,13 @@ max_retries: 3
 
 Searches the npm registry for Claude skills and MCP-compatible packages.
 
-## Endpoint
+## Request
 
 ```
 GET https://registry.npmjs.org/-/v1/search?text=claude-skill+{query}&size=20
 ```
 
 No authentication required.
-
-## Execution Instructions
 
 ### Step 1 — Build request URL
 
@@ -35,9 +33,11 @@ https://registry.npmjs.org/-/v1/search?text=claude-skill+{url_encode(query)}&siz
 Perform a WebFetch GET to the constructed URL.
 
 - Timeout: **8 seconds**
-- On timeout: return unavailable result (see Step 4)
+- On timeout: return unavailable result (see Return Value)
 
-### Step 3 — Retry on 429
+## Timeout + Retry
+
+### Retry on 429
 
 If the response status is `429 Too Many Requests`:
 
@@ -49,7 +49,7 @@ If the response status is `429 Too Many Requests`:
 
 After 3 retries with no success, return unavailable result.
 
-### Step 4 — Handle non-200 and errors
+### Handle non-200 and errors
 
 On any `5xx` status, timeout, or network error:
 
@@ -63,7 +63,7 @@ On any `5xx` status, timeout, or network error:
 }
 ```
 
-### Step 5 — Parse success response
+## Response Parsing
 
 The npm search API returns:
 
@@ -104,7 +104,7 @@ Map each `objects[].package` to the unified schema:
 | `"npm install " + package.name` | `install_url` | constructed — validate `package.name` matches `/^(?:@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/` and is ≤ 214 chars before constructing; set `install_url: null` if validation fails |
 | full `package` object | `raw_metadata` | preserve for downstream use |
 
-### Step 6 — Return success result
+## Return Value
 
 ```json
 {

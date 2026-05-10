@@ -6,7 +6,7 @@
 
 ---
 
-## Status
+## Request
 
 `https://mcp.so/api/servers` returns 403 Forbidden. MCP.so is a Next.js SPA with no
 public REST API. This adapter uses WebSearch to find MCP servers relevant to the query.
@@ -14,9 +14,12 @@ public REST API. This adapter uses WebSearch to find MCP servers relevant to the
 Note: MCP.so lists MCP (Model Context Protocol) servers, which are tools/integrations
 usable with Claude Code via `--mcp`. Results are adjacent to Claude Code skills.
 
----
+## Timeout + Retry
 
-## Execution Instructions
+- WebSearch is handled by the parent agent, so there is no registry-side HTTP retry loop.
+- If the search backend stalls or errors, do not loop indefinitely.
+
+---
 
 ### Step 1 — WebSearch
 
@@ -26,7 +29,7 @@ Run a WebSearch with the following query:
 site:mcp.so {query}
 ```
 
-### Step 2 — Parse results
+## Response Parsing
 
 For each search result with a URL starting with `https://mcp.so/`:
 
@@ -58,7 +61,7 @@ If 0 results found, return:
 }
 ```
 
-### Step 4 — Return success
+## Return Value
 
 ```json
 {

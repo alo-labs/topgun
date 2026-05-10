@@ -17,15 +17,13 @@ Searches the SkillsMP registry for skills. Confirmed returning 200 with valid JS
 The endpoint `https://skillsmp.com/api/v1/skills/search` previously returned 403, but confirmed
 returning 200 with valid JSON results on 2026-04-26. This adapter is now fully active.
 
-## Endpoint
+## Request
 
 ```
 GET https://skillsmp.com/api/v1/skills/search?q={query}
 ```
 
 Auth status unknown — no API key available.
-
-## Execution Instructions
 
 ### Step 1 — Build request URL
 
@@ -38,9 +36,11 @@ https://skillsmp.com/api/v1/skills/search?q={url_encode(query)}
 Perform a WebFetch GET to the constructed URL.
 
 - Timeout: **8 seconds**
-- On timeout: return unavailable (see Step 4)
+- On timeout: return unavailable (see Return Value)
 
-### Step 3 — Retry on 429
+## Timeout + Retry
+
+### Retry on 429
 
 If the response status is `429 Too Many Requests`:
 
@@ -52,7 +52,7 @@ If the response status is `429 Too Many Requests`:
 
 After 3 retries with no success, return unavailable result.
 
-### Step 4 — Handle non-200 and errors
+### Handle non-200 and errors
 
 On 403, 4xx, 5xx, timeout, or network error:
 
@@ -66,7 +66,7 @@ On 403, 4xx, 5xx, timeout, or network error:
 }
 ```
 
-### Step 5 — Parse success response (if 200)
+## Response Parsing
 
 If the API returns 200, map results to unified schema:
 
@@ -83,7 +83,7 @@ If the API returns 200, map results to unified schema:
 | `install_url` or constructed | `install_url` | construct from identifier if needed |
 | full response item | `raw_metadata` | preserve entire object |
 
-### Step 6 — Return success result
+## Return Value
 
 ```json
 {
