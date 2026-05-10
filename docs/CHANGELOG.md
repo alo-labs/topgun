@@ -17,6 +17,21 @@
 
 <!-- ENTRIES BELOW — newest first -->
 
+## 2026-05-10 — v1.7.6
+
+**What**: Patch release moving the `validate-partials.sh` hook into plugin-owned Codex metadata so `Codex Settings > Hooks` shows `Plugin · topgun` instead of `User config`, plus a targeted migration that removes only legacy TopGun hook entries from `~/.codex/hooks.json` and `~/.Codex/hooks.json`.
+
+**Changed**:
+- `.claude-plugin/plugin.json` — added `"hooks": "./hooks/hooks.json"` so the plugin manifest now points at the bundled hook manifest.
+- `.claude-plugin/hooks/hooks.json` — added the plugin-owned `PreToolUse:Write` hook definition for `bin/hooks/validate-partials.sh`.
+- `bin/topgun-tools.cjs` — `init` now prunes only legacy TopGun hook entries from Codex user config files and leaves unrelated hooks untouched.
+- `README.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`, `context.md`, `site/index.html`, `site/help/concepts/index.html` — updated hook packaging and release/version references to the plugin-owned Codex layout.
+- `tests/smoke.test.cjs`, `tests/topgun-tools.test.cjs` — added coverage for the plugin-owned hook manifest and the legacy user-config migration.
+
+**Migration**: Existing TopGun installs that previously wrote hook entries into Codex user config are cleaned up on `topgun-tools.cjs init`; fresh installs load the hook from the plugin bundle instead.
+
+**Process**: Verified the plugin manifest wiring, the bundled hook manifest, and the targeted migration with focused `node --test` runs before cutting the release.
+
 ## 2026-04-28 — v1.7.5
 
 **What**: Minor release replacing the comparator's coarse keyword-hit capability scoring with a rubric-first methodology that synthesizes a domain-specific 5-sub-criterion rubric from observed candidate features, then scores each candidate against weighted bands. Eliminates the v1.7.4 failure mode where multiple architecturally-different candidates landed in the same coarse capability bucket (e.g. four candidates tied at capability=70 in a deep-research-skill comparison).

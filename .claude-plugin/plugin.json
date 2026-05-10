@@ -1,6 +1,6 @@
 {
   "name": "topgun",
-  "version": "1.7.5",
+  "version": "1.7.6",
   "description": "Find, compare, security-audit, and install the best available skill for any job from 16 active registries.",
   "author": {
     "name": "Alo Labs",
@@ -9,6 +9,7 @@
   "repository": "https://github.com/alo-labs/topgun",
   "license": "MIT",
   "skills": "./skills/",
+  "hooks": "./hooks/hooks.json",
   "agents": [
     "./agents/topgun-finder.md",
     "./agents/topgun-comparator.md",

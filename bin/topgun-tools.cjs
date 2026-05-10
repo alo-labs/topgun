@@ -32,6 +32,100 @@ function validateKeychainArg(arg, name) {
   }
 }
 
+const LEGACY_CODEX_HOOK_FILES = [
+  path.join(process.env.HOME, '.codex', 'hooks.json'),
+  path.join(process.env.HOME, '.Codex', 'hooks.json'),
+];
+
+function isLegacyTopgunHookCommand(command) {
+  return typeof command === 'string'
+    && command.includes('validate-partials.sh')
+    && /topgun/i.test(command);
+}
+
+function pruneLegacyTopgunHooksFromFile(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return false;
+  }
+
+  let raw;
+  try {
+    raw = fs.readFileSync(filePath, 'utf8');
+  } catch {
+    return false;
+  }
+
+  let config;
+  try {
+    config = JSON.parse(raw);
+  } catch {
+    return false;
+  }
+
+  if (!config || typeof config !== 'object' || !config.hooks || typeof config.hooks !== 'object') {
+    return false;
+  }
+
+  let changed = false;
+
+  for (const [eventName, eventEntries] of Object.entries(config.hooks)) {
+    if (!Array.isArray(eventEntries)) {
+      continue;
+    }
+
+    const nextEntries = [];
+
+    for (const entry of eventEntries) {
+      if (!entry || typeof entry !== 'object' || !Array.isArray(entry.hooks)) {
+        nextEntries.push(entry);
+        continue;
+      }
+
+      const originalHookCount = entry.hooks.length;
+      const filteredHooks = entry.hooks.filter(hook => {
+        if (!hook || typeof hook !== 'object') {
+          return true;
+        }
+
+        if (hook.type !== 'command') {
+          return true;
+        }
+
+        return !isLegacyTopgunHookCommand(hook.command);
+      });
+
+      if (filteredHooks.length !== originalHookCount) {
+        changed = true;
+      }
+
+      if (filteredHooks.length > 0 || originalHookCount === 0) {
+        nextEntries.push(filteredHooks.length === originalHookCount ? entry : { ...entry, hooks: filteredHooks });
+      }
+    }
+
+    if (changed) {
+      config.hooks[eventName] = nextEntries;
+    }
+  }
+
+  if (!changed) {
+    return false;
+  }
+
+  fs.writeFileSync(filePath, `${JSON.stringify(config, null, 2)}\n`);
+  return true;
+}
+
+function migrateLegacyCodexHooks() {
+  let changed = false;
+  for (const filePath of LEGACY_CODEX_HOOK_FILES) {
+    if (pruneLegacyTopgunHooksFromFile(filePath)) {
+      changed = true;
+    }
+  }
+  return changed;
+}
+
 const DEFAULT_REGISTRIES = [
   'skills-sh','agentskill-sh','smithery','github','gitlab','glama','npm','lobehub',
   'osm','huggingface','langchain-hub','claude-plugins-official','cursor-directory',
@@ -70,6 +164,7 @@ switch (command) {
     if (!fs.existsSync(installedPath)) {
       fs.writeFileSync(installedPath, JSON.stringify({ skills: [], updated_at: null }, null, 2));
     }
+    migrateLegacyCodexHooks();
     output({ status: 'ok', topgun_home: TOPGUN_HOME });
     break;
   }

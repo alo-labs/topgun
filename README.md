@@ -66,47 +66,19 @@ TopGun uses **SENTINEL v2.3.0** — bundled directly in the plugin — to audit 
 
 ## Hook Setup
 
-TopGun ships a `PreToolUse:Write` enforcement hook that guarantees all 16 active registry partial files are written before the finder aggregates results. The hook must be registered in `~/.claude/settings.json`.
+TopGun's `PreToolUse:Write` hook is bundled in `.claude-plugin/hooks/hooks.json` and loaded by `.claude-plugin/plugin.json`, so Codex Settings > Hooks shows it as `Plugin · topgun` instead of `User config`.
 
 ### What the hook does
 
 `bin/hooks/validate-partials.sh` intercepts any write to a `found-skills-*.json` file. It extracts the run hash from the filename, counts the corresponding `registry-{hash}-*.json` partial files, and blocks the write (exit 1) if fewer than 16 are present. This prevents the finder from producing an incomplete result set regardless of agent behavior.
 
-### Installing the hook
+### Upgrade migration
 
-Run the init command after installing the plugin:
-
-```bash
-node ~/.claude/plugins/alo-labs/topgun/bin/topgun-tools.cjs init
-```
-
-This adds the following entry to `~/.claude/settings.json`:
-
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/path/to/topgun/bin/hooks/validate-partials.sh"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-### Version bump note
-
-The hook path in `settings.json` includes the plugin version. When upgrading TopGun, re-run `topgun-tools.cjs init` to update the path to the new version.
+If an older install wrote this hook into `~/.codex/hooks.json` or `~/.Codex/hooks.json`, `node /path/to/topgun/bin/topgun-tools.cjs init` removes only TopGun's legacy entries and leaves unrelated user hooks untouched.
 
 ### Requirements
 
-- Claude Code with plugin support
+- Codex with plugin support
 
 ## License
 
@@ -132,7 +104,7 @@ To list TopGun on skills.sh:
 
 1. Ensure the GitHub repository is public at `https://github.com/alo-labs/topgun`
 2. Verify `plugin.json` and `marketplace.json` are in `.claude-plugin/`
-3. Tag a release: `git tag v1.7.5 && git push origin v1.7.5`
+3. Tag a release: `git tag v1.7.6 && git push origin v1.7.6`
 4. Submit via: `npx skills submit alo-labs/topgun`
 
 ### Auto-Update
