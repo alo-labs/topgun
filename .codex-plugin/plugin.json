@@ -9,6 +9,7 @@
   "repository": "https://github.com/alo-labs/topgun",
   "license": "MIT",
   "skills": "./skills/",
+  "forge_skill_md_sha256": "c648ae758fd9ad0d66b0b788a2f58af5818b926e6a9a92118834e360c7824820",
   "hooks": "./hooks/hooks.json",
   "agents": [
     "./agents/topgun-finder.md",
