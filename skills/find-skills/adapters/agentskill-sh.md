@@ -6,7 +6,7 @@
 
 ---
 
-## Step 1 — WebFetch (primary)
+## Request
 
 ```
 GET https://agentskill.sh/api/skills?q={query}&limit=20
@@ -16,7 +16,12 @@ GET https://agentskill.sh/api/skills?q={query}&limit=20
 - No authentication required.
 - Enforce 8-second timeout.
 
-### Response Parsing
+## Timeout + Retry
+
+- On HTTP 429: wait 1s, retry; wait 2s, retry; wait 4s, retry. After 3 retries return `status: "unavailable"`, `reason: "rate limited by agentskill.sh"`.
+- On timeout or HTTP 5xx: fall through to Step 2 (CLI fallback).
+
+## Response Parsing
 
 Expected shape: `{ data: [...], total, page, totalPages }`.
 
@@ -32,11 +37,6 @@ Expected shape: `{ data: [...], total, page, totalPages }`.
 | *(whole object)* | `raw_metadata` |
 
 Set `source_registry: "agentskill.sh"` on every result.
-
-### Timeout + Retry
-
-- On HTTP 429: wait 1s, retry; wait 2s, retry; wait 4s, retry. After 3 retries return `status: "unavailable"`, `reason: "rate limited by agentskill.sh"`.
-- On timeout or HTTP 5xx: fall through to Step 2 (CLI fallback).
 
 ---
 

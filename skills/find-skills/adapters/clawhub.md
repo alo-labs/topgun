@@ -16,7 +16,7 @@ degradation_reason: "No public REST API — uses site WebSearch"
 
 ---
 
-## Status
+## Request
 
 ClawHub is a skills marketplace for OpenClaw/Claude Code agents accessible at both
 `clawhub.com` and `clawhub.ai`. It has no confirmed public REST API. Individual skill
@@ -24,9 +24,12 @@ pages follow the pattern `https://clawhub.com/{username}/{skill-name}` or
 `https://clawhub.ai/{username}/{skill-name}`. The search URL is
 `https://clawhub.com/skills?q={query}`. This adapter uses WebSearch to find skills.
 
----
+## Timeout + Retry
 
-## Execution Instructions
+- WebSearch is handled by the parent agent, so there is no registry-side HTTP retry loop.
+- If the search backend stalls or errors, broaden the query once as described below; do not loop indefinitely.
+
+---
 
 ### Step 1 — WebSearch
 
@@ -36,7 +39,7 @@ Run a WebSearch with the following query (substitute `{query}` with the task des
 site:clawhub.com OR site:clawhub.ai {query} skill
 ```
 
-### Step 2 — Parse results
+## Response Parsing
 
 For each search result with a URL starting with `https://clawhub.com/`,
 `https://www.clawhub.com/`, or `https://clawhub.ai/`:
@@ -77,7 +80,7 @@ If still 0 results, return:
 }
 ```
 
-### Step 4 — Return success
+## Return Value
 
 ```json
 {

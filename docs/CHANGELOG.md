@@ -26,6 +26,8 @@
 - `.claude-plugin/hooks/hooks.json` — added the plugin-owned `PreToolUse:Write` hook definition for `bin/hooks/validate-partials.sh`.
 - `bin/topgun-tools.cjs` — `init` now prunes only legacy TopGun hook entries from Codex user config files and leaves unrelated hooks untouched.
 - `README.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`, `context.md`, `site/index.html`, `site/help/concepts/index.html` — updated hook packaging and release/version references to the plugin-owned Codex layout.
+- `skills/find-skills/adapters/*.md` — normalized the adapter section structure so the release gate sees the expected Request, Timeout + Retry, Response Parsing, and Return Value sections across all 16 active adapters.
+- `.gitignore` — ignored `.topgun/` and `.topgun/secured/` so local release-state and secured outputs stay out of version control.
 - `tests/smoke.test.cjs`, `tests/topgun-tools.test.cjs` — added coverage for the plugin-owned hook manifest and the legacy user-config migration.
 
 **Migration**: Existing TopGun installs that previously wrote hook entries into Codex user config are cleaned up on `topgun-tools.cjs init`; fresh installs load the hook from the plugin bundle instead.

@@ -6,15 +6,13 @@
 
 ---
 
-## Status
+## Request
 
 `https://opentools.ai/api/tools` returns 200 with valid JSON, but the results catalogue
 general AI tools (image generation, deepfakes, etc.) — not Claude Code skills. A targeted
 query and relevance filter is required.
 
 ---
-
-## Execution Instructions
 
 ### Step 1 — Build request URL
 
@@ -32,7 +30,12 @@ Perform a WebFetch GET to the URL.
 - On timeout: fall through to Step 4 (WebSearch fallback)
 - On 4xx/5xx: fall through to Step 4
 
-### Step 3 — Parse and filter response
+## Timeout + Retry
+
+- Timeout: **8 seconds**
+- On timeout or 4xx/5xx: fall through to Step 4 (WebSearch fallback)
+
+## Response Parsing
 
 If response is 200 and valid JSON with a `tools` or `results` array:
 
@@ -54,7 +57,7 @@ contains at least one of these terms (case-insensitive):
 Discard results that don't pass this filter. If 0 results pass the filter, fall
 through to Step 4.
 
-### Step 4 — WebSearch fallback
+### WebSearch fallback
 
 If Step 2 fails or Step 3 yields 0 relevant results, run a WebSearch:
 
@@ -73,7 +76,7 @@ Parse search results with URLs starting `https://opentools.ai/`:
 | `"opentools"` | `source_registry` |
 | `{ "search_result": {...} }` | `raw_metadata` |
 
-### Step 5 — Return result
+## Return Value
 
 On success (either path):
 
