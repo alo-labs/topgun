@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/bin/hooks/validate-partials.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

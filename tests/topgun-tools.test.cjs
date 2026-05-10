@@ -86,6 +86,95 @@ describe('init', () => {
     assert.equal(state.task_description, 'preserve me');
     fs.rmSync(home, { recursive: true, force: true });
   });
+
+  test('prunes only legacy TopGun hook entries from Codex user config', () => {
+    const home = makeTempHome();
+    const legacyHooks = {
+      hooks: {
+        PreToolUse: [
+          {
+            matcher: 'Write',
+            hooks: [
+              {
+                type: 'command',
+                command: 'bash "/Users/example/.claude/plugins/cache/alo-labs/topgun/topgun/1.3.0/bin/hooks/validate-partials.sh"',
+                timeout: 10,
+              },
+              {
+                type: 'command',
+                command: 'node "/tmp/preserve.js"',
+                timeout: 5,
+              },
+            ],
+          },
+          {
+            matcher: 'Write',
+            hooks: [
+              {
+                type: 'command',
+                command: 'bash "/Users/example/.claude/plugins/cache/alo-labs/topgun/topgun/1.3.0/bin/hooks/validate-partials.sh"',
+                timeout: 10,
+              },
+            ],
+          },
+          {
+            matcher: 'Bash',
+            hooks: [
+              {
+                type: 'command',
+                command: 'bash "/Users/example/.claude/plugins/cache/alo-labs-codex/sidekick/1.5.4/bin/hooks/validate-release-gate.sh"',
+                timeout: 10,
+              },
+            ],
+          },
+        ],
+        SessionStart: [
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: 'node "/tmp/session-hook.js"',
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    for (const codexDir of ['.codex', '.Codex']) {
+      const hooksPath = path.join(home, codexDir, 'hooks.json');
+      fs.mkdirSync(path.dirname(hooksPath), { recursive: true });
+      fs.writeFileSync(hooksPath, JSON.stringify(legacyHooks, null, 2));
+    }
+
+    run(['init'], { HOME: home });
+
+    for (const codexDir of ['.codex', '.Codex']) {
+      const hooksPath = path.join(home, codexDir, 'hooks.json');
+      const hooks = JSON.parse(fs.readFileSync(hooksPath, 'utf8'));
+      const preToolUse = hooks.hooks.PreToolUse;
+
+      assert.equal(preToolUse.length, 2, `${codexDir} should keep the preserved hook entry and the unrelated matcher`);
+      const writeEntry = preToolUse.find(entry => entry.matcher === 'Write');
+      assert.ok(writeEntry, `${codexDir} should keep a Write matcher after migration`);
+      const writeCommands = writeEntry.hooks.map(hook => hook.command);
+      assert.ok(writeCommands.includes('node "/tmp/preserve.js"'), `${codexDir} should preserve unrelated hook commands`);
+      assert.ok(!writeCommands.some(command => command.includes('validate-partials.sh')), `${codexDir} should remove TopGun legacy hook commands`);
+      const bashEntry = preToolUse.find(entry => entry.matcher === 'Bash');
+      assert.ok(bashEntry, `${codexDir} should preserve unrelated Bash matcher entries`);
+      assert.ok(
+        bashEntry.hooks.some(hook => hook.command.includes('validate-release-gate.sh')),
+        `${codexDir} should leave Sidekick hooks untouched`
+      );
+
+      assert.ok(
+        hooks.hooks.SessionStart.some(entry => entry.hooks.some(hook => hook.command === 'node "/tmp/session-hook.js"')),
+        `${codexDir} should preserve unrelated SessionStart hooks`
+      );
+    }
+
+    fs.rmSync(home, { recursive: true, force: true });
+  });
 });
 
 // ─── state-read / state-write ─────────────────────────────────────────────────

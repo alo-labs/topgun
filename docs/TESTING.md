@@ -7,11 +7,11 @@ TopGun is a Claude Code plugin — its "tests" are pipeline runs and security au
 **Manual pipeline runs** — run `/topgun find <task>` end-to-end and verify:
 - `~/.topgun/registry-{hash}-*.json` partial files exist (18 files)
 - `found-skills-{hash}.json` is written with `registries_searched` count == 18
-- `validate-partials` hook blocks writes when partial count < 18
+- `validate-partials` hook in `.claude-plugin/hooks/hooks.json` blocks writes when partial count < 16
 - Comparison artifact scores candidates correctly
 - SENTINEL audit runs 2 consecutive passes before install
 
-**Hook validation** — verify `bin/hooks/validate-partials.sh` blocks writes when partial files are absent:
+**Hook validation** — verify `.claude-plugin/hooks/hooks.json` routes to `bin/hooks/validate-partials.sh`, which blocks writes when partial files are absent:
 ```bash
 # Create a dummy found-skills file with no partials
 # Attempt write — hook should exit 1 and block it

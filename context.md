@@ -74,7 +74,7 @@ Adapters live in `skills/find-skills/adapters/`:
   - SENTINEL security checker embedded in topgun-securer
   - `--auto-approve` flag for non-interactive installs
   - `keychain-get/set` via `bin/topgun-tools.cjs`
-  - hooks/hooks.json for Claude Code hooks integration
+  - .claude-plugin/hooks/hooks.json for plugin-owned Codex hooks integration
 
 ---
 
@@ -114,7 +114,7 @@ When adding:
 | `bin/topgun-tools.cjs` | CLI tool (keychain, etc.) |
 | `.claude-plugin/plugin.json` | Plugin manifest |
 | `.claude-plugin/marketplace.json` | Marketplace metadata |
-| `hooks/hooks.json` | Claude Code hooks |
+| `.claude-plugin/hooks/hooks.json` | Codex plugin hooks |
 
 ---
 

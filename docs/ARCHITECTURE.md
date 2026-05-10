@@ -35,7 +35,7 @@ TopGun is a Claude Code plugin that automates skill discovery, evaluation, and i
 | Securer agent | `agents/topgun-securer.md` | Runs SENTINEL audit; writes audit artifact |
 | Installer agent | `agents/topgun-installer.md` | Gets user approval; installs skill; writes audit trail |
 | topgun-tools binary | `bin/topgun-tools.cjs` | Node.js CLI: init, state I/O, sha256, validate-partials, cache, keychain, lock |
-| Validate-partials hook | `bin/hooks/validate-partials.sh` | PreToolUse:Write enforcement — blocks aggregation write if < 16 partials |
+| Plugin hook manifest | `.claude-plugin/hooks/hooks.json` | PreToolUse:Write enforcement — blocks aggregation write if < 16 partials |
 | Registry adapters | `skills/find-skills/adapters/` | 18 self-contained instruction files, one per registry |
 | SENTINEL | `skills/sentinel/SKILL.md` | Bundled SENTINEL v2.3.0 security auditor |
 
@@ -63,7 +63,7 @@ This is the most architecturally significant component. The dispatch model has n
 | Layer | Mechanism | Can be bypassed by agent? |
 |-------|-----------|--------------------------|
 | Prompt instruction | Text in SKILL.md and `topgun-finder.md` | Yes — model can ignore |
-| PreToolUse hook | `validate-partials.sh` in `settings.json` | No — OS-level interception |
+| PreToolUse hook | `validate-partials.sh` in `.claude-plugin/hooks/hooks.json` | No — OS-level interception |
 
 The hook is the only enforcement layer that cannot be bypassed by agent behavior. With v1.3's intermediate `validate-partials` Node.js self-check now removed (the binary still exposes the command, but the dispatch path no longer relies on it), the hook is the canonical guarantee.
 
@@ -109,6 +109,7 @@ skills/
   sentinel/SKILL.md          # Bundled SENTINEL v2.3.0
 .claude-plugin/
   plugin.json                # version, agents array, skills path
+  hooks/hooks.json           # Plugin-owned hook manifest
   marketplace.json           # version (must match plugin.json)
 
 ~/.topgun/                   # Runtime directory (not in repo)

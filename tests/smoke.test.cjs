@@ -65,6 +65,11 @@ describe('.claude-plugin/plugin.json', () => {
     assert.ok(data.skills, 'plugin.json must have skills field');
   });
 
+  test('points hooks at plugin-owned hooks/hooks.json', () => {
+    const data = readJSON('.claude-plugin/plugin.json');
+    assert.equal(data.hooks, './hooks/hooks.json', 'plugin.json must point hooks at ./hooks/hooks.json');
+  });
+
   test('has required field: agents (non-empty array of paths)', () => {
     const data = readJSON('.claude-plugin/plugin.json');
     assert.ok(Array.isArray(data.agents) && data.agents.length > 0, 'plugin.json must have non-empty agents array');
@@ -310,11 +315,23 @@ describe('skills/topgun/SKILL.md — --auto-approve flag', () => {
   });
 });
 
-// ─── hooks/hooks.json ─────────────────────────────────────────────────────────
+// ─── .claude-plugin/hooks/hooks.json ─────────────────────────────────────────
 
-describe('hooks/hooks.json', () => {
+describe('.claude-plugin/hooks/hooks.json', () => {
   test('parses as valid JSON', () => {
-    const data = readJSON('hooks/hooks.json');
+    const data = readJSON('.claude-plugin/hooks/hooks.json');
     assert.ok(typeof data === 'object' && data !== null);
+  });
+
+  test('registers validate-partials.sh as a plugin-owned PreToolUse hook', () => {
+    const data = readJSON('.claude-plugin/hooks/hooks.json');
+    const preToolUse = Array.isArray(data.hooks?.PreToolUse) ? data.hooks.PreToolUse : [];
+    const writeEntry = preToolUse.find(entry => entry.matcher === 'Write');
+    assert.ok(writeEntry, 'hooks.json must register a PreToolUse Write matcher');
+    const commands = Array.isArray(writeEntry.hooks) ? writeEntry.hooks.map(hook => hook.command) : [];
+    assert.ok(
+      commands.some(command => typeof command === 'string' && command.includes('validate-partials.sh')),
+      'hooks.json must invoke validate-partials.sh'
+    );
   });
 });
