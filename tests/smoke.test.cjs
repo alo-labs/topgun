@@ -13,7 +13,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..');
-const CURRENT_VERSION = '0.7.6';
+const CURRENT_VERSION = '0.7.7';
 const TOPGUN_SKILL_SHA256 = 'c648ae758fd9ad0d66b0b788a2f58af5818b926e6a9a92118834e360c7824820';
 
 function readJSON(relPath) {
@@ -82,6 +82,17 @@ describe('.codex-plugin/plugin.json', () => {
     assert.ok(typeof data.interface.websiteURL === 'string' && data.interface.websiteURL.length > 0, 'codex interface websiteURL must exist');
     assert.ok(Array.isArray(data.interface.defaultPrompt) && data.interface.defaultPrompt.length > 0, 'codex interface defaultPrompt must be a non-empty array');
     assert.ok(typeof data.interface.brandColor === 'string' && data.interface.brandColor.length > 0, 'codex interface brandColor must exist');
+  });
+});
+
+describe('hooks/hooks.json', () => {
+  test('parses as valid JSON and matches the Claude hook bundle', () => {
+    const rootHooks = readJSON('hooks/hooks.json');
+    const claudeHooks = readJSON('.claude-plugin/hooks/hooks.json');
+    assert.deepEqual(rootHooks, claudeHooks, 'hooks/hooks.json must match .claude-plugin/hooks/hooks.json');
+    const serialized = JSON.stringify(rootHooks);
+    assert.ok(serialized.includes('CODEX_PLUGIN_ROOT'), 'hooks/hooks.json must use CODEX_PLUGIN_ROOT');
+    assert.ok(!serialized.includes('CLAUDE_PLUGIN_ROOT'), 'hooks/hooks.json must not use CLAUDE_PLUGIN_ROOT');
   });
 });
 
@@ -183,7 +194,7 @@ describe('package.json', () => {
     assert.equal(data.name, '@alo-labs/topgun');
   });
 
-  test('has 0.7.6 version', () => {
+  test('has 0.7.7 version', () => {
     const data = readJSON('package.json');
     assert.equal(data.version, CURRENT_VERSION, 'package.json version must match the current release version');
   });
@@ -322,9 +333,12 @@ describe('README.md', () => {
     assert.ok(fs.existsSync(path.join(ROOT, 'README.md')));
   });
 
-  test('contains "plugin install"', () => {
+  test('contains the GitHub-published Codex marketplace path', () => {
     const content = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf8');
-    assert.ok(content.includes('plugin install'), 'README.md must contain "plugin install"');
+    assert.ok(
+      content.includes('codex plugin marketplace add https://github.com/alo-labs/codex-plugins.git'),
+      'README.md must contain the GitHub-published Codex marketplace add command'
+    );
   });
 
   test('contains "/topgun"', () => {
