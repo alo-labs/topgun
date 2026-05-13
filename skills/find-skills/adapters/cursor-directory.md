@@ -19,7 +19,7 @@ This returns an array of 179+ rule directories. Filter by `name` matching the qu
 Retrieve GitHub token:
 
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" keychain-get github_token
+node "$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs" keychain-get github_token
 ```
 
 If found, include `Authorization: Bearer {token}` for higher rate limits. Never log the token.

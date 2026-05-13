@@ -17,6 +17,21 @@
 
 <!-- ENTRIES BELOW — newest first -->
 
+## 2026-05-13 — v0.7.7
+
+**What**: Patch release that finalizes the Codex-native installer contract: Codex installs now target lowercase `~/.codex` only, legacy uppercase `~/.Codex` remains migration-only, and hook trust seeding stays aligned with the exact reviewed hook source.
+
+**Changed**:
+- `skills/topgun-update/SKILL.md` — normalized Codex cache derivation to lowercase-only, kept legacy uppercase cleanup backup-only, and preserved the canonical `topgun@alo-labs-codex` install id.
+- `bin/topgun-hook-trust.cjs`, `bin/topgun-tools.cjs` — kept trust seeding prefix-aware and pruned legacy TopGun hook entries without mixing hook surfaces.
+- `bin/test-topgun-update.sh`, `tests/topgun-tools.test.cjs` — added regression coverage for lowercase-only Codex install state, clean reinstall bootstrap, and prefix-aligned trust seeding.
+- `package.json`, `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`, `.claude-plugin/marketplace.json` — bumped the release version to `0.7.7`.
+- `README.md`, `site/index.html`, `site/help/concepts/index.html`, `tests/smoke.test.cjs` — refreshed the active public version strings to `v0.7.7`.
+
+**Migration**: Existing uppercase `~/.Codex` artifacts are treated as legacy-only migration state and backed up before removal during clean reinstall flows. No new active state is written there.
+
+**Process**: Two consecutive clean rounds of the full 4-stage `pre-release-quality-gate.md` confirmed before release.
+
 ## 2026-05-10 — v0.7.6
 
 **What**: Major-version rebase to `0.7.6`, carrying forward the `validate-partials.sh` hook into plugin-owned Codex metadata so `Codex Settings > Hooks` shows `Plugin · topgun` instead of `User config`, plus a targeted migration that removes only legacy TopGun hook entries from `~/.codex/hooks.json` and `~/.Codex/hooks.json`.

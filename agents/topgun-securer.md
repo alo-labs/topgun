@@ -44,7 +44,7 @@ distinct terminal markers — the orchestrator handles those separately from `##
 ## Step 1: Receive Skill Content
 
 - Accept skill_name, skill_source, and raw SKILL.md content from orchestrator state
-- Read content from the path provided in state (via `node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-read skill_content_path`)
+- Read content from the path provided in state (via `node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-read skill_content_path`)
 
 ## Step 2: Pre-Filter Checks (REQ-15)
 
@@ -54,8 +54,8 @@ Before any envelope wrapping, scan the raw SKILL.md for disqualifying patterns:
 
 - Write rejection to state:
   ```bash
-  node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write audit_status "rejected"
-  node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write audit_rejection_reason "Phone-home pattern detected: {pattern} on line {N}"
+  node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write audit_status "rejected"
+  node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write audit_rejection_reason "Phone-home pattern detected: {pattern} on line {N}"
   ```
 - Output `## SECURE REJECTED` marker and stop
 
@@ -63,7 +63,7 @@ Before any envelope wrapping, scan the raw SKILL.md for disqualifying patterns:
 
 - Write to state:
   ```bash
-  node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write skill_dangerous_tools "{tools_list}"
+  node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write skill_dangerous_tools "{tools_list}"
   ```
 
 ## Step 3: Structural Envelope Application (REQ-11, NFR-01)
@@ -79,14 +79,14 @@ Wrap the SKILL.md content in the structural envelope. The envelope is a delimite
 Compute SHA-256 of the raw content BEFORE wrapping:
 
 ```bash
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" sha256 "$(cat {skill_path})"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" sha256 "$(cat {skill_path})"
 ```
 
 Store the enveloped content in a temp file and record path in state:
 
 ```bash
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write enveloped_content_path "{path}"
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write content_sha "{sha}"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write enveloped_content_path "{path}"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write content_sha "{sha}"
 ```
 
 IMPORTANT: The structural envelope section must be clearly marked so Plan 04-02 (Sentinel loop) can read the enveloped content path from state. This plan writes the "envelope preparation" section; Plan 04-02 writes the "Sentinel invocation" section.
@@ -98,8 +98,8 @@ IMPORTANT: The structural envelope section must be clearly marked so Plan 04-02 
 - Set `consecutive_clean_passes = 0`
 - Set `pass_number = 0`
 - Create empty `findings_tracker = {}` (maps finding_fingerprint -> {count, severity, description, first_seen_pass, last_seen_pass})
-- Read enveloped content path from state: `node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-read enveloped_content_path`
-- Read baseline content SHA from state: `node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-read content_sha`
+- Read enveloped content path from state: `node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-read enveloped_content_path`
+- Read baseline content SHA from state: `node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-read content_sha`
 
 ### Loop: Repeat Until 2 Consecutive Clean Passes
 
@@ -109,7 +109,7 @@ while consecutive_clean_passes < 2:
 
     1. Read current SKILL.md content from enveloped_content_path
 
-    2. Compute SHA-256: node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" sha256 "$(cat {path})"
+    2. Compute SHA-256: node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" sha256 "$(cat {path})"
        - If pass_number > 1 AND hash != previous_pass_hash:
          ABORT with "Registry instability detected — content changed between Sentinel passes"
          Write state: state-write audit_status "aborted"
@@ -118,7 +118,7 @@ while consecutive_clean_passes < 2:
        - Store hash as previous_pass_hash
 
     3. Invoke bundled SENTINEL:
-       Read "$CLAUDE_PLUGIN_ROOT/skills/sentinel/SKILL.md" to load bundled SENTINEL v2.3.0.
+       Read "$CODEX_PLUGIN_ROOT/skills/sentinel/SKILL.md" to load bundled SENTINEL v2.3.0.
        Follow its audit instructions, passing the enveloped SKILL.md content as the audit target.
        Do NOT invoke any external Skill tool for the security audit — use only the bundled path.
 
@@ -164,9 +164,9 @@ This allows tracking whether the SAME finding persists across fix attempts. The 
 When the loop completes (2 consecutive clean passes achieved):
 
 ```bash
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write sentinel_total_passes "{pass_number}"
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write sentinel_clean_passes "2"
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write findings_tracker "{JSON}"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write sentinel_total_passes "{pass_number}"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write sentinel_clean_passes "2"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write findings_tracker "{JSON}"
 ```
 
 ---
@@ -250,7 +250,7 @@ Write the audit trail to `~/.topgun/audit-{sha}.json` with this structure:
   "content_sha": "{final_sha_after_all_fixes}",
   "output_secured_sha": "{sha_of_bytes_written_to_secured_path}",
   "audited_at": "{ISO 8601 timestamp}",
-  "sentinel_skill": "bundled SENTINEL v2.3.0 ($CLAUDE_PLUGIN_ROOT/skills/sentinel/SKILL.md)",
+  "sentinel_skill": "bundled SENTINEL v2.3.0 ($CODEX_PLUGIN_ROOT/skills/sentinel/SKILL.md)",
   "total_passes": "{pass_number}",
   "clean_passes": 2,
   "findings": [

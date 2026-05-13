@@ -103,4 +103,4 @@ If the API returns 200, map results to unified schema:
 ## Notes
 
 - Confirmed returning 200 with valid JSON on 2026-04-26. Previously returned 403 during initial research (Phase 1).
-- If an API key becomes available, add it as `Authorization: Bearer {key}` and retrieve it via `$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs keychain-get skillsmp_api_key`.
+- If an API key becomes available, add it as `Authorization: Bearer {key}` and retrieve it via `$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs keychain-get skillsmp_api_key`.

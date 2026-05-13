@@ -5,10 +5,10 @@ TopGun is a Claude Code plugin that automatically finds, compares, security-audi
 
 ## Quick Start
 
-### Install via Claude Plugin System
+### Install via Codex Plugin System
 
 ```
-/plugin install alo-labs/topgun
+codex plugin marketplace add https://github.com/alo-labs/codex-plugins.git
 ```
 
 ### Install via skills.sh
@@ -66,7 +66,7 @@ TopGun uses **SENTINEL v2.3.0** — bundled directly in the plugin — to audit 
 
 ## Hook Setup
 
-TopGun ships matching `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json` manifests, both pointing at the shared `skills/` tree and the plugin-owned `.claude-plugin/hooks/hooks.json` hook bundle, so Codex Settings > Hooks shows it as `Plugin · topgun` instead of `User config`.
+TopGun ships matching `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json` manifests, both pointing at the shared `skills/` tree and the root `hooks/hooks.json` hook bundle, mirrored under `.claude-plugin/hooks/hooks.json` for Claude packaging, so Codex Settings > Hooks shows it as `Plugin · topgun` instead of `User config`.
 
 ### What the hook does
 
@@ -74,7 +74,7 @@ TopGun ships matching `.claude-plugin/plugin.json` and `.codex-plugin/plugin.jso
 
 ### Upgrade migration
 
-If an older install wrote this hook into `~/.codex/hooks.json` or `~/.Codex/hooks.json`, `node /path/to/topgun/bin/topgun-tools.cjs init` removes only TopGun's legacy entries and leaves unrelated user hooks untouched.
+If an older install wrote this hook into `~/.codex/hooks.json`, `node /path/to/topgun/bin/topgun-tools.cjs init` removes only TopGun's legacy entries, refreshes the hook trust block in `~/.codex/config.toml` from the exact source each prefix names, and treats any uppercase `~/.Codex` mirror as legacy-only migration state that can be backed up and removed once the lowercase install is valid.
 
 ### Requirements
 
@@ -96,7 +96,7 @@ npx skills add alo-labs/topgun
 
 ### Compatibility
 
-TopGun's `.claude-plugin/` structure is natively compatible with the skills.sh ecosystem, and the Codex-facing `.codex-plugin/plugin.json` points to the same shared skills bundle. The Claude marketplace metadata lives in `.claude-plugin/marketplace.json` for `alo-labs/claude-plugins`, and the Codex marketplace metadata lives in `.agents/plugins/marketplace.json` for `alo-labs/codex-plugins`. Both marketplace entries are named `Ālo Labs`.
+TopGun's `.claude-plugin/` structure is natively compatible with the skills.sh ecosystem, and the Codex-facing `.codex-plugin/plugin.json` points to the same shared skills bundle. The bundled hook manifest lives at `hooks/hooks.json` and is mirrored under `.claude-plugin/hooks/hooks.json` for Claude packaging. The Claude marketplace metadata lives in `.claude-plugin/marketplace.json` for `alo-labs/claude-plugins`, and the Codex marketplace metadata lives in `.agents/plugins/marketplace.json` for `alo-labs/codex-plugins`. Both marketplace entries are named `Ālo Labs`.
 
 ### Registry Submission
 
@@ -105,7 +105,7 @@ To list TopGun on skills.sh:
 1. Ensure the GitHub repository is public at `https://github.com/alo-labs/topgun`
 2. Verify `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` are in `.claude-plugin/` for `alo-labs/claude-plugins`
 3. Verify `.codex-plugin/plugin.json` exists and `.agents/plugins/marketplace.json` is present for `alo-labs/codex-plugins`
-4. Tag a release: `git tag v0.7.6 && git push origin v0.7.6`
+4. Tag a release: `git tag v0.7.7 && git push origin v0.7.7`
 5. Submit via: `npx skills submit alo-labs/topgun`
 
 ### Auto-Update
@@ -124,13 +124,17 @@ TopGun will:
 1. **Check** the installed version against the latest GitHub release
 2. **Display** the changelog delta since your installed version
 3. **Verify** the commit SHA before touching anything
-4. **Update** the plugin cache and registry atomically
+4. **Update** the plugin cache, stable `current` alias, and registry atomically
+
+If the versioned cache tree was removed during a clean reinstall, TopGun first
+bootstraps it from the local snapshot before refreshing the live alias and
+registry rows.
 
 ```
 /topgun-update --check   # check for updates without installing
 ```
 
-State preserved across updates: `~/.topgun/` audit cache, keychain tokens, and hook config.
+State preserved across updates: `~/.topgun/` audit cache, keychain tokens, hook config, and the stable `current` alias.
 
 ---
 

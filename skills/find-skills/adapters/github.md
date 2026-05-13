@@ -11,7 +11,7 @@
 Retrieve a GitHub token for higher rate limits:
 
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" keychain-get github_token
+node "$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs" keychain-get github_token
 ```
 
 - If a token is returned, add header: `Authorization: Bearer {token}`.

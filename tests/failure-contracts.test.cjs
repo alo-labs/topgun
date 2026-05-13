@@ -127,8 +127,8 @@ describe('Orchestrator failure handling', () => {
 
 describe('keychain-get nonexistent token', () => {
   test('keychain-get returns {found: false} for nonexistent service', () => {
-    const CLAUDE_PLUGIN_ROOT = process.env.CLAUDE_PLUGIN_ROOT || ROOT;
-    const toolsPath = path.join(CLAUDE_PLUGIN_ROOT, 'bin', 'topgun-tools.cjs');
+    const CODEX_PLUGIN_ROOT = process.env.CODEX_PLUGIN_ROOT || ROOT;
+    const toolsPath = path.join(CODEX_PLUGIN_ROOT, 'bin', 'topgun-tools.cjs');
 
     if (!fs.existsSync(toolsPath)) {
       // Skip if tools not available (CI without full install)
@@ -162,8 +162,8 @@ describe('keychain-get nonexistent token', () => {
 
 describe('keychain roundtrip (macOS only)', () => {
   test('keychain-set then keychain-get returns stored value', { skip: process.platform !== 'darwin' }, () => {
-    const CLAUDE_PLUGIN_ROOT = process.env.CLAUDE_PLUGIN_ROOT || ROOT;
-    const toolsPath = path.join(CLAUDE_PLUGIN_ROOT, 'bin', 'topgun-tools.cjs');
+    const CODEX_PLUGIN_ROOT = process.env.CODEX_PLUGIN_ROOT || ROOT;
+    const toolsPath = path.join(CODEX_PLUGIN_ROOT, 'bin', 'topgun-tools.cjs');
 
     if (!fs.existsSync(toolsPath)) {
       console.log('SKIP: topgun-tools.cjs not found at', toolsPath);

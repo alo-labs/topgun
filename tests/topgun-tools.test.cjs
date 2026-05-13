@@ -11,6 +11,11 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 const { execFileSync, execSync } = require('node:child_process');
+const {
+  CANONICAL_PACKAGE_PREFIX,
+  collectTrustEntriesForSource,
+  seedHookTrustState,
+} = require('../bin/topgun-hook-trust.cjs');
 
 const TOOLS = path.join(__dirname, '..', 'bin', 'topgun-tools.cjs');
 
@@ -37,6 +42,32 @@ function makeInitHome() {
   const dir = makeTempHome();
   run(['init'], { HOME: dir });
   return dir;
+}
+
+function parseHookTrustState(content) {
+  const state = new Map();
+  let currentKey = null;
+
+  for (const line of content.split('\n')) {
+    const trimmed = line.trim();
+    const sectionMatch = trimmed.match(/^\[hooks\.state\."(.+)"\]$/);
+    if (sectionMatch) {
+      currentKey = sectionMatch[1];
+      continue;
+    }
+
+    const hashMatch = currentKey && trimmed.match(/^trusted_hash = "(sha256:[0-9a-f]{64})"$/);
+    if (hashMatch) {
+      state.set(currentKey, hashMatch[1]);
+      continue;
+    }
+
+    if (trimmed.startsWith('[') && !trimmed.startsWith('[hooks.state.')) {
+      currentKey = null;
+    }
+  }
+
+  return state;
 }
 
 // ─── init ────────────────────────────────────────────────────────────────────
@@ -175,6 +206,73 @@ describe('init', () => {
 
     fs.rmSync(home, { recursive: true, force: true });
   });
+
+  test('seeds topgun trust from the package-local hook manifest during init', () => {
+    const home = makeTempHome();
+    const staleTopgunHash = 'sha256:' + 'deadbeef'.repeat(8);
+    const lowerConfigPath = path.join(home, '.codex', 'config.toml');
+
+    fs.mkdirSync(path.dirname(lowerConfigPath), { recursive: true });
+    fs.writeFileSync(lowerConfigPath, [
+      '[hooks.state]',
+      '[hooks.state."topgun@alo-labs-codex-local:hooks/hooks.json:pre_tool_use:0:0"]',
+      `trusted_hash = "${staleTopgunHash}"`,
+      '[hooks.state."topgun@alo-labs-codex:hooks/hooks.json:pre_tool_use:0:0"]',
+      'trusted_hash = "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"',
+      '',
+    ].join('\n'));
+
+    run(['init'], { HOME: home });
+
+    const packageHooksPath = path.join(__dirname, '..', 'hooks', 'hooks.json');
+    const expectedEntries = collectTrustEntriesForSource(packageHooksPath, CANONICAL_PACKAGE_PREFIX);
+    assert.equal(expectedEntries.length, 1, 'package-local hooks manifest should expose one trust entry');
+    const expectedHash = expectedEntries[0].digest;
+
+    const lowerTrustState = parseHookTrustState(fs.readFileSync(lowerConfigPath, 'utf8'));
+    const canonicalKey = `${CANONICAL_PACKAGE_PREFIX}:pre_tool_use:0:0`;
+
+    assert.equal(lowerTrustState.get(canonicalKey), expectedHash, 'lowercase Codex config should trust the package-local hook manifest');
+    assert.ok(![...lowerTrustState.keys()].some(key => key.startsWith('topgun@alo-labs-codex-local')), 'lowercase Codex config should remove the stale local alias trust prefix');
+    assert.ok(![...lowerTrustState.values()].includes(staleTopgunHash), 'lowercase Codex config should replace stale TopGun trust hashes');
+
+    fs.rmSync(home, { recursive: true, force: true });
+  });
+});
+
+describe('installer surface', () => {
+  test('topgun update and installer docs stay Codex-native', () => {
+    const files = [
+      'hooks/hooks.json',
+      '.claude-plugin/hooks/hooks.json',
+      'agents/topgun-finder.md',
+      'agents/topgun-comparator.md',
+      'agents/topgun-securer.md',
+      'skills/topgun-update/SKILL.md',
+      'skills/topgun/SKILL.md',
+      'skills/find-skills/SKILL.md',
+      'skills/secure-skills/SKILL.md',
+      'skills/find-skills/adapters/github.md',
+      'skills/find-skills/adapters/gitlab.md',
+      'skills/find-skills/adapters/smithery.md',
+      'skills/find-skills/adapters/cursor-directory.md',
+      'skills/find-skills/adapters/huggingface.md',
+      'skills/find-skills/adapters/langchain-hub.md',
+      'skills/find-skills/adapters/skillsmp.md',
+      'skills/find-skills/adapters/npm.md',
+      'agents/topgun-installer.md',
+    ];
+
+    for (const relPath of files) {
+      const content = fs.readFileSync(path.join(__dirname, '..', relPath), 'utf8');
+      assert.ok(!content.includes('~/.claude/'), `${relPath} must not depend on ~/.claude/ paths`);
+      assert.ok(!content.includes('CLAUDE_PLUGIN_ROOT'), `${relPath} must not depend on CLAUDE_PLUGIN_ROOT`);
+    }
+
+    const updateSkill = fs.readFileSync(path.join(__dirname, '..', 'skills', 'topgun-update', 'SKILL.md'), 'utf8');
+    assert.ok(updateSkill.includes('current alias'), 'topgun-update SKILL.md must mention the stable current alias');
+    assert.ok(updateSkill.includes('local snapshot'), 'topgun-update SKILL.md must mention the local snapshot bootstrap');
+  });
 });
 
 // ─── state-read / state-write ─────────────────────────────────────────────────
@@ -212,6 +310,61 @@ describe('state-read / state-write', () => {
     run(['state-write', 'current_stage', 'find'], { HOME: home });
     const statePath = path.join(home, '.topgun', 'state.json');
     assert.ok(fs.existsSync(statePath));
+    fs.rmSync(home, { recursive: true, force: true });
+  });
+});
+
+describe('hook trust seeding', () => {
+  test('trusts a mirrored user-config hook file from that file, not the package manifest', () => {
+    const home = makeTempHome();
+    const packageRoot = path.join(__dirname, '..');
+    const packageHooksPath = path.join(packageRoot, 'hooks', 'hooks.json');
+    const mirrorPath = path.join(home, '.codex', 'hooks.json');
+    const mirrorPrefix = 'topgun@alo-labs-codex:user-config/hooks.json';
+    const mirrorCommand = `bash "${path.join(packageRoot, 'bin', 'hooks', 'validate-partials.sh')}"`;
+
+    fs.mkdirSync(path.dirname(mirrorPath), { recursive: true });
+    fs.writeFileSync(mirrorPath, JSON.stringify({
+      hooks: {
+        PreToolUse: [
+          {
+            matcher: 'Write',
+            hooks: [
+              {
+                type: 'command',
+                command: mirrorCommand,
+                timeout: 10,
+              },
+            ],
+          },
+        ],
+      },
+    }, null, 2));
+
+    const expectedPackageEntries = collectTrustEntriesForSource(packageHooksPath, CANONICAL_PACKAGE_PREFIX);
+    const expectedMirrorEntries = collectTrustEntriesForSource(mirrorPath, mirrorPrefix);
+    assert.equal(expectedPackageEntries.length, 1, 'package-local source should still expose one trust entry');
+    assert.equal(expectedMirrorEntries.length, 1, 'mirrored user-config source should expose one trust entry');
+    assert.notEqual(expectedPackageEntries[0].digest, expectedMirrorEntries[0].digest, 'mirror trust hash must differ from the package-local hash when the source command differs');
+
+    const configPath = path.join(home, '.codex', 'config.toml');
+    seedHookTrustState({
+      packageRoot,
+      configPaths: [configPath],
+      sourceSpecs: [
+        { prefix: CANONICAL_PACKAGE_PREFIX, sourcePath: packageHooksPath },
+        { prefix: mirrorPrefix, sourcePath: mirrorPath },
+      ],
+    });
+
+    const trustState = parseHookTrustState(fs.readFileSync(configPath, 'utf8'));
+    const packageKey = expectedPackageEntries[0].key;
+    const mirrorKey = expectedMirrorEntries[0].key;
+
+    assert.equal(trustState.get(packageKey), expectedPackageEntries[0].digest, 'package-local prefix should trust the package-local manifest');
+    assert.equal(trustState.get(mirrorKey), expectedMirrorEntries[0].digest, 'mirror prefix should trust the mirrored user-config file');
+    assert.notEqual(trustState.get(packageKey), trustState.get(mirrorKey), 'distinct prefixes should not reuse the same trust hash');
+
     fs.rmSync(home, { recursive: true, force: true });
   });
 });

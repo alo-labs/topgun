@@ -25,7 +25,7 @@ Merge and deduplicate by `id`.
 No auth required for public Spaces. If `HF_TOKEN` is available via:
 
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" keychain-get hf_token
+node "$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs" keychain-get hf_token
 ```
 
 Include it as `Authorization: Bearer {token}` for higher rate limits. Never log the token.
