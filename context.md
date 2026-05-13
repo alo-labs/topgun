@@ -1,14 +1,14 @@
 # TopGun — Session Context
 
-**Date:** 2026-05-10
-**Session:** v0.7.6 major-version rebase + registry research
+**Date:** 2026-05-13
+**Session:** v0.7.7 patch release + Codex lowercase install normalization
 
 ---
 
 ## Project
 
 - **Name:** @alo-labs/topgun
-- **Version:** 0.7.6 (released)
+- **Version:** 0.7.7 (released)
 - **Repo:** https://github.com/alo-labs/topgun.git
 - **Stack:** Node.js (CJS), no runtime dependencies
 - **Description:** Finds, compares, secures, and installs Claude skills across 16 registries
@@ -57,7 +57,7 @@ Adapters live in `skills/find-skills/adapters/`:
 
 - `tests/smoke.test.cjs` — structural validity (JSON, frontmatter, adapter count)
 - `tests/failure-contracts.test.cjs` — agent STAGE FAILED contracts, keychain roundtrip
-- **Count:** 253/253 passing (as of v0.7.6)
+- **Count:** 257/257 passing (as of v0.7.7)
 - Smoke test asserts adapter count = 16; active dispatch count is 16
 
 ---

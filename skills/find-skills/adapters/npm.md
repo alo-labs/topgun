@@ -125,4 +125,4 @@ Map each `objects[].package` to the unified schema:
 
 - npm does not expose download counts in the `/v1/search` endpoint. `install_count` will remain `null` until a secondary lookup is performed.
 - The `content_sha` field is intentionally `null` here. It will be populated by the SecureSkills phase when package integrity is verified.
-- This adapter uses `$CLAUDE_PLUGIN_ROOT` base paths when writing cache files (if caching is enabled in a future phase).
+- This adapter uses `$CODEX_PLUGIN_ROOT` base paths when writing cache files (if caching is enabled in a future phase).

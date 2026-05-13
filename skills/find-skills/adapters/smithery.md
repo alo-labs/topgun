@@ -11,7 +11,7 @@
 Retrieve the Bearer token from the keychain before making the request:
 
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" keychain-get smithery_token
+node "$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs" keychain-get smithery_token
 ```
 
 - If the command returns a non-empty string, use it as a Bearer token in the

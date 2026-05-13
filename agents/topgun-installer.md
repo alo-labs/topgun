@@ -41,7 +41,7 @@ Reason: Both /plugin install and local-copy fallback failed — manual installat
 Read current state to get the secured skill path and metadata:
 
 ```bash
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-read
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-read
 ```
 
 Extract the following fields from state:
@@ -83,10 +83,10 @@ Run two independent verification checks after a successful /plugin install.
 
 ### Check 1: installed_plugins.json verification
 
-Read the Claude plugin registry:
+Read the Codex plugin registry:
 
 ```bash
-cat ~/.claude/installed_plugins.json 2>/dev/null
+cat ~/.codex/plugins/installed_plugins.json 2>/dev/null
 ```
 
 Search the JSON for an entry whose `name` or `path` matches the installed skill.
@@ -99,7 +99,7 @@ Search the JSON for an entry whose `name` or `path` matches the installed skill.
 node -e "
 const fs = require('fs');
 const path = require('path');
-const pluginsPath = path.join(process.env.HOME, '.claude', 'installed_plugins.json');
+const pluginsPath = path.join(process.env.HOME, '.codex', 'plugins', 'installed_plugins.json');
 let plugins = [];
 try { plugins = JSON.parse(fs.readFileSync(pluginsPath, 'utf8')); } catch(e) { plugins = []; }
 plugins.push({
@@ -135,10 +135,10 @@ Attempt a lightweight test invocation of the installed skill to confirm it is ca
 Write verification results to state:
 
 ```bash
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write install_method "plugin"
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write install_verified "{true|false}"
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write plugins_json_status "{found|manual_fix|missing}"
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write test_invoke_status "{passed|failed}"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write install_method "plugin"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write install_verified "{true|false}"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write plugins_json_status "{found|manual_fix|missing}"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write test_invoke_status "{passed|failed}"
 ```
 
 ---
@@ -150,8 +150,8 @@ node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write test_
 Update state:
 
 ```bash
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write install_method "plugin"
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write install_path "~/.claude/plugins/{skill_name}"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write install_method "plugin"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write install_path "~/.codex/plugins/{skill_name}"
 ```
 
 Proceed to Step 6 (Registry Update).
@@ -165,7 +165,7 @@ Output the following error message:
 Write the failed state:
 
 ```bash
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write install_verified "false"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write install_verified "false"
 ```
 
 Proceed to Step 5 (Local-Copy Fallback).
@@ -179,7 +179,7 @@ Executed when /plugin install failed or post-install verification failed.
 ### 5.1 Read secured path from state
 
 ```bash
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-read
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-read
 ```
 
 Extract `secured_path` (e.g. `~/.topgun/secured/{sha}/SKILL.md`) and `skill_name`.
@@ -187,9 +187,9 @@ Extract `secured_path` (e.g. `~/.topgun/secured/{sha}/SKILL.md`) and `skill_name
 ### 5.2 Write secured SKILL.md to local skills directory
 
 ```bash
-mkdir -p ~/.claude/skills/{skill_name}
-cp ~/.topgun/secured/{sha}/SKILL.md ~/.claude/skills/{skill_name}/SKILL.md
-chmod 644 ~/.claude/skills/{skill_name}/SKILL.md
+mkdir -p ~/.codex/skills/{skill_name}
+cp ~/.topgun/secured/{sha}/SKILL.md ~/.codex/skills/{skill_name}/SKILL.md
+chmod 644 ~/.codex/skills/{skill_name}/SKILL.md
 ```
 
 ### 5.3 Verify invocability
@@ -206,9 +206,9 @@ Attempt a lightweight test invocation of the locally installed skill via the Tas
 Update state:
 
 ```bash
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write install_method "local-copy"
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write install_path "~/.claude/skills/{skill_name}/SKILL.md"
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write install_verified "true"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write install_method "local-copy"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write install_path "~/.codex/skills/{skill_name}/SKILL.md"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write install_verified "true"
 ```
 
 Proceed to Step 6 (Registry Update).
@@ -219,13 +219,13 @@ Output the following error clearly:
 
 > Local-copy fallback also failed. Manual installation required.
 > Secured skill is available at: {secured_path}
-> Copy it manually to ~/.claude/skills/{skill_name}/SKILL.md
+> Copy it manually to ~/.codex/skills/{skill_name}/SKILL.md
 
 Write failed state:
 
 ```bash
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write install_verified "false"
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write install_method "failed"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write install_verified "false"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write install_method "failed"
 ```
 
 Do NOT output ## INSTALL COMPLETE. STOP here.
