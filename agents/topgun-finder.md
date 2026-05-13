@@ -44,7 +44,7 @@ Reason: All registries unavailable and no local skills matched
 Read task input from `~/.topgun/state.json`:
 
 ```bash
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-read
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-read
 ```
 
 Extract the following fields:
@@ -61,7 +61,7 @@ ERROR: task_description not found in ~/.topgun/state.json
 ## Step 2: Compute Query Hash
 
 ```bash
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" sha256 "{task_description}"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" sha256 "{task_description}"
 ```
 
 Store the output as `{hash}`. This is used for the output filename and deduplication.
@@ -72,21 +72,21 @@ Store the output as `{hash}`. This is used for the output filename and deduplica
 
 Before querying any external registry, search locally installed skills.
 
-**3a. Search `~/.claude/skills/`:**
+**3a. Search `~/.codex/skills/`:**
 
-Use Glob with pattern `~/.claude/skills/*/SKILL.md`. For each file found:
+Use Glob with pattern `~/.codex/skills/*/SKILL.md`. For each file found:
 1. Read the file contents.
 2. Check whether the `name` or `description` frontmatter fields contain keywords
    from `task_description` (substring or keyword match).
 3. If matched, compute a content_sha:
    ```bash
-   node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" sha256 "{file_contents}"
+   node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" sha256 "{file_contents}"
    ```
 4. Add to results with `source_registry: "local"`.
 
-**3b. Search `~/.claude/plugins/`:**
+**3b. Search `~/.codex/plugins/`:**
 
-Use Glob with pattern `~/.claude/plugins/*/skills/*/SKILL.md`. Apply the same
+Use Glob with pattern `~/.codex/plugins/*/skills/*/SKILL.md`. Apply the same
 match and sha256 logic as 3a.
 
 **Unified schema for local results:**
@@ -122,17 +122,17 @@ clawhub, mcp-so, opentools, skillsmp
 
 > **Do not** call `dispatch-registries` from `topgun-tools.cjs`. That subprocess-spawning path was removed in v1.5.0 because spawned `claude` subprocesses cannot inherit OAuth tokens, which silently broke FindSkills for the majority of Claude Code users.
 
-**Resolve CLAUDE_PLUGIN_ROOT before dispatching (CRITICAL — do this first):**
+**Resolve CODEX_PLUGIN_ROOT before dispatching (CRITICAL — do this first):**
 
-Sub-agents do NOT inherit shell variables. You MUST resolve `$CLAUDE_PLUGIN_ROOT` to its
+Sub-agents do NOT inherit shell variables. You MUST resolve `$CODEX_PLUGIN_ROOT` to its
 concrete filesystem path and substitute it into every prompt. Run:
 
 ```bash
-bash -c 'echo "$CLAUDE_PLUGIN_ROOT"'
+bash -c 'echo "$CODEX_PLUGIN_ROOT"'
 ```
 
-Use the returned path (e.g. `/Users/username/.claude/plugins/cache/topgun/topgun/1.6.0`)
-as `{resolved_root}` in all Task prompts below. Never pass the literal `$CLAUDE_PLUGIN_ROOT`
+Use the returned path (e.g. `/Users/username/.codex/plugins/cache/topgun/topgun/1.6.0`)
+as `{resolved_root}` in all Task prompts below. Never pass the literal `$CODEX_PLUGIN_ROOT`
 string — the sub-agent receives it as plain text and cannot resolve it.
 
 For each registry, dispatch a Task with this prompt template (substitute `{registry}`,
@@ -151,7 +151,7 @@ After each fetch, output one line: FETCHED: {url} → HTTP {status_code}
 
 Registry: {registry}
 Task description: {task_description}
-CLAUDE_PLUGIN_ROOT: {resolved_root}
+CODEX_PLUGIN_ROOT: {resolved_root}
 Query hash: {hash}
 
 Steps:
@@ -244,7 +244,7 @@ For each result after normalization, compute `content_sha` as follows:
 1. **Registry provides `contentSha` field** (e.g., agentskill.sh ecosystem): use the value as-is.
 2. **Result has `install_url` pointing to a raw SKILL.md file** (URL ending in `/SKILL.md` or containing `raw` path): fetch the file content, then compute:
    ```bash
-   node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" sha256 "{file_contents}"
+   node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" sha256 "{file_contents}"
    ```
    Set the result as `content_sha`.
 3. **Local results**: always compute SHA-256 from the SKILL.md file content read during local search (Step 3). This was already done in Step 3 — reuse that value.
@@ -353,7 +353,7 @@ Write the result to `~/.topgun/found-skills-{hash}.json`:
 
 Use:
 ```bash
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" sha256 "{task_description}"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" sha256 "{task_description}"
 ```
 for `query_hash`, and:
 ```bash
@@ -366,7 +366,7 @@ for `searched_at`.
 ## Step 8: Update State
 
 ```bash
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write found_skills_path "~/.topgun/found-skills-{hash}.json"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write found_skills_path "~/.topgun/found-skills-{hash}.json"
 ```
 
 ---

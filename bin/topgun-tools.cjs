@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { execSync } = require('node:child_process');
+const { seedHookTrustState } = require('./topgun-hook-trust.cjs');
 
 const TOPGUN_HOME = path.join(process.env.HOME, '.topgun');
 const [,, command, ...args] = process.argv;
@@ -165,6 +166,9 @@ switch (command) {
       fs.writeFileSync(installedPath, JSON.stringify({ skills: [], updated_at: null }, null, 2));
     }
     migrateLegacyCodexHooks();
+    seedHookTrustState({
+      packageRoot: path.resolve(__dirname, '..'),
+    });
     output({ status: 'ok', topgun_home: TOPGUN_HOME });
     break;
   }
