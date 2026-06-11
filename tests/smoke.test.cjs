@@ -13,8 +13,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..');
-const CURRENT_VERSION = '0.7.7';
-const TOPGUN_SKILL_SHA256 = 'c648ae758fd9ad0d66b0b788a2f58af5818b926e6a9a92118834e360c7824820';
+const CURRENT_VERSION = '0.7.8';
+const TOPGUN_SKILL_SHA256 = '68223b30c76ef309a1ba74539525e2c7b1f44ba5137e9227da5fa640ea4902c8';
 
 function readJSON(relPath) {
   const absPath = path.join(ROOT, relPath);
@@ -194,7 +194,7 @@ describe('package.json', () => {
     assert.equal(data.name, '@alo-labs/topgun');
   });
 
-  test('has 0.7.7 version', () => {
+  test('has 0.7.8 version', () => {
     const data = readJSON('package.json');
     assert.equal(data.version, CURRENT_VERSION, 'package.json version must match the current release version');
   });
@@ -203,6 +203,155 @@ describe('package.json', () => {
     const data = readJSON('package.json');
     assert.ok(Array.isArray(data.keywords), 'keywords should be array');
     assert.ok(data.keywords.includes('claude-skill'), 'must include claude-skill keyword');
+  });
+});
+
+describe('documentation metadata', () => {
+  test('docs/CICD.md uses repo-relative links', () => {
+    const content = fs.readFileSync(path.join(ROOT, 'docs', 'CICD.md'), 'utf8');
+    assert.ok(content.includes('[docs/pre-release-quality-gate.md](pre-release-quality-gate.md)'));
+    assert.ok(content.includes('[docs/TESTING.md](TESTING.md)'));
+    assert.ok(content.includes('[docs/ARCHITECTURE.md](ARCHITECTURE.md)'));
+    assert.ok(!content.includes('/Users/'), 'docs/CICD.md must not contain machine-local absolute paths');
+  });
+
+  test('docs/knowledge/INDEX.md reflects the live CI/CD doc and current version', () => {
+    const content = fs.readFileSync(path.join(ROOT, 'docs', 'knowledge', 'INDEX.md'), 'utf8');
+    assert.ok(content.includes('| CI/CD | `docs/CICD.md` | active |'));
+    assert.ok(content.includes(`Current version: v${CURRENT_VERSION}`));
+  });
+
+  test('active release-gate docs use TopGun quality-gate state', () => {
+    const files = ['docs/pre-release-quality-gate.md', 'context.md'];
+
+    for (const relPath of files) {
+      const content = fs.readFileSync(path.join(ROOT, relPath), 'utf8');
+      assert.ok(content.includes('~/.topgun/quality-gate.state'), `${relPath} must use TopGun quality-gate state`);
+      assert.ok(!content.includes('~/.claude/.silver-bullet/state'), `${relPath} must not use stale Silver Bullet state`);
+    }
+  });
+
+  test('public docs use the current Codex install surface and artifact names', () => {
+    const expectations = new Map([
+      ['README.md', [
+        'codex plugin marketplace add https://github.com/alo-labs/codex-plugins.git',
+      ]],
+      ['site/index.html', [
+        'codex plugin marketplace add',
+        'Codex · Terminal',
+      ]],
+      ['site/help/index.html', [
+        'Prerequisites: Codex + bundled SENTINEL',
+      ]],
+      ['site/help/getting-started/index.html', [
+        'codex plugin marketplace add https://github.com/alo-labs/codex-plugins.git',
+        'skill picker',
+        '~/.codex/skills/',
+      ]],
+      ['site/help/concepts/index.html', [
+        '~/.topgun/comparison-&lt;hash&gt;.json',
+        '~/.codex/skills/',
+      ]],
+      ['site/help/reference/index.html', [
+        'keychain-set github_token',
+        'found-skills-&lt;hash&gt;.json',
+        'comparison-&lt;hash&gt;.json',
+        'audit-&lt;hash&gt;.json',
+        'installed.json',
+        'validate-partials --hash',
+      ]],
+      ['site/help/troubleshooting/index.html', [
+        '/topgun-update',
+        '~/.topgun/installed.json',
+        'keychain-get github_token',
+      ]],
+      ['site/help/search.js', [
+        'codex plugin marketplace add https://github.com/alo-labs/codex-plugins.git',
+        'found-skills-<hash>.json',
+        '/topgun-update',
+      ]],
+      ['docs/PRD-Overview.md', [
+        '16 active registries',
+        '~/.codex/skills/{name}/',
+      ]],
+      ['docs/ARCHITECTURE.md', [
+        'dual-runtime plugin',
+      ]],
+      ['docs/TESTING.md', [
+        'integration-heavy behavior',
+      ]],
+      ['docs/pre-release-quality-gate.md', [
+        '$CODEX_PLUGIN_ROOT/skills/sentinel/SKILL.md',
+      ]],
+      ['docs/workflows/full-dev-cycle.md', [
+        '~/.codex/skills/',
+        '~/.codex/plugins/cache/',
+      ]],
+      ['docs/workflows/devops-cycle.md', [
+        '~/.codex/skills/',
+        '~/.codex/plugins/cache/',
+      ]],
+      ['skills/topgun/SKILL.md', [
+        'the best available skill for any job',
+      ]],
+    ]);
+
+    for (const [relPath, snippets] of expectations.entries()) {
+      const content = fs.readFileSync(path.join(ROOT, relPath), 'utf8');
+      for (const snippet of snippets) {
+        assert.ok(content.includes(snippet), `${relPath} must include ${snippet}`);
+      }
+    }
+  });
+
+  test('public docs do not reference removed commands or stale Claude-only install paths', () => {
+    const files = [
+      'README.md',
+      'site/index.html',
+      'site/help/index.html',
+      'site/help/getting-started/index.html',
+      'site/help/concepts/index.html',
+      'site/help/reference/index.html',
+      'site/help/troubleshooting/index.html',
+      'site/help/search.js',
+      'docs/PRD-Overview.md',
+      'docs/ARCHITECTURE.md',
+      'docs/TESTING.md',
+      'docs/pre-release-quality-gate.md',
+      'docs/workflows/full-dev-cycle.md',
+      'docs/workflows/devops-cycle.md',
+      'skills/topgun/SKILL.md',
+    ];
+    const forbidden = [
+      'set-token',
+      'get-token',
+      'delete-token',
+      'clear-cache',
+      'reset-state',
+      'show-install-log',
+      'list-registries',
+      'show-manifest',
+      'install-log.json',
+      'audit-manifest.json',
+      'candidates.json',
+      '/plugin install alo-labs/topgun',
+      'Claude Code plugin',
+      'Claude Code terminal',
+      'restart Claude Code',
+      '$CLAUDE_PLUGIN_ROOT/skills/sentinel/SKILL.md',
+      '18+ registries',
+      '18 supported registries',
+      '18 active registries',
+      '~/.claude/skills/',
+      '~/.claude/plugins/cache/',
+    ];
+
+    for (const relPath of files) {
+      const content = fs.readFileSync(path.join(ROOT, relPath), 'utf8');
+      for (const needle of forbidden) {
+        assert.ok(!content.includes(needle), `${relPath} must not include ${needle}`);
+      }
+    }
   });
 });
 
@@ -308,6 +457,28 @@ describe('adapter files — all 16 active present', () => {
     const files = fs.readdirSync(adaptersDir).filter(f => f.endsWith('.md'));
     assert.equal(files.length, 16, `expected 16 adapters, found ${files.length}: ${files.join(', ')}`);
   });
+
+  for (const adapterFile of EXPECTED_ADAPTERS) {
+    test(`adapter ${adapterFile} uses its canonical registry id in machine fields`, () => {
+      const registryId = adapterFile.replace(/\.md$/, '');
+      const content = fs.readFileSync(path.join(adaptersDir, adapterFile), 'utf8');
+      const machineFieldPattern = /(?:source_registry:\s*"([^"]+)"|"registry":\s*"([^"]+)")/g;
+      const mismatches = [];
+
+      for (const match of content.matchAll(machineFieldPattern)) {
+        const value = match[1] || match[2];
+        if (value !== registryId) {
+          mismatches.push(value);
+        }
+      }
+
+      assert.deepEqual(
+        mismatches,
+        [],
+        `${adapterFile} must use "${registryId}" for source_registry and registry literals`
+      );
+    });
+  }
 });
 
 // ─── bin/topgun-tools.cjs ─────────────────────────────────────────────────────

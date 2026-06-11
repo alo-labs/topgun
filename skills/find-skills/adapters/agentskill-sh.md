@@ -36,7 +36,7 @@ Expected shape: `{ data: [...], total, page, totalPages }`.
 | `installCount` | `install_count` |
 | *(whole object)* | `raw_metadata` |
 
-Set `source_registry: "agentskill.sh"` on every result.
+Set `source_registry: "agentskill-sh"` on every result.
 
 ---
 
@@ -52,7 +52,7 @@ If `ags` not found, return immediately:
 
 ```json
 {
-  "registry": "agentskill.sh",
+  "registry": "agentskill-sh",
   "status": "unavailable",
   "reason": "WebFetch failed and ags CLI not found",
   "results": [],
@@ -72,8 +72,8 @@ If `ags` output is not valid JSON or is empty, return:
 
 ```json
 {
-  "registry": "agentskill.sh",
-  "status": "error",
+  "registry": "agentskill-sh",
+  "status": "failed",
   "reason": "ags CLI returned non-JSON output",
   "results": [],
   "latency_ms": 0
@@ -86,7 +86,7 @@ If `ags` output is not valid JSON or is empty, return:
 
 ```json
 {
-  "registry": "agentskill.sh",
+  "registry": "agentskill-sh",
   "status": "ok",
   "reason": null,
   "results": [ /* unified schema objects */ ],
@@ -98,7 +98,7 @@ On failure:
 
 ```json
 {
-  "registry": "agentskill.sh",
+  "registry": "agentskill-sh",
   "status": "unavailable",
   "reason": "<reason string>",
   "results": [],

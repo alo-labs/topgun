@@ -3,7 +3,7 @@ const SEARCH_DATA = [
   {
     page: 'Getting Started',
     title: 'Install TopGun',
-    excerpt: 'Install TopGun with a single command: /plugin install alo-labs/topgun. SENTINEL v2.3.0 ships bundled inside the plugin — no external audit skill required.',
+    excerpt: 'Add the official Codex marketplace source with a single command: codex plugin marketplace add https://github.com/alo-labs/codex-plugins.git. SENTINEL v2.3.0 ships bundled inside the plugin.',
     url: 'getting-started/#install'
   },
   {
@@ -39,13 +39,13 @@ const SEARCH_DATA = [
   {
     page: 'Command Reference',
     title: 'Output Files (~/.topgun/)',
-    excerpt: 'TopGun writes state.json, candidates.json, audit-manifest.json, and install-log.json to ~/.topgun/. These files enable pipeline resume and audit trails.',
+    excerpt: 'TopGun writes state.json, found-skills-<hash>.json, comparison-<hash>.json, audit-<hash>.json, and installed.json to ~/.topgun/. These files enable pipeline resume and audit trails.',
     url: 'reference/#output-files'
   },
   {
     page: 'Troubleshooting',
     title: 'SENTINEL Not Found',
-    excerpt: 'If the bundled SENTINEL file is missing (skills/sentinel/SKILL.md), TopGun will abort before the SecureSkills stage. Reinstall TopGun to restore it: /plugin install alo-labs/topgun.',
+    excerpt: 'If the bundled SENTINEL file is missing (skills/sentinel/SKILL.md), TopGun will abort before the SecureSkills stage. Refresh TopGun with /topgun-update or reinstall it from the official Codex marketplace source.',
     url: 'troubleshooting/#sentinel-missing'
   }
 ];

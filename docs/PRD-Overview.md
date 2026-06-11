@@ -7,7 +7,7 @@ source managed by GSD. Update during the FINALIZATION step of each phase.
 
 ## Product Vision
 
-TopGun is a Claude Code plugin that automates skill discovery, evaluation, and installation. Users describe what they need in plain language; TopGun searches 18+ registries in parallel, compares candidates across multiple quality dimensions, audits the winner for security, and installs it — without the user needing to know which registries exist or how to evaluate a skill's safety manually. The goal is to make "get the best tool for this job" a single command rather than a manual research task.
+TopGun is a plugin that automates skill discovery, evaluation, and installation. Users describe what they need in plain language; TopGun searches 16 active registries in parallel, compares candidates across multiple quality dimensions, audits the winner for security, and installs it — without the user needing to know which registries exist or how to evaluate a skill's safety manually. The goal is to make "get the best tool for this job" a single command rather than a manual research task.
 
 ## Core Value
 
@@ -18,9 +18,9 @@ A user should never have to manually browse registries, compare options, or wond
 ## Requirement Areas
 
 ### Discovery
-- Search across all 18 supported registries on every invocation
+- Search across all 16 supported registries on every invocation
 - All registry searches run in parallel (no sequential batching)
-- Registry dispatch is mechanical (Node.js subprocess fan-out), not LLM-driven, to guarantee actual dispatch
+- Registry dispatch is mechanical (in-process `Task` fan-out), not LLM-driven, to guarantee actual dispatch
 - Failed or unavailable registries are recorded as `unavailable` rather than silently omitted
 - Offline mode: serve cached results when network is unavailable (`--offline` flag)
 
@@ -38,7 +38,7 @@ A user should never have to manually browse registries, compare options, or wond
 
 ### Installation
 - User must explicitly approve the audit manifest before any files are written
-- Skill installed to `~/.claude/skills/{name}/`
+- Skill installed to `~/.codex/skills/{name}/`
 - Reproducibility lock written per run (`~/.topgun/topgun-lock.json`)
 - Audit trail written alongside the installed skill
 

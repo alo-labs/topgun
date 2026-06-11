@@ -224,6 +224,10 @@ TMPFILE=$(mktemp)
 jq --arg key "$CANONICAL_KEY" --arg version "$LATEST_VERSION" \
    --arg path "$CURRENT_ALIAS" --arg sha "$COMMIT_SHA" --arg now "$NOW" \
    'del(.plugins["topgun@alo-labs"], .plugins["topgun@alo-labs-codex-local"]) |
+    (.plugins[$key] //= [{}]) |
+    (.plugins[$key][0].scope //= "project") |
+    (.plugins[$key][0].projectPath //= env.HOME) |
+    (.plugins[$key][0].installedAt //= $now) |
     .plugins[$key][0].version=$version | .plugins[$key][0].installPath=$path |
     .plugins[$key][0].lastUpdated=$now | .plugins[$key][0].gitCommitSha=$sha' \
    "$REGISTRY_FILE" > "$TMPFILE" \
@@ -247,7 +251,37 @@ fi
 
 On failure: display path to `NEW_CACHE` and suggest `codex plugin marketplace add https://github.com/alo-labs/codex-plugins.git`. STOP.
 
-**6.3 Purge old cache versions:**
+**6.3 Refresh native Codex skill mirrors:**
+
+Codex's live picker discovers user-facing skills from `$HOME/.codex/skills/<name>/SKILL.md`. Keep TopGun's internal sub-skills in the plugin cache to avoid collisions with existing skills such as `find-skills`, but mirror the picker-facing entrypoints natively after every update:
+
+```bash
+NATIVE_SKILLS_ROOT="$HOME/.codex/skills"
+mkdir -p "$NATIVE_SKILLS_ROOT"
+
+mirror_topgun_skill() {
+  local source_dir="$1" target_dir="$2" source_path target_path
+  source_path="${CURRENT_ALIAS}/skills/${source_dir}"
+  target_path="${NATIVE_SKILLS_ROOT}/${target_dir}"
+  [[ -f "${source_path}/SKILL.md" ]] || { echo "❌ Missing skill source: ${source_path}/SKILL.md"; return 1; }
+  case "$target_dir" in
+    topgun|topgun-update|audit-security-of-skill) ;;
+    *) echo "❌ Refusing unexpected native skill target: $target_dir"; return 1 ;;
+  esac
+  rm -rf "$target_path"
+  mkdir -p "$target_path"
+  rsync -a --delete "${source_path%/}/" "${target_path}/"
+  chmod -R u+rwX,go+rX "$target_path"
+}
+
+mirror_topgun_skill "topgun" "topgun"
+mirror_topgun_skill "topgun-update" "topgun-update"
+mirror_topgun_skill "sentinel" "audit-security-of-skill"
+```
+
+Do not mirror `find-skills`, `compare-skills`, `secure-skills`, or `install-skills` into `$HOME/.codex/skills`; they are internal dispatch surfaces and their generic names can shadow unrelated installed skills.
+
+**6.4 Purge old cache versions:**
 
 After the registry write succeeds, delete all version directories under the TopGun cache root except the newly installed one. **Important:** TopGun can be installed from multiple marketplace ids — each lives at its own cache root (e.g. `~/.codex/plugins/cache/topgun/` for the top-level marketplace, `~/.codex/plugins/cache/alo-labs-codex/topgun/` for the official Alo Labs Codex marketplace). Purge ALL known cache roots so sibling installs from older marketplace listings are also cleaned up:
 
@@ -340,7 +374,7 @@ Then display:
 ╔══════════════════════════════════════════════╗
 ║  TopGun Updated: v{OLD} → v{LATEST_VERSION}  ║
 ╚══════════════════════════════════════════════╝
-⚠️  Restart Codex Desktop / Codex Code to activate.
+Picker mirrors refreshed in ~/.codex/skills; no restart required.
 Commit SHA: {COMMIT_SHA}
 Current alias: {CURRENT_ALIAS}
 Versioned cache: {NEW_CACHE}
