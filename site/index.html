@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="dark light">
 <script>document.documentElement.setAttribute('data-theme',localStorage.getItem('topgun-theme')||'dark');</script>
 <title>TopGun — Best AI Skill for any Job — Security Assured</title>
-<meta name="description" content="TopGun is a Claude Code plugin that finds, compares, security-audits, and installs the best available skill from 16 active registries. SENTINEL-secured. Auto-installed.">
+<meta name="description" content="TopGun is a plugin that finds, compares, security-audits, and installs the best available skill from 16 active registries. SENTINEL-secured. Auto-installed.">
 <meta property="og:title" content="TopGun — Best AI Skill for any Job — Security Assured">
 <meta property="og:description" content="TopGun searches 16 active skill registries, ranks every candidate across four dimensions, runs a SENTINEL security audit until clean, and installs the winner — automatically.">
 <meta property="og:type" content="website">
@@ -408,7 +408,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
   <div class="container">
     <div class="version-badge">
       <span class="dot"></span>
-      v0.7.7 · CLAUDE CODE PLUGIN
+      v0.7.8 · PLUGIN
     </div>
     <h1><span class="gradient">TopGun</span></h1>
     <p class="hero-tagline-caps">Best AI Skill for any Job — Security Assured</p>
@@ -463,7 +463,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
   <div class="container">
     <div class="section-label fade-in">The Solution</div>
     <h2 class="section-title fade-in">A 4-Stage Quality Pipeline</h2>
-    <p class="section-desc fade-in">Every <code style="em;color:var(--accent-light);background:var(--amber-a12);padding:2px 8px;border-radius:4px">/topgun</code> invocation runs the full pipeline. No shortcuts.</p>
+    <p class="section-desc fade-in">Every <code style="font-family:var(--font-mono);font-size:1em;color:var(--accent-light);background:var(--amber-a12);padding:2px 8px;border-radius:4px">/topgun</code> invocation runs the full pipeline. No shortcuts.</p>
     <div class="layer-grid">
       <div class="layer-card fade-in">
         <div class="layer-num">1</div>
@@ -490,7 +490,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
         <div class="layer-num">4</div>
         <div class="layer-body">
           <h3>InstallSkills <span class="layer-badge" style="background:var(--green-a12);color:var(--green)">INSTALL</span></h3>
-          <p>Presents a full audit manifest for user approval. On approval, installs via <code style="em;color:var(--accent-light)">/plugin install</code> with local-copy fallback if the plugin system has a known bug.</p>
+          <p>Presents a full audit manifest for user approval. On approval, installs through the plugin flow when possible, with local-copy fallback if the host install step is unavailable.</p>
         </div>
       </div>
     </div>
@@ -514,11 +514,11 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
       </div>
       <div class="registry-card fade-in">
         <div class="reg-icon"><i data-lucide="layers"></i></div>
-        <div><div class="reg-name">Smithery</div><div class="reg-desc">MCP-native marketplace — skills adapted for Claude Code workflows</div></div>
+        <div><div class="reg-name">Smithery</div><div class="reg-desc">MCP-native marketplace — skills adapted for Codex workflows</div></div>
       </div>
       <div class="registry-card fade-in">
         <div class="reg-icon"><i data-lucide="github"></i></div>
-        <div><div class="reg-name">GitHub Topics</div><div class="reg-desc">Public repos tagged <code style="em">claude-skill</code> — broad community coverage</div></div>
+        <div><div class="reg-name">GitHub Topics</div><div class="reg-desc">Public repos tagged <code style="font-family:var(--font-mono);font-size:1em">claude-skill</code> — broad community coverage</div></div>
       </div>
       <div class="registry-card fade-in">
         <div class="reg-icon"><i data-lucide="git-branch"></i></div>
@@ -526,7 +526,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
       </div>
       <div class="registry-card fade-in">
         <div class="reg-icon"><i data-lucide="package"></i></div>
-        <div><div class="reg-name">npm</div><div class="reg-desc">Published <code style="em">@claude-skill</code> scoped packages with semver versioning</div></div>
+        <div><div class="reg-name">npm</div><div class="reg-desc">Published <code style="font-family:var(--font-mono);font-size:1em">@claude-skill</code> scoped packages with semver versioning</div></div>
       </div>
       <div class="registry-card fade-in">
         <div class="reg-icon"><i data-lucide="cpu"></i></div>
@@ -563,7 +563,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
       <div class="feature-card fade-in">
         <div class="feature-icon" style="background:var(--red-a12);color:var(--red)"><i data-lucide="phone-off"></i></div>
         <h3>Phone-Home Detection</h3>
-        <p>Rejects any SKILL.md containing <code style="em">curl</code>, <code style="em">wget</code>, or <code style="em">fetch</code> in executable sections.</p>
+        <p>Rejects any SKILL.md containing <code style="font-family:var(--font-mono);font-size:1em">curl</code>, <code style="font-family:var(--font-mono);font-size:1em">wget</code>, or <code style="font-family:var(--font-mono);font-size:1em">fetch</code> in executable sections.</p>
       </div>
       <div class="feature-card fade-in">
         <div class="feature-icon" style="background:var(--green-a12);color:var(--green)"><i data-lucide="repeat-2"></i></div>
@@ -587,7 +587,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
     <p class="section-desc centered fade-in">Install TopGun once. From that point forward, every skill you need is one command away — always the best available, always audited.</p>
     <div class="install-block fade-in">
       <div class="install-header">
-        <span class="block-title">Claude Code · Terminal</span>
+        <span class="block-title">Codex · Terminal</span>
         <div class="block-dots">
           <span style="background:#dc2626"></span>
           <span style="background:#f59e0b"></span>
@@ -595,8 +595,8 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
         </div>
       </div>
       <div class="install-code">
-        <div><span class="comment"># Step 1: Install the TopGun plugin</span></div>
-        <div><span class="cmd">/plugin install</span> <span class="string">alo-labs/topgun</span></div>
+        <div><span class="comment"># Step 1: Add the official Codex marketplace source</span></div>
+        <div><span class="cmd">codex plugin marketplace add</span> <span class="string">https://github.com/alo-labs/codex-plugins.git</span></div>
         <div>&nbsp;</div>
         <div><span class="comment"># Step 2: Use TopGun for any task</span></div>
         <div><span class="cmd">/topgun</span> <span class="string">find me a skill for web scraping</span></div>

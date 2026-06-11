@@ -17,6 +17,22 @@
 
 <!-- ENTRIES BELOW — newest first -->
 
+## 2026-06-12 — v0.7.8
+
+**What**: Patch release that finishes the Codex-facing TopGun refresh: the installer and finder now align with the current Codex plugin cache/runtime layout, release-facing docs no longer describe restart-only or Claude-only behavior, and the local validation surface matches the actual orchestrator artifacts and state machine.
+
+**Changed**:
+- `agents/topgun-finder.md`, `skills/find-skills/SKILL.md`, `skills/find-skills/adapters/agentskill-sh.md` — refreshed registry/finder behavior for the current Codex cache layout and canonical registry ids so local TopGun-managed skills surface correctly in picker-facing flows.
+- `agents/topgun-installer.md`, `skills/install-skills/SKILL.md`, `skills/topgun-update/SKILL.md`, `skills/topgun/SKILL.md` — removed stale restart assumptions, pointed local-copy installs at `~/.codex/skills/{skill_name}/`, and switched release/install summaries to the exact state-recorded audit and comparison artifacts instead of wildcard tailing.
+- `bin/topgun-tools.cjs` — aligned the state and found-skills schemas with current runtime behavior: 16 active registries by default, dynamic partial validation count, nullable descriptions, `failed` state support, and safer installed-plugin repair behavior.
+- `README.md`, `site/**`, `docs/CICD.md`, `docs/ARCHITECTURE.md`, `docs/PRD-Overview.md`, `docs/TESTING.md`, `docs/workflows/*.md`, `context.md`, `docs/knowledge/INDEX.md` — updated public and operator docs to match the Codex plugin marketplace flow, current artifact names, and the TopGun-owned release-gate state path.
+- `tests/*.test.cjs`, `bin/test-topgun-update.sh` — expanded regression coverage for the release-facing docs, schema invariants, canonical adapter ids, update/install metadata handling, and Codex cache normalization.
+- `package.json`, `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`, `.claude-plugin/marketplace.json` — bumped the release version to `0.7.8` and refreshed the TopGun SKILL.md SHA-256 in both plugin manifests.
+
+**Migration**: No manual migration is required. Existing installs keep using `~/.topgun/` state and the stable Codex plugin alias; the next update picks up the corrected docs and runtime metadata.
+
+**Process**: Completed the full progressive review ladder (`gpt-5.4` low/medium/high/xhigh, then `gpt-5.5` low/medium/high/xhigh), requiring two consecutive clean passes per rung before release preparation.
+
 ## 2026-05-13 — v0.7.7
 
 **What**: Patch release that finalizes the Codex-native installer contract: Codex installs now target lowercase `~/.codex` only, legacy uppercase `~/.Codex` remains migration-only, and hook trust seeding stays aligned with the exact reviewed hook source.

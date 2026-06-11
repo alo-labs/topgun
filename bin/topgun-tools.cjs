@@ -129,8 +129,8 @@ function migrateLegacyCodexHooks() {
 
 const DEFAULT_REGISTRIES = [
   'skills-sh','agentskill-sh','smithery','github','gitlab','glama','npm','lobehub',
-  'osm','huggingface','langchain-hub','claude-plugins-official','cursor-directory',
-  'clawhub','mcp-so','opentools','skillsmp','vskill'
+  'huggingface','langchain-hub','claude-plugins-official','cursor-directory',
+  'clawhub','mcp-so','opentools','skillsmp'
 ];
 
 // NOTE (v1.5.0): the dispatch-registries subprocess command was removed.
@@ -387,7 +387,7 @@ switch (command) {
       'state': {
         type: 'object',
         properties: {
-          current_stage: { type: ['string', 'null'], enum: ['find', 'compare', 'secure', 'approve', 'install', 'complete', null] },
+          current_stage: { type: ['string', 'null'], enum: ['find', 'compare', 'secure', 'approve', 'install', 'complete', 'failed', null] },
           run_id: { type: ['string', 'null'] },
           started_at: { type: ['string', 'null'], format: 'date-time' },
           task_description: { type: ['string', 'null'] },
@@ -403,29 +403,54 @@ switch (command) {
         type: 'object',
         properties: {
           query: { type: 'string' },
+          query_hash: { type: 'string' },
           searched_at: { type: 'string', format: 'date-time' },
-          registries_searched: { type: 'array', items: { type: 'string' } },
+          total_elapsed_ms: { type: 'number' },
+          registries_searched: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                registry: { type: 'string' },
+                status: { type: 'string', enum: ['ok', 'failed', 'unavailable'] },
+                reason: { type: ['string', 'null'] },
+                latency_ms: { type: 'number' },
+                result_count: { type: 'number' },
+              },
+              required: ['registry', 'status', 'reason', 'latency_ms', 'result_count'],
+            },
+          },
+          unavailable_count: { type: 'number' },
+          unavailable_warning: { type: 'boolean' },
+          dedup_removed: { type: 'number' },
           results: {
             type: 'array',
             items: {
               type: 'object',
               properties: {
                 name: { type: 'string' },
-                description: { type: 'string' },
+                description: { type: ['string', 'null'] },
                 source_registry: { type: 'string' },
-                install_count: { type: 'number' },
-                stars: { type: 'number' },
+                install_count: { type: ['number', 'null'] },
+                stars: { type: ['number', 'null'] },
                 security_score: { type: ['number', 'null'] },
                 last_updated: { type: ['string', 'null'] },
                 content_sha: { type: ['string', 'null'] },
-                install_url: { type: 'string' },
+                install_url: { type: ['string', 'null'] },
                 raw_metadata: { type: 'object' }
               },
-              required: ['name', 'source_registry', 'install_url']
+              required: [
+                'name', 'description', 'source_registry', 'install_count', 'stars',
+                'security_score', 'last_updated', 'content_sha', 'install_url', 'raw_metadata'
+              ]
             }
-          }
+          },
+          total_results: { type: 'number' }
         },
-        required: ['query', 'results']
+        required: [
+          'query', 'query_hash', 'searched_at', 'total_elapsed_ms', 'registries_searched',
+          'unavailable_count', 'unavailable_warning', 'dedup_removed', 'results', 'total_results'
+        ]
       },
       'comparison-results': {
         type: 'object',
@@ -497,7 +522,7 @@ switch (command) {
     const hashIdx = args.indexOf('--hash');
     const expectedIdx = args.indexOf('--expected');
     const hash = hashIdx !== -1 ? args[hashIdx + 1] : null;
-    const expected = expectedIdx !== -1 ? parseInt(args[expectedIdx + 1], 10) : 18;
+    const expected = expectedIdx !== -1 ? parseInt(args[expectedIdx + 1], 10) : DEFAULT_REGISTRIES.length;
 
     if (!hash) {
       console.error('Usage: validate-partials --hash <hash> [--expected <N>]');

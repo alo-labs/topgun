@@ -11,7 +11,7 @@
 - **Version:** 0.7.7 (released)
 - **Repo:** https://github.com/alo-labs/topgun.git
 - **Stack:** Node.js (CJS), no runtime dependencies
-- **Description:** Finds, compares, secures, and installs Claude skills across 16 registries
+- **Description:** Finds, compares, secures, and installs Codex/Claude-compatible skills across 16 active registries
 
 ---
 
@@ -57,8 +57,8 @@ Adapters live in `skills/find-skills/adapters/`:
 
 - `tests/smoke.test.cjs` — structural validity (JSON, frontmatter, adapter count)
 - `tests/failure-contracts.test.cjs` — agent STAGE FAILED contracts, keychain roundtrip
-- **Count:** 257/257 passing (as of v0.7.7)
-- Smoke test asserts adapter count = 16; active dispatch count is 16
+- **Verification:** `npm run test:all`
+- Smoke tests assert adapter count = 16; active dispatch count is 16
 
 ---
 
@@ -77,9 +77,9 @@ Adapters live in `skills/find-skills/adapters/`:
 
 ---
 
-## Next: Registries 19 & 20
+## Future Registry Expansion
 
-Candidates to reach 20 total adapters:
+Candidates for expanding beyond the current 16 active adapters:
 
 | Candidate | Why | API |
 |-----------|-----|-----|
@@ -93,7 +93,7 @@ Candidates to reach 20 total adapters:
 When adding:
 1. Create adapter `.md` file in `skills/find-skills/adapters/`
 2. Update `EXPECTED_ADAPTERS` array in `tests/smoke.test.cjs`
-3. Update adapter count assertion from 18 → 20
+3. Update adapter count assertions and all default registry lists from 16 to the new active total
 
 ---
 
@@ -119,8 +119,8 @@ When adding:
 
 ---
 
-## Silver Bullet Enforcement
+## TopGun Quality Gate Enforcement
 
-- State file: `~/.claude/.silver-bullet/state`
-- Quality gate requires 4 stages, each with `verification-before-completion-stage-N` before `quality-gate-stage-N`
-- `dev-cycle-check.sh` enforces whitelisted echo patterns for stage markers
+- State file: `~/.topgun/quality-gate.state`
+- Quality gate requires 4 stages, each with `/superpowers:verification-before-completion` before `quality-gate-stage-N`
+- The pre-release gate is release-blocking; all four markers must be present before tagging

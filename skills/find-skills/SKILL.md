@@ -19,8 +19,9 @@ Search locally installed skills **before** querying any external registry.
 
 1. Use Glob to find all SKILL.md files under `~/.codex/skills/`:
    - Pattern: `~/.codex/skills/*/SKILL.md`
-2. Use Glob to find all SKILL.md files under `~/.codex/plugins/`:
-   - Pattern: `~/.codex/plugins/*/skills/*/SKILL.md`
+2. Use Glob to find all SKILL.md files under the Codex plugin cache:
+   - Pattern: `~/.codex/plugins/cache/*/*/*/skills/*/SKILL.md`
+   - This matches the live cache layout `cache/<publisher>/<plugin>/<version-or-alias>/skills/<skill>/SKILL.md`, including `current` and `local` aliases.
 3. For each file found, Read it and check whether the `name` or `description`
    fields semantically match the query. Simple substring or keyword match is
    sufficient.
@@ -58,7 +59,7 @@ Each adapter must return the following contract object:
 ```json
 {
   "registry": "string",
-  "status": "ok" | "unavailable" | "error",
+  "status": "ok" | "failed" | "unavailable",
   "reason": "string or null",
   "results": [],
   "latency_ms": 0
@@ -87,12 +88,14 @@ Every result object — from any registry, including local — must conform to:
 ```json
 {
   "name": "string",
-  "description": "string",
-  "install_url": "string or null",
+  "description": "string or null",
+  "source_registry": "string",
+  "install_count": "number or null",
   "stars": "number or null",
+  "security_score": "number or null",
   "last_updated": "ISO string or null",
   "content_sha": "string or null",
-  "source_registry": "string",
+  "install_url": "string or null",
   "raw_metadata": {}
 }
 ```
@@ -152,7 +155,7 @@ Hash: SHA-256 of the original task description
   "registries_searched": [
     {
       "registry": "name",
-      "status": "ok|unavailable|error",
+      "status": "ok|failed|unavailable",
       "reason": null,
       "latency_ms": 0,
       "result_count": 0
@@ -164,7 +167,7 @@ Hash: SHA-256 of the original task description
   "results": [
     {
       "name": "string",
-      "description": "string",
+      "description": "string or null",
       "source_registry": "string",
       "install_count": null,
       "stars": null,
@@ -197,5 +200,5 @@ Results: ~/.topgun/found-skills-{hash}.json
 Where:
 - `{total_results}` = total count of result objects after deduplication
 - `{registries_count}` = total number of registries searched (local + external)
-- `{unavailable_count}` = number of registries with unavailable/error status
+- `{unavailable_count}` = number of registries with unavailable/failed status
 - `{hash}` = the query hash

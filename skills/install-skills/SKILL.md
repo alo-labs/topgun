@@ -17,7 +17,7 @@ It is not normally invoked directly by the user.
 1. Reads the secured skill path and metadata from TopGun state.
 2. Attempts `/plugin install` as the primary installation method.
 3. Runs post-install verification (installed_plugins.json check + test invocation).
-4. Falls back to local-copy install (`~/.claude/skills/{skill_name}/`) if the plugin install fails or verification fails.
+4. Falls back to local-copy install (`~/.codex/skills/{skill_name}/`) if the plugin install fails or verification fails.
 5. Updates `~/.topgun/installed.json` with the install record.
 6. Returns a completion or error marker.
 

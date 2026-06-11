@@ -249,12 +249,12 @@ describe('unavailable registry counting', () => {
     assert.equal(count >= 3, true, 'should trigger warning at 3+');
   });
 
-  test('error status also counts as unavailable', () => {
+  test('failed status also counts as unavailable', () => {
     const registries = [
       { registry: 'skills-sh', status: 'ok' },
-      { registry: 'smithery', status: 'error' },
+      { registry: 'smithery', status: 'failed' },
       { registry: 'github', status: 'unavailable' },
-      { registry: 'agentskill-sh', status: 'error' },
+      { registry: 'agentskill-sh', status: 'failed' },
       { registry: 'gitlab', status: 'unavailable' },
     ];
     const count = countUnavailable(registries);

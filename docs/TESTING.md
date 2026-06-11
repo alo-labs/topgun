@@ -1,10 +1,10 @@
 # Testing Strategy
 
-TopGun is a Claude Code plugin — its "tests" are pipeline runs and security audits rather than unit test suites.
+TopGun is a plugin with integration-heavy behavior — its primary tests are pipeline runs, contract tests, and security audits rather than unit tests alone.
 
 ## Test Approach
 
-**Manual pipeline runs** — run `/topgun find <task>` end-to-end and verify:
+**Manual pipeline runs** — run `/topgun <task>` end-to-end and verify:
 - `~/.topgun/registry-{hash}-*.json` partial files exist (16 files)
 - `found-skills-{hash}.json` is written with `registries_searched` count == 16
 - `validate-partials` hook in `hooks/hooks.json` blocks writes when partial count < 16

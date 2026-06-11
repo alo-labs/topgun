@@ -1,7 +1,7 @@
 <!-- generated-by: gsd-doc-writer -->
 # TopGun
 
-TopGun is a Claude Code plugin that automatically finds, compares, security-audits, and installs the best available skill for any job — searching 16 active registries in parallel so you never settle for a suboptimal tool.
+TopGun is a plugin that automatically finds, compares, security-audits, and installs the best available skill for any job — searching 16 active registries in parallel so you never settle for a suboptimal tool.
 
 ## Quick Start
 
@@ -105,7 +105,7 @@ To list TopGun on skills.sh:
 1. Ensure the GitHub repository is public at `https://github.com/alo-labs/topgun`
 2. Verify `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` are in `.claude-plugin/` for `alo-labs/claude-plugins`
 3. Verify `.codex-plugin/plugin.json` exists and `.agents/plugins/marketplace.json` is present for `alo-labs/codex-plugins`
-4. Tag a release: `git tag v0.7.7 && git push origin v0.7.7`
+4. Tag a release: `git tag v0.7.8 && git push origin v0.7.8`
 5. Submit via: `npx skills submit alo-labs/topgun`
 
 ### Auto-Update

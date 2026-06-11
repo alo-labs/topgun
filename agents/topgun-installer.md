@@ -49,12 +49,17 @@ Extract the following fields from state:
 - `skill_name` — canonical name of the skill
 - `install_url` — remote install URL from found-skills registry (may be empty)
 - `source_registry` — registry the skill was sourced from
+- `audit_path` — exact path to the audit manifest for this run
+- `comparison_path` — exact path to the comparison manifest for this run
 
-Also read the audit and comparison JSON files for full metadata:
+Then read those exact audit and comparison files for full metadata:
 
 ```bash
-cat ~/.topgun/audit-*.json 2>/dev/null | tail -1
-cat ~/.topgun/comparison-*.json 2>/dev/null | tail -1
+STATE_JSON=$(node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-read)
+AUDIT_PATH=$(printf '%s' "$STATE_JSON" | node -e 'let d="";process.stdin.on("data",c=>d+=c);process.stdin.on("end",()=>{const s=JSON.parse(d);console.log(s.audit_path||"")})')
+COMPARISON_PATH=$(printf '%s' "$STATE_JSON" | node -e 'let d="";process.stdin.on("data",c=>d+=c);process.stdin.on("end",()=>{const s=JSON.parse(d);console.log(s.comparison_path||"")})')
+[ -n "$AUDIT_PATH" ] && cat "$AUDIT_PATH"
+[ -n "$COMPARISON_PATH" ] && cat "$COMPARISON_PATH"
 ```
 
 ---
@@ -89,26 +94,40 @@ Read the Codex plugin registry:
 cat ~/.codex/plugins/installed_plugins.json 2>/dev/null
 ```
 
-Search the JSON for an entry whose `name` or `path` matches the installed skill.
+Search the JSON for an entry whose plugin key or `installPath` matches the installed skill.
 
 **If the entry EXISTS:** set `plugins_json_status = "found"`.
 
-**If the entry is MISSING** (GitHub issue #12457 — silent persistence bug): write the entry manually. Read the current file, append a new entry, and write it back:
+**If the entry is MISSING** (GitHub issue #12457 — silent persistence bug): preserve the real Codex registry shape and write a manual fallback entry into the `.plugins` map:
 
 ```bash
 node -e "
 const fs = require('fs');
 const path = require('path');
 const pluginsPath = path.join(process.env.HOME, '.codex', 'plugins', 'installed_plugins.json');
-let plugins = [];
-try { plugins = JSON.parse(fs.readFileSync(pluginsPath, 'utf8')); } catch(e) { plugins = []; }
-plugins.push({
-  name: '{skill_name}',
-  path: '{install_path}',
-  installed_at: new Date().toISOString(),
+const now = new Date().toISOString();
+const pluginKey = '{skill_name}@topgun-imported';
+let registry = { version: 2, plugins: {} };
+try {
+  const parsed = JSON.parse(fs.readFileSync(pluginsPath, 'utf8'));
+  if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+    registry = {
+      version: typeof parsed.version === 'number' ? parsed.version : 2,
+      plugins: parsed.plugins && typeof parsed.plugins === 'object' ? parsed.plugins : {},
+    };
+  }
+} catch(e) {}
+registry.plugins[pluginKey] = [{
+  scope: 'project',
+  projectPath: process.env.HOME,
+  installPath: '{install_path}',
+  version: 'manual-fix',
+  installedAt: now,
+  lastUpdated: now,
   source: 'topgun'
-});
-fs.writeFileSync(pluginsPath, JSON.stringify(plugins, null, 2));
+}];
+fs.mkdirSync(path.dirname(pluginsPath), { recursive: true });
+fs.writeFileSync(pluginsPath, JSON.stringify(registry, null, 2));
 console.log('Entry written manually (#12457 mitigation)');
 "
 ```
@@ -241,9 +260,14 @@ node -e "
 const fs = require('fs');
 const path = require('path');
 const regPath = path.join(process.env.HOME, '.topgun', 'installed.json');
-let registry = [];
-try { registry = JSON.parse(fs.readFileSync(regPath, 'utf8')); } catch(e) { registry = []; }
-registry.push({
+let registry = { skills: [], updated_at: null };
+try {
+  const parsed = JSON.parse(fs.readFileSync(regPath, 'utf8'));
+  if (parsed && typeof parsed === 'object' && Array.isArray(parsed.skills)) {
+    registry = parsed;
+  }
+} catch(e) {}
+registry.skills.push({
   name: '{skill_name}',
   source_registry: '{source_registry}',
   install_method: '{plugin|local-copy}',
@@ -251,6 +275,7 @@ registry.push({
   secured_path: '~/.topgun/secured/{sha}/SKILL.md',
   install_path: '{actual install path}'
 });
+registry.updated_at = new Date().toISOString();
 fs.writeFileSync(regPath, JSON.stringify(registry, null, 2));
 console.log('Registry updated');
 "

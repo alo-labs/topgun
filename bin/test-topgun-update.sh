@@ -143,7 +143,7 @@ cat > "$FIXTURE_DIR/installed_plugins_caps.json" << 'EOF'
 {"plugins":{"TopGun@AloLabs":[{"version":"1.3.0","installPath":"/home/user/.codex/plugins/cache/AloLabs/TopGun/1.3.0"}]}}
 EOF
 cat > "$FIXTURE_DIR/installed_plugins_with_aliases.json" << 'EOF'
-{"plugins":{"topgun@alo-labs":[{"version":"1.4.0","installPath":"/home/user/.codex/plugins/cache/alo-labs/topgun/1.4.0"}],"topgun@alo-labs-codex-local":[{"version":"1.4.1","installPath":"/home/user/.codex/plugins/cache/alo-labs-codex-local/topgun/1.4.1"}],"topgun@alo-labs-codex":[{"version":"1.5.0","installPath":"/home/user/.codex/plugins/cache/alo-labs-codex/topgun/current","lastUpdated":"2026-04-25T00:00:00Z"}],"silver-bullet@silver-bullet":[{"version":"0.25.0","installPath":"/home/user/.codex/plugins/cache/silver-bullet/silver-bullet/0.25.0"}]}}
+{"plugins":{"topgun@alo-labs":[{"version":"1.4.0","installPath":"/home/user/.codex/plugins/cache/alo-labs/topgun/1.4.0"}],"topgun@alo-labs-codex-local":[{"version":"1.4.1","installPath":"/home/user/.codex/plugins/cache/alo-labs-codex-local/topgun/1.4.1"}],"topgun@alo-labs-codex":[{"scope":"project","projectPath":"/home/user","version":"1.5.0","installPath":"/home/user/.codex/plugins/cache/alo-labs-codex/topgun/current","installedAt":"2026-04-25T00:00:00Z","lastUpdated":"2026-04-25T00:00:00Z"}],"silver-bullet@silver-bullet":[{"version":"0.25.0","installPath":"/home/user/.codex/plugins/cache/silver-bullet/silver-bullet/0.25.0"}]}}
 EOF
 
 # ---------------------------------------------------------------------------
@@ -217,9 +217,16 @@ UPDATED=$(jq \
   --arg sha "abc1234def5678abc1234def5678abc1234def56" \
   --arg now "2026-04-26T10:00:00Z" \
   'del(.plugins["topgun@alo-labs"], .plugins["topgun@alo-labs-codex-local"]) |
+   (.plugins[$key] //= [{}]) |
+   (.plugins[$key][0].scope //= "project") |
+   (.plugins[$key][0].projectPath //= env.HOME) |
+   (.plugins[$key][0].installedAt //= $now) |
    .plugins[$key][0].version=$version|.plugins[$key][0].installPath=$path|
    .plugins[$key][0].lastUpdated=$now|.plugins[$key][0].gitCommitSha=$sha' \
   "$FIXTURE_DIR/installed_plugins_with_aliases.json")
+assert_eq "scope preserved"             "project" "$(echo "$UPDATED"|jq -r '.plugins["topgun@alo-labs-codex"][0].scope')"
+assert_eq "projectPath preserved"       "/home/user" "$(echo "$UPDATED"|jq -r '.plugins["topgun@alo-labs-codex"][0].projectPath')"
+assert_eq "installedAt preserved"       "2026-04-25T00:00:00Z" "$(echo "$UPDATED"|jq -r '.plugins["topgun@alo-labs-codex"][0].installedAt')"
 assert_eq "version updated to 1.6.0"    "1.6.0"   "$(echo "$UPDATED"|jq -r '.plugins["topgun@alo-labs-codex"][0].version')"
 assert_eq "installPath updated"         "/home/user/.codex/plugins/cache/alo-labs-codex/topgun/current" \
                                         "$(echo "$UPDATED"|jq -r '.plugins["topgun@alo-labs-codex"][0].installPath')"
@@ -229,11 +236,46 @@ assert_eq "lastUpdated written"         "2026-04-26T10:00:00Z" \
                                         "$(echo "$UPDATED"|jq -r '.plugins["topgun@alo-labs-codex"][0].lastUpdated')"
 assert_eq "other plugin not touched"    "0.25.0" \
                                         "$(echo "$UPDATED"|jq -r '.plugins["silver-bullet@silver-bullet"][0].version')"
-assert_eq "legacy alias removed"        "false"  "$(echo "$UPDATED" | jq -r 'has("topgun@alo-labs")')"
-assert_eq "legacy local alias removed"  "false"  "$(echo "$UPDATED" | jq -r 'has("topgun@alo-labs-codex-local")')"
+assert_eq "legacy alias removed"        "false"  "$(echo "$UPDATED" | jq -r '.plugins | has("topgun@alo-labs")')"
+assert_eq "legacy local alias removed"  "false"  "$(echo "$UPDATED" | jq -r '.plugins | has("topgun@alo-labs-codex-local")')"
 
 # ---------------------------------------------------------------------------
-echo ""; echo "=== SUITE 5: rm -rf safety guard (Step 5.3 cancel / Step 5.4 install) ==="
+echo ""; echo "=== SUITE 5: Native Codex skill mirrors (Step 6.3) ==="
+MIRROR_ROOT="$FIXTURE_DIR/native-mirror"
+CURRENT_ALIAS="$FIXTURE_DIR/current-topgun"
+mkdir -p "$CURRENT_ALIAS/skills/topgun" "$CURRENT_ALIAS/skills/topgun-update" "$CURRENT_ALIAS/skills/sentinel" "$CURRENT_ALIAS/skills/find-skills"
+printf '%s\n' '---' 'name: topgun' '---' '# TopGun' > "$CURRENT_ALIAS/skills/topgun/SKILL.md"
+printf '%s\n' '---' 'name: topgun-update' '---' '# TopGun Update' > "$CURRENT_ALIAS/skills/topgun-update/SKILL.md"
+printf '%s\n' '---' 'name: audit-security-of-skill' '---' '# Sentinel' > "$CURRENT_ALIAS/skills/sentinel/SKILL.md"
+printf '%s\n' '---' 'name: find-skills' '---' '# Internal' > "$CURRENT_ALIAS/skills/find-skills/SKILL.md"
+mirror_topgun_skill_test() {
+  local source_dir="$1" target_dir="$2" source_path target_path
+  source_path="${CURRENT_ALIAS}/skills/${source_dir}"
+  target_path="${MIRROR_ROOT}/${target_dir}"
+  [[ -f "${source_path}/SKILL.md" ]] || return 1
+  case "$target_dir" in
+    topgun|topgun-update|audit-security-of-skill) ;;
+    *) return 1 ;;
+  esac
+  rm -rf "$target_path"
+  mkdir -p "$target_path"
+  rsync -a --delete "${source_path%/}/" "${target_path}/"
+}
+mirror_topgun_skill_test "topgun" "topgun"
+mirror_topgun_skill_test "topgun-update" "topgun-update"
+mirror_topgun_skill_test "sentinel" "audit-security-of-skill"
+if mirror_topgun_skill_test "find-skills" "find-skills"; then
+  fail "internal find-skills is not mirrored" "blocked" "mirrored"
+else
+  pass "internal find-skills is not mirrored"
+fi
+assert_file_exists "topgun native mirror exists" "$MIRROR_ROOT/topgun/SKILL.md"
+assert_file_exists "topgun-update native mirror exists" "$MIRROR_ROOT/topgun-update/SKILL.md"
+assert_file_exists "sentinel native mirror uses frontmatter name as directory" "$MIRROR_ROOT/audit-security-of-skill/SKILL.md"
+assert_file_absent "generic find-skills mirror absent" "$MIRROR_ROOT/find-skills/SKILL.md"
+
+# ---------------------------------------------------------------------------
+echo ""; echo "=== SUITE 6: rm -rf safety guard (Step 5.3 cancel / Step 5.4 install) ==="
 # NOTE: safe_rm takes a mock_home parameter to avoid touching the real $HOME during tests.
 # The production guard in SKILL.md uses the literal $HOME variable inline — same 3-part logic:
 #   [ -n ] && [[ path == $HOME/.codex/plugins/cache/* ]] && [ -d ] && rm -rf
@@ -254,7 +296,7 @@ assert_eq "empty NEW_CACHE is blocked"         "BLOCKED"  "$(safe_rm "" "$FAKE_H
 assert_eq "non-existent dir in prefix blocked" "BLOCKED"  "$(safe_rm "$FAKE_HOME/.codex/plugins/cache/alo-labs-codex/topgun/9.9.9" "$FAKE_HOME")"
 
 # ---------------------------------------------------------------------------
-echo ""; echo "=== SUITE 6: Clean reinstall bootstrap and stable current alias ==="
+echo ""; echo "=== SUITE 7: Clean reinstall bootstrap and stable current alias ==="
 REINSTALL_HOME="$FIXTURE_DIR/reinstall-home"
 SNAPSHOT_ROOT="$FIXTURE_DIR/local-snapshot"
 LEGACY_BACKUP_ROOT="$FIXTURE_DIR/legacy-backup"
@@ -402,8 +444,8 @@ assert_file_exists "bootstrapped hook manifest exists" "$NEW_CACHE/hooks/hooks.j
 assert_eq "current alias is a symlink" "yes" "$(if [[ -L "$CURRENT_ALIAS" ]]; then echo yes; else echo no; fi)"
 assert_file_exists "current alias exposes bootstrapped executable" "$CURRENT_ALIAS/bin/topgun-tools.cjs"
 assert_eq "canonical registry points at stable current alias" "$CURRENT_ALIAS" "$(jq -r '.plugins["topgun@alo-labs-codex"][0].installPath' "$LOWER_REGISTRY")"
-assert_eq "stale alias removed after reinstall" "false" "$(jq -r 'has("topgun@alo-labs")' "$LOWER_REGISTRY")"
-assert_eq "stale local alias removed after reinstall" "false" "$(jq -r 'has("topgun@alo-labs-codex-local")' "$LOWER_REGISTRY")"
+assert_eq "stale alias removed after reinstall" "false" "$(jq -r '.plugins | has("topgun@alo-labs")' "$LOWER_REGISTRY")"
+assert_eq "stale local alias removed after reinstall" "false" "$(jq -r '.plugins | has("topgun@alo-labs-codex-local")' "$LOWER_REGISTRY")"
 assert_contains "bootstrapped cache keeps Codex hook root" 'CODEX_PLUGIN_ROOT' "$NEW_CACHE/hooks/hooks.json"
 assert_not_contains "bootstrapped cache drops Claude hook root" 'CLAUDE_PLUGIN_ROOT' "$NEW_CACHE/hooks/hooks.json"
 
