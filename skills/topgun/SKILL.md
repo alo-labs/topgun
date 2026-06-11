@@ -5,7 +5,7 @@ description: >
   "find the best skill for", "search skill registries", "install a skill safely",
   or mentions /topgun. Orchestrates FindSkills, CompareSkills, SecureSkills,
   and InstallSkills sub-agents to discover, evaluate, audit, and install
-  the best available Claude Code skill for any job.
+  the best available skill for any job.
 argument-hint: <job-description>
 allowed-tools: [Read, Write, Bash, Grep, Glob, Task, WebFetch]
 ---
@@ -428,11 +428,14 @@ Read current state to get install data:
 node "$TOPGUN_BIN" state-read
 ```
 
-Read the audit and comparison JSON files for scores:
+Read the exact audit and comparison files for scores:
 
 ```bash
-cat ~/.topgun/audit-*.json 2>/dev/null | tail -1
-cat ~/.topgun/comparison-*.json 2>/dev/null | tail -1
+STATE_JSON=$(node "$TOPGUN_BIN" state-read)
+AUDIT_PATH=$(printf '%s' "$STATE_JSON" | node -e 'let d="";process.stdin.on("data",c=>d+=c);process.stdin.on("end",()=>{const s=JSON.parse(d);console.log(s.audit_path||"")})')
+COMPARISON_PATH=$(printf '%s' "$STATE_JSON" | node -e 'let d="";process.stdin.on("data",c=>d+=c);process.stdin.on("end",()=>{const s=JSON.parse(d);console.log(s.comparison_path||"")})')
+[ -n "$AUDIT_PATH" ] && cat "$AUDIT_PATH"
+[ -n "$COMPARISON_PATH" ] && cat "$COMPARISON_PATH"
 ```
 
 Extract: `skill_name`, `source_registry`, `install_method` (from state), `capability` / `security` / `popularity` / `recency` scores (from comparison JSON), `pass_count` and `finding_count` (from audit JSON).

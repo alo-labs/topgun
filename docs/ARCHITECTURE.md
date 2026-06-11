@@ -6,7 +6,7 @@ Detailed phase-level designs live in `docs/specs/YYYY-MM-DD-<topic>-design.md`.
 
 ## System Overview
 
-TopGun is a Claude Code plugin that automates skill discovery, evaluation, and installation. When a user describes a task, TopGun searches 16 active registries in parallel, compares candidates on multiple dimensions, runs a two-pass security audit via bundled SENTINEL v2.3.0, and installs the approved skill — all without the user needing to know which registries exist or how to evaluate security manually. The system is structured as a four-stage sequential pipeline orchestrated by a single `/topgun` skill, with each stage producing a JSON artifact consumed by the next.
+TopGun is a dual-runtime plugin that automates skill discovery, evaluation, and installation for Codex and Claude-compatible hosts. When a user describes a task, TopGun searches 16 active registries in parallel, compares candidates on multiple dimensions, runs a two-pass security audit via bundled SENTINEL v2.3.0, and installs the approved skill — all without the user needing to know which registries exist or how to evaluate security manually. The system is structured as a four-stage sequential pipeline orchestrated by a single `/topgun` skill, with each stage producing a JSON artifact consumed by the next.
 
 ## Pipeline Stages
 
@@ -72,7 +72,7 @@ The hook is the only enforcement layer that cannot be bypassed by agent behavior
 
 ### Auth inheritance — why in-process dispatch works
 
-A `Task` sub-agent runs inside the same Claude Code session as its parent and uses the same auth context: OAuth session tokens, API keys, or first-party credentials. A `child_process.spawn('claude', ...)` subprocess starts a fresh CLI invocation that re-authenticates from `ANTHROPIC_API_KEY` env var alone — OAuth refresh tokens, the Pro/Teams default, are not inheritable across process boundaries. v1.5 picks the model that works for the majority case.
+A `Task` sub-agent runs inside the same parent agent session and uses the same auth context: OAuth session tokens, API keys, or first-party credentials. A standalone CLI subprocess such as `child_process.spawn('claude', ...)` starts a fresh invocation that re-authenticates from environment alone, so OAuth refresh tokens are not inheritable across process boundaries. v1.5 picks the dispatch model that works for the majority case.
 
 ## State Machine
 
@@ -82,7 +82,7 @@ State is persisted at `~/.topgun/state.json` across agent handoffs.
 |-------|-------------|
 | `run_id` | Unique identifier for this invocation |
 | `task_description` | User's original request |
-| `current_stage` | One of: `find`, `compare`, `secure`, `install` |
+| `current_stage` | One of: `find`, `compare`, `secure`, `approve`, `install`, `complete`, `failed` |
 | `last_completed_stage` | Last stage that wrote a clean artifact |
 | `found_skills_path` | Absolute path to found-skills artifact |
 | `comparison_path` | Absolute path to comparison artifact |

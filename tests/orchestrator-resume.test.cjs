@@ -166,7 +166,7 @@ test('schemas state command returns schema with complete stage enum', () => {
   const enumValues = schema.properties.current_stage.enum;
   assert.ok(Array.isArray(enumValues), 'current_stage should have an enum array');
 
-  const expectedStages = ['find', 'compare', 'secure', 'approve', 'install', 'complete'];
+  const expectedStages = ['find', 'compare', 'secure', 'approve', 'install', 'complete', 'failed'];
   for (const stage of expectedStages) {
     assert.ok(enumValues.includes(stage), `enum should include stage "${stage}"`);
   }

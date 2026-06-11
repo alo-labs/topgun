@@ -179,7 +179,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
     <main class="doc-content">
 
       <h2 id="what-is-topgun">What is TopGun?</h2>
-      <p>TopGun is a Claude Code plugin that solves a simple but critical problem: <strong>finding and installing the right skill, safely</strong>. Without TopGun, you search one registry at a time, install code you've never audited, and have no way to know if a better option exists elsewhere.</p>
+      <p>TopGun is a plugin that solves a simple but critical problem: <strong>finding and installing the right skill, safely</strong>. Without TopGun, you search one registry at a time, install code you've never audited, and have no way to know if a better option exists elsewhere.</p>
       <p>TopGun fixes all three problems with a four-stage pipeline:</p>
       <ol>
         <li><strong>FindSkills</strong> — searches 16 active registries in parallel</li>
@@ -203,9 +203,9 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
         <div class="prereq-card">
           <div class="prereq-icon"><i data-lucide="terminal"></i></div>
           <div>
-            <h4>Claude Code <span class="tag tag-required">Required</span></h4>
-            <p>TopGun is a Claude Code plugin. You need Claude Code installed and authenticated.</p>
-            <div class="install-cmd">npm install -g @anthropic/claude-code</div>
+            <h4>Codex <span class="tag tag-required">Required</span></h4>
+            <p>TopGun is installed through the Codex plugin system. You need Codex available before adding the marketplace source.</p>
+            <div class="install-cmd">codex plugin marketplace add https://github.com/alo-labs/codex-plugins.git</div>
           </div>
         </div>
       </div>
@@ -218,16 +218,16 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
       <div class="divider"></div>
 
       <h2 id="install">Installation</h2>
-      <p>With prerequisites in place, install TopGun in one command inside Claude Code:</p>
+      <p>With prerequisites in place, add the official TopGun marketplace source in one command:</p>
 
-      <div class="code-label">Claude Code terminal</div>
-      <div class="code-block"><span class="cmd">/plugin install</span> <span class="string">alo-labs/topgun</span></div>
+      <div class="code-label">Terminal</div>
+      <div class="code-block"><span class="cmd">codex plugin marketplace add</span> <span class="string">https://github.com/alo-labs/codex-plugins.git</span></div>
 
-      <p>Claude Code will fetch the plugin, verify the manifest, and register the <code style="font-family:var(--font-mono);font-size:1em">/topgun</code> slash command. No configuration needed — TopGun works out of the box with sensible defaults.</p>
+      <p>Codex will register the official marketplace source and make the shared TopGun bundle available without any extra configuration. When the install completes, TopGun should appear in the skill picker without a restart.</p>
 
       <div class="callout callout-tip">
         <span class="callout-icon"><i data-lucide="check-circle"></i></span>
-        <div class="callout-body"><strong>Verify the install</strong> by typing <code style="font-family:var(--font-mono);font-size:1em">/topgun --help</code> in Claude Code. You should see the TopGun banner and available flags.</div>
+        <div class="callout-body"><strong>Verify the install</strong> by opening the skill picker and checking that <code style="font-family:var(--font-mono);font-size:1em">TopGun</code> appears. You can also invoke <code style="font-family:var(--font-mono);font-size:1em">/topgun --help</code> after the install completes.</div>
       </div>
 
       <div class="divider"></div>
@@ -274,7 +274,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
           <div class="step-num">4</div>
           <div class="step-body">
             <h4>InstallSkills — you approve, then it installs</h4>
-            <p>TopGun presents the full audit manifest. You review and approve. The skill is installed via <code style="font-family:var(--font-mono);font-size:1em">/plugin install</code>.</p>
+            <p>TopGun presents the full audit manifest. You review and approve. The skill is installed through the plugin flow when possible, with a local-copy fallback to <code style="font-family:var(--font-mono);font-size:1em">~/.codex/skills/</code> if needed.</p>
           </div>
         </li>
       </ol>
@@ -282,7 +282,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
       <div class="divider"></div>
 
       <h2 id="output">Understanding the Output</h2>
-      <p>As TopGun runs, it emits a real-time audit trail in the Claude Code terminal. Here's what a successful run looks like:</p>
+      <p>As TopGun runs, it emits a real-time audit trail in the Codex terminal. Here's what a successful run looks like:</p>
 
       <div class="audit-output">
 <span class="ao-label">TopGun</span> <span class="ao-dim">›</span> <span class="ao-ok">✓</span> Searching 16 active registries…

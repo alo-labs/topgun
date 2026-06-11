@@ -171,7 +171,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
           <div class="ps-num">2</div>
           <div class="ps-body">
             <h4>CompareSkills — Rank</h4>
-            <p>Each unique candidate receives a composite score based on four weighted dimensions. The highest-scoring candidate advances to the audit stage. Scores and all candidate metadata are written to <code style="font-family:var(--font-mono);font-size:1em">~/.topgun/candidates.json</code>.</p>
+            <p>Each unique candidate receives a composite score based on four weighted dimensions. The highest-scoring candidate advances to the audit stage. Scores and winner metadata are written to <code style="font-family:var(--font-mono);font-size:1em">~/.topgun/comparison-&lt;hash&gt;.json</code>.</p>
           </div>
         </div>
         <div class="pipeline-step">
@@ -185,7 +185,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
           <div class="ps-num">4</div>
           <div class="ps-body">
             <h4>InstallSkills — Install</h4>
-            <p>Presents the full audit manifest (scores, findings history, SHA-256, registry source) for user approval. On approval, installs via <code style="font-family:var(--font-mono);font-size:1em">/plugin install</code>. Falls back to local-copy installation if the plugin system has a known bug.</p>
+            <p>Presents the full audit manifest (scores, findings history, SHA-256, registry source) for user approval. On approval, installs through the plugin flow when possible. Falls back to local-copy installation in <code style="font-family:var(--font-mono);font-size:1em">~/.codex/skills/</code> if the host install step fails.</p>
           </div>
         </div>
       </div>
@@ -299,7 +299,7 @@ else                        composite = composite_raw</div>
 
       <div class="callout callout-stop">
         <span class="callout-icon"><i data-lucide="x-circle"></i></span>
-        <div class="callout-body"><strong>There is no --skip-audit flag.</strong> The SENTINEL requirement cannot be bypassed. If you need to install a skill without an audit, use <code style="font-family:var(--font-mono);font-size:1em">/plugin install</code> directly — TopGun will not do it for you.</div>
+        <div class="callout-body"><strong>There is no --skip-audit flag.</strong> The SENTINEL requirement cannot be bypassed. If you need to install a skill without an audit, use the host plugin system directly — TopGun will not do it for you.</div>
       </div>
 
       <div class="divider"></div>
@@ -317,16 +317,18 @@ else                        composite = composite_raw</div>
       <div class="divider"></div>
 
       <h2 id="state">State and Resume</h2>
-      <p>TopGun writes pipeline state to <code style="font-family:var(--font-mono);font-size:1em">~/.topgun/state.json</code> after each stage completes. If the pipeline is interrupted (Claude Code crash, network loss, Ctrl-C), you can resume it by running the same <code style="font-family:var(--font-mono);font-size:1em">/topgun</code> command again.</p>
+      <p>TopGun writes pipeline state to <code style="font-family:var(--font-mono);font-size:1em">~/.topgun/state.json</code> after each stage completes. If the pipeline is interrupted (Codex crash, network loss, Ctrl-C), you can resume it by running the same <code style="font-family:var(--font-mono);font-size:1em">/topgun</code> command again.</p>
 
       <div class="code-label">~/.topgun/state.json structure</div>
       <div class="code-block">{
-  <span class="key">"query"</span>: <span class="string">"web scraping skill"</span>,
-  <span class="key">"stage"</span>: <span class="string">"SecureSkills"</span>,        <span class="comment">// last completed stage</span>
-  <span class="key">"winner"</span>: <span class="string">"web-scraper-pro"</span>,
-  <span class="key">"winnerSha"</span>: <span class="string">"a3f9c2b1..."</span>,
-  <span class="key">"auditPasses"</span>: 1,               <span class="comment">// passes completed so far</span>
-  <span class="key">"timestamp"</span>: <span class="string">"2026-04-13T10:22:00Z"</span>
+  <span class="key">"task_description"</span>: <span class="string">"web scraping skill"</span>,
+  <span class="key">"current_stage"</span>: <span class="string">"secure"</span>,
+  <span class="key">"last_completed_stage"</span>: <span class="string">"compare"</span>,
+  <span class="key">"winner_name"</span>: <span class="string">"web-scraper-pro"</span>,
+  <span class="key">"winner_registry"</span>: <span class="string">"github"</span>,
+  <span class="key">"content_sha"</span>: <span class="string">"a3f9c2b1..."</span>,
+  <span class="key">"sentinel_total_passes"</span>: 1,
+  <span class="key">"started_at"</span>: <span class="string">"2026-04-13T10:22:00Z"</span>
 }</div>
 
       <p>TopGun resumes from the last completed stage, not from the beginning. If FindSkills and CompareSkills already completed, resuming skips those stages and continues with SecureSkills.</p>

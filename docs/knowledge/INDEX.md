@@ -9,7 +9,7 @@
 | PRD Overview | `docs/PRD-Overview.md` | active |
 | Architecture | `docs/ARCHITECTURE.md` | active |
 | Testing Strategy | `docs/TESTING.md` | active |
-| CI/CD | `docs/CICD.md` | stub |
+| CI/CD | `docs/CICD.md` | active |
 | Pre-Release Quality Gate | `docs/pre-release-quality-gate.md` | active |
 | Task Log | `docs/CHANGELOG.md` | active |
 | Active Workflow | `docs/workflows/full-dev-cycle.md` | active |
@@ -26,4 +26,4 @@
 ## Repository
 
 Git repo: https://github.com/alo-labs/topgun.git
-Current version: v1.3.0
+Current version: v0.7.8

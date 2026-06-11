@@ -154,7 +154,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
 
       <div class="callout callout-tip">
         <span class="callout-icon"><i data-lucide="check-circle"></i></span>
-        <div class="callout-body"><strong>Quick diagnosis:</strong> run <code style="font-family:var(--font-mono);font-size:1em">node topgun-tools.cjs list-registries</code> to see the current status of all adapters, and <code style="font-family:var(--font-mono);font-size:1em">node topgun-tools.cjs show-manifest</code> to inspect the last audit result.</div>
+        <div class="callout-body"><strong>Quick diagnosis:</strong> inspect <code style="font-family:var(--font-mono);font-size:1em">~/.topgun/state.json</code> to see the last completed stage, then open the latest <code style="font-family:var(--font-mono);font-size:1em">found-skills-&lt;hash&gt;.json</code> or <code style="font-family:var(--font-mono);font-size:1em">audit-&lt;hash&gt;.json</code> artifact to confirm registry coverage and audit status.</div>
       </div>
 
       <!-- REGISTRY UNAVAILABLE -->
@@ -191,16 +191,16 @@ TopGun › ✓ Found 3 candidates across 2 registries (reduced coverage)</div>
           <span class="issue-badge badge-stop">Pipeline abort</span>
         </div>
         <div class="issue-section-label">Symptoms</div>
-        <div class="issue-symptom">TopGun › ✗ Cannot Read $CLAUDE_PLUGIN_ROOT/skills/sentinel/SKILL.md
+        <div class="issue-symptom">TopGun › ✗ Cannot Read $CODEX_PLUGIN_ROOT/skills/sentinel/SKILL.md
 TopGun › Bundled SENTINEL v2.3.0 missing from plugin
 TopGun › Pipeline aborted at SecureSkills stage</div>
         <div class="issue-section-label" style="margin-top:16px">Cause</div>
         <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:16px">SENTINEL ships bundled directly inside the TopGun plugin at <code style="font-family:var(--font-mono);font-size:1em">skills/sentinel/SKILL.md</code>. If that file is missing, the plugin cache is corrupted or incomplete. The SecureSkills stage cannot run without it.</p>
         <div class="issue-section-label">Fix</div>
         <ul class="fix-steps">
-          <li><strong>Reinstall TopGun.</strong> Run <code style="font-family:var(--font-mono);font-size:1em">/plugin install alo-labs/topgun</code> in Claude Code. This will fetch the latest plugin release, which includes the bundled SENTINEL file.</li>
-          <li><strong>Verify the bundled file exists.</strong> After reinstall, check that <code style="font-family:var(--font-mono);font-size:1em">~/.claude/plugins/cache/topgun/topgun/&lt;version&gt;/skills/sentinel/SKILL.md</code> is present.</li>
-          <li><strong>Clear stale cache.</strong> If reinstall still fails, remove the plugin cache directory and retry the install.</li>
+          <li><strong>Refresh TopGun.</strong> If TopGun still appears in the picker, run <code style="font-family:var(--font-mono);font-size:1em">/topgun-update</code> to rebuild the local cache. If it does not, reinstall from the official Codex marketplace source: <code style="font-family:var(--font-mono);font-size:1em">codex plugin marketplace add https://github.com/alo-labs/codex-plugins.git</code>.</li>
+          <li><strong>Verify the bundled file exists.</strong> After refresh, check that a versioned cache path such as <code style="font-family:var(--font-mono);font-size:1em">~/.codex/plugins/cache/*/topgun/&lt;version&gt;/skills/sentinel/SKILL.md</code> is present.</li>
+          <li><strong>Clear stale cache.</strong> If refresh still fails, remove the broken TopGun cache tree under <code style="font-family:var(--font-mono);font-size:1em">~/.codex/plugins/cache/</code> and reinstall.</li>
         </ul>
       </div>
 
@@ -211,7 +211,7 @@ TopGun › Pipeline aborted at SecureSkills stage</div>
 
       <div class="issue-card sev-stop">
         <div class="issue-header">
-          <div class="issue-title">/plugin install fails or silently does nothing</div>
+          <div class="issue-title">The plugin install step fails or silently does nothing</div>
           <span class="issue-badge badge-stop">Install error</span>
         </div>
         <div class="issue-section-label">Symptoms</div>
@@ -219,13 +219,13 @@ TopGun › Pipeline aborted at SecureSkills stage</div>
 TopGun › Falling back to local-copy install method…
 TopGun › ✓ Skill installed via local-copy fallback</div>
         <div class="issue-section-label" style="margin-top:16px">Cause</div>
-        <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:16px">There is a known intermittent bug in the Claude Code plugin system where <code style="font-family:var(--font-mono);font-size:1em">/plugin install</code> fails silently or returns an error for valid plugin manifests. TopGun detects this and automatically falls back to a <strong>local-copy install</strong>: it copies the audited SKILL.md directly to the Claude Code skills directory.</p>
+        <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:16px">There is a known intermittent failure mode in the plugin install step where a valid install request exits non-zero or does not persist. TopGun detects this and automatically falls back to a <strong>local-copy install</strong>: it copies the audited SKILL.md directly to the Codex skills directory.</p>
         <div class="issue-section-label">Fix</div>
         <ul class="fix-steps">
           <li><strong>Trust the fallback.</strong> The local-copy fallback installs the same audited skill content. The SENTINEL audit result applies equally to both install methods. If you see "installed via local-copy fallback", the skill is functional.</li>
-          <li><strong>Verify the skill is active.</strong> After a local-copy install, the skill should appear in <code style="font-family:var(--font-mono);font-size:1em">/plugin list</code>. If it doesn't, run <code style="font-family:var(--font-mono);font-size:1em">/topgun &lt;task&gt; --reset</code> to retry the full pipeline.</li>
-          <li><strong>Update Claude Code.</strong> The plugin system bug is tracked upstream. Updating to the latest Claude Code version may resolve it: <code style="font-family:var(--font-mono);font-size:1em">npm update -g @anthropic/claude-code</code>.</li>
-          <li><strong>Check install-log.json.</strong> Run <code style="font-family:var(--font-mono);font-size:1em">node topgun-tools.cjs show-install-log</code> to see exactly what was installed, when, and via which method.</li>
+          <li><strong>Verify the skill is active.</strong> After a local-copy install, the skill should appear in the skill picker or respond to a direct invocation. If it does not, run <code style="font-family:var(--font-mono);font-size:1em">/topgun &lt;task&gt; --reset</code> to retry the full pipeline.</li>
+          <li><strong>Refresh TopGun's local install state.</strong> If the picker still does not show the skill, run <code style="font-family:var(--font-mono);font-size:1em">/topgun-update</code> or reinstall from the official Codex marketplace source.</li>
+          <li><strong>Check the install registry.</strong> Inspect <code style="font-family:var(--font-mono);font-size:1em">~/.topgun/installed.json</code> and <code style="font-family:var(--font-mono);font-size:1em">~/.topgun/state.json</code> to confirm which install method succeeded.</li>
         </ul>
       </div>
 
@@ -247,7 +247,7 @@ TopGun › Query: "git automation" — but I asked for "test runner"</div>
         <div class="issue-section-label">Fix</div>
         <ul class="fix-steps">
           <li><strong>Use --reset to start fresh.</strong> Run <code style="font-family:var(--font-mono);font-size:1em">/topgun &lt;your task&gt; --reset</code> to discard the stale state and run a new pipeline from the beginning.</li>
-          <li><strong>Or clear state manually.</strong> Run <code style="font-family:var(--font-mono);font-size:1em">node topgun-tools.cjs reset-state</code> to delete <code style="font-family:var(--font-mono);font-size:1em">state.json</code>, then run your <code style="font-family:var(--font-mono);font-size:1em">/topgun</code> command normally.</li>
+          <li><strong>Or clear state manually.</strong> Delete <code style="font-family:var(--font-mono);font-size:1em">~/.topgun/state.json</code>, then run your <code style="font-family:var(--font-mono);font-size:1em">/topgun</code> command normally.</li>
         </ul>
       </div>
 
@@ -285,7 +285,7 @@ TopGun › ⚠ GitHub results may be incomplete</div>
         <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:16px">The GitHub adapter uses the unauthenticated API by default, which is limited to 60 requests per hour. In heavy use, this limit is quickly exhausted.</p>
         <div class="issue-section-label">Fix</div>
         <ul class="fix-steps">
-          <li><strong>Add a GitHub token.</strong> Create a personal access token with <code style="font-family:var(--font-mono);font-size:1em">read:public_repo</code> scope at <a href="https://github.com/settings/tokens" style="color:var(--accent-light)" target="_blank" rel="noopener">github.com/settings/tokens</a>, then store it: <code style="font-family:var(--font-mono);font-size:1em">node topgun-tools.cjs set-token github &lt;token&gt;</code>.</li>
+          <li><strong>Add a GitHub token.</strong> Create a personal access token with <code style="font-family:var(--font-mono);font-size:1em">read:public_repo</code> scope at <a href="https://github.com/settings/tokens" style="color:var(--accent-light)" target="_blank" rel="noopener">github.com/settings/tokens</a>, then store it: <code style="font-family:var(--font-mono);font-size:1em">node topgun-tools.cjs keychain-set github_token &lt;token&gt;</code>.</li>
           <li><strong>Authenticated limit is 5,000 req/hr</strong> — sufficient for any TopGun usage pattern.</li>
         </ul>
       </div>
@@ -299,12 +299,12 @@ TopGun › ⚠ GitHub results may be incomplete</div>
         <div class="issue-symptom">TopGun › ⚠ GitHub adapter: using unauthenticated API
 <span class="comment"># Even though you set a token</span></div>
         <div class="issue-section-label" style="margin-top:16px">Cause</div>
-        <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:16px">The token may have been stored under a different key, or the Keychain entry was created by a different user account. TopGun reads tokens at pipeline start — restarting Claude Code after setting a token is required.</p>
+        <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:16px">The token may have been stored under the wrong service name, or under a different Keychain account. TopGun reads tokens at pipeline start, so the next <code style="font-family:var(--font-mono);font-size:1em">/topgun</code> run will pick up a newly stored value without restarting the app.</p>
         <div class="issue-section-label">Fix</div>
         <ul class="fix-steps">
-          <li><strong>Verify the token is stored correctly.</strong> Run <code style="font-family:var(--font-mono);font-size:1em">node topgun-tools.cjs get-token github</code> — you should see a masked token value ending in the last 4 characters.</li>
-          <li><strong>Restart Claude Code</strong> after setting a token. TopGun reads credentials at startup; a running instance won't pick up new tokens without a restart.</li>
-          <li><strong>Re-set the token.</strong> If <code style="font-family:var(--font-mono);font-size:1em">get-token</code> returns nothing, run <code style="font-family:var(--font-mono);font-size:1em">set-token</code> again and confirm the Keychain permission dialog if one appears.</li>
+          <li><strong>Verify the token is stored correctly.</strong> Run <code style="font-family:var(--font-mono);font-size:1em">node topgun-tools.cjs keychain-get github_token</code> — you should see a JSON payload with <code style="font-family:var(--font-mono);font-size:1em">"found": true</code>.</li>
+          <li><strong>Rerun the pipeline.</strong> Start a fresh <code style="font-family:var(--font-mono);font-size:1em">/topgun</code> invocation, or use <code style="font-family:var(--font-mono);font-size:1em">--reset</code> if the previous run already passed the FindSkills stage.</li>
+          <li><strong>Re-set the token.</strong> If <code style="font-family:var(--font-mono);font-size:1em">keychain-get</code> returns <code style="font-family:var(--font-mono);font-size:1em">{"found": false}</code>, run <code style="font-family:var(--font-mono);font-size:1em">keychain-set</code> again and confirm the Keychain permission dialog if one appears.</li>
         </ul>
       </div>
 
