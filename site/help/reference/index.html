@@ -167,7 +167,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
       <div class="flag-entry">
         <div class="flag-name">--offline</div>
         <div class="flag-signature">--offline</div>
-        <p class="flag-desc">Skip all live registry queries. TopGun uses only previously cached results from <code style="font-family:var(--font-mono);font-size:1em">~/.topgun/cache/</code>. Useful when working without internet access or when you want to re-run a pipeline on already-fetched candidates without hitting rate limits.</p>
+        <p class="flag-desc">Skip all live registry queries. TopGun uses the previously written <code style="font-family:var(--font-mono);font-size:1em">found-skills-&lt;hash&gt;.json</code> artifact for the current query and any matching entries in <code style="font-family:var(--font-mono);font-size:1em">~/.topgun/audit-cache/</code>. Useful when working without internet access or when you want to re-run a pipeline on already-fetched candidates without hitting rate limits.</p>
         <div class="flag-example"><span class="cmd">/topgun</span> <span class="string">deployment skill</span> <span class="flag">--offline</span></div>
       </div>
 
@@ -188,7 +188,7 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
       <div class="flag-entry">
         <div class="flag-name">--auto-approve</div>
         <div class="flag-signature">--auto-approve</div>
-        <p class="flag-desc">Skip the manual approval gate and automatically install the winning skill after a successful 2-pass SENTINEL audit. The full audit manifest is still written to <code style="font-family:var(--font-mono);font-size:1em">~/.topgun/audit-manifest.json</code> for review after the fact. Use with care in automated workflows.</p>
+        <p class="flag-desc">Skip the manual approval gate and automatically install the winning skill after a successful 2-pass SENTINEL audit. The full audit record is still written to <code style="font-family:var(--font-mono);font-size:1em">~/.topgun/audit-&lt;hash&gt;.json</code> for review after the fact. Use with care in automated workflows.</p>
         <div class="flag-example"><span class="cmd">/topgun</span> <span class="string">linting skill</span> <span class="flag">--auto-approve</span></div>
       </div>
 
@@ -204,23 +204,39 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
 
       <div class="file-entry">
         <div class="file-name">state.json</div>
-        <div class="file-desc">Current pipeline state. Written after each stage completes. Used by resume logic to skip already-completed stages. Deleted on successful install or when <code style="font-family:var(--font-mono);font-size:1em">--reset</code> is passed.</div>
+        <div class="file-desc">Current pipeline state. Written after each stage completes and reused by resume logic. The file persists between runs; <code style="font-family:var(--font-mono);font-size:1em">--reset</code> clears the active run before a fresh pipeline starts.</div>
       </div>
       <div class="file-entry">
-        <div class="file-name">candidates.json</div>
-        <div class="file-desc">Full list of candidates returned by FindSkills, after deduplication. Includes each candidate's registry source, contentSha, raw metadata, and all four scoring dimensions. Written after CompareSkills completes.</div>
+        <div class="file-name">registry-&lt;hash&gt;-&lt;registry&gt;.json</div>
+        <div class="file-desc">Per-registry partial result written by each FindSkills adapter. These files make registry coverage explicit and are the inputs enforced by <code style="font-family:var(--font-mono);font-size:1em">validate-partials.sh</code>.</div>
       </div>
       <div class="file-entry">
-        <div class="file-name">audit-manifest.json</div>
-        <div class="file-desc">The complete audit record for the selected skill: composite score, sub-scores, SENTINEL pass history, findings per pass, SHA-256 values, and the final clean status. This is the document shown at the approval gate.</div>
+        <div class="file-name">found-skills-&lt;hash&gt;.json</div>
+        <div class="file-desc">Aggregated FindSkills result after partials are normalized, deduplicated, and wrapped in the shared schema. Includes registry coverage metadata, elapsed time, and candidate details.</div>
       </div>
       <div class="file-entry">
-        <div class="file-name">install-log.json</div>
-        <div class="file-desc">Record of the installation: timestamp, skill name, version, source registry, install method (plugin system or local-copy fallback), and whether it succeeded. Appended to — not overwritten — on each successful install.</div>
+        <div class="file-name">comparison-&lt;hash&gt;.json</div>
+        <div class="file-desc">CompareSkills output for a single run. Stores candidate scores across capability, security, popularity, and recency plus the selected winner.</div>
       </div>
       <div class="file-entry">
-        <div class="file-name">cache/</div>
-        <div class="file-desc">Directory of cached registry responses and audit results, keyed by contentSha. Files older than 24 hours are ignored. Can be cleared manually or by running <code style="font-family:var(--font-mono);font-size:1em">topgun-tools clear-cache</code>.</div>
+        <div class="file-name">audit-&lt;hash&gt;.json</div>
+        <div class="file-desc">Full SecureSkills audit trail for the selected skill: pass history, findings, hashes, secured-path metadata, and final clean status. This is the artifact shown at the approval gate.</div>
+      </div>
+      <div class="file-entry">
+        <div class="file-name">installed.json</div>
+        <div class="file-desc">Append-only TopGun install registry. Records every successful install with its source registry, install method, secured-path provenance, and timestamp.</div>
+      </div>
+      <div class="file-entry">
+        <div class="file-name">audit-cache/</div>
+        <div class="file-desc">Content-SHA keyed cache for audit results and related metadata. Managed by <code style="font-family:var(--font-mono);font-size:1em">cache-lookup</code>, <code style="font-family:var(--font-mono);font-size:1em">cache-write</code>, and <code style="font-family:var(--font-mono);font-size:1em">cache-invalidate</code>.</div>
+      </div>
+      <div class="file-entry">
+        <div class="file-name">secured/</div>
+        <div class="file-desc">Holds the secured SKILL.md copies produced by the audit stage, organized by content SHA before installation.</div>
+      </div>
+      <div class="file-entry">
+        <div class="file-name">topgun-lock.json</div>
+        <div class="file-desc">Reproducibility lock written after a successful install. Pins the selected skill, source registry, content SHA, and audit hash for later inspection.</div>
       </div>
 
       <div class="divider"></div>
@@ -229,17 +245,17 @@ svg.lucide{display:inline-block;vertical-align:middle;width:1em;height:1em;strok
       <p>TopGun stores registry auth tokens in the <strong>macOS Keychain</strong> (or the OS credential store on Linux/Windows). Tokens are never written to disk in plaintext.</p>
 
       <h3>Configuring tokens</h3>
-      <p>Use the <code style="font-family:var(--font-mono);font-size:1em">topgun-tools set-token</code> command to store a token:</p>
+      <p>Use the bundled keychain helpers to store a token. The default account name is <code style="font-family:var(--font-mono);font-size:1em">topgun</code>, so the short two-argument form is usually enough:</p>
 
       <div class="code-label">topgun-tools</div>
       <div class="code-block"><span class="comment"># GitHub personal access token (read:public_repo scope)</span>
-node topgun-tools.cjs set-token github &lt;your-token&gt;
+node topgun-tools.cjs keychain-set github_token &lt;your-token&gt;
 
 <span class="comment"># Smithery API token</span>
-node topgun-tools.cjs set-token smithery &lt;your-token&gt;
+node topgun-tools.cjs keychain-set smithery_token &lt;your-token&gt;
 
 <span class="comment"># GitLab personal access token (read_api scope)</span>
-node topgun-tools.cjs set-token gitlab &lt;your-token&gt;</div>
+node topgun-tools.cjs keychain-set gitlab_token &lt;your-token&gt;</div>
 
       <h3>Token usage by registry</h3>
       <ul>
@@ -256,7 +272,7 @@ node topgun-tools.cjs set-token gitlab &lt;your-token&gt;</div>
       <div class="divider"></div>
 
       <h2 id="tools">topgun-tools.cjs</h2>
-      <p><code style="font-family:var(--font-mono);font-size:1em">topgun-tools.cjs</code> is a CLI utility bundled with TopGun for managing tokens, cache, and pipeline state outside of Claude Code.</p>
+      <p><code style="font-family:var(--font-mono);font-size:1em">topgun-tools.cjs</code> is a CLI utility bundled with TopGun for managing keychain tokens, cached audits, hooks, and pipeline state outside the main <code style="font-family:var(--font-mono);font-size:1em">/topgun</code> flow.</p>
 
       <table class="tools-table">
         <thead>
@@ -264,49 +280,65 @@ node topgun-tools.cjs set-token gitlab &lt;your-token&gt;</div>
         </thead>
         <tbody>
           <tr>
-            <td>set-token &lt;registry&gt; &lt;token&gt;</td>
-            <td>Store a registry auth token in the OS credential store</td>
+            <td>init</td>
+            <td>Create the <code>~/.topgun/</code> directory tree, state file, and install registry if they do not already exist</td>
           </tr>
           <tr>
-            <td>get-token &lt;registry&gt;</td>
-            <td>Retrieve and print a stored token (masked except last 4 chars)</td>
+            <td>state-read</td>
+            <td>Print the current <code>state.json</code> document</td>
           </tr>
           <tr>
-            <td>delete-token &lt;registry&gt;</td>
-            <td>Remove a stored token from the credential store</td>
+            <td>state-write &lt;key&gt; &lt;value&gt;</td>
+            <td>Update a single field in <code>state.json</code></td>
           </tr>
           <tr>
-            <td>clear-cache</td>
-            <td>Delete all files in <code>~/.topgun/cache/</code></td>
+            <td>sha256 &lt;text&gt;</td>
+            <td>Return the SHA-256 hash for a string payload</td>
           </tr>
           <tr>
-            <td>clear-cache --older-than &lt;hours&gt;</td>
-            <td>Delete cache files older than the specified number of hours</td>
+            <td>cache-lookup &lt;sha&gt;</td>
+            <td>Read an audit-cache entry, including stale or ETag metadata when present</td>
           </tr>
           <tr>
-            <td>reset-state</td>
-            <td>Delete <code>~/.topgun/state.json</code> — equivalent to <code>--reset</code> flag</td>
+            <td>cache-write &lt;sha&gt; &lt;json&gt;</td>
+            <td>Write a JSON payload into <code>~/.topgun/audit-cache/</code></td>
           </tr>
           <tr>
-            <td>show-manifest</td>
-            <td>Pretty-print the most recent <code>audit-manifest.json</code></td>
+            <td>cache-invalidate &lt;sha&gt; | --all</td>
+            <td>Delete one cached audit entry or clear the entire audit cache</td>
           </tr>
           <tr>
-            <td>show-install-log</td>
-            <td>Print all entries from <code>install-log.json</code> in a readable table</td>
+            <td>lock-write &lt;json&gt;</td>
+            <td>Write the reproducibility lock at <code>~/.topgun/topgun-lock.json</code></td>
           </tr>
           <tr>
-            <td>list-registries</td>
-            <td>Print all configured registry adapters and their current status (enabled/disabled, auth present)</td>
+            <td>lock-read</td>
+            <td>Print the current reproducibility lock</td>
+          </tr>
+          <tr>
+            <td>keychain-get &lt;service&gt; [account]</td>
+            <td>Read a stored token from the OS credential store</td>
+          </tr>
+          <tr>
+            <td>keychain-set &lt;service&gt; [account] &lt;password&gt;</td>
+            <td>Store or replace a token in the OS credential store</td>
+          </tr>
+          <tr>
+            <td>schemas [schema]</td>
+            <td>Print the built-in JSON schema definitions used by the pipeline artifacts</td>
+          </tr>
+          <tr>
+            <td>validate-partials --hash &lt;hash&gt; [--expected &lt;N&gt;]</td>
+            <td>Check that all expected per-registry partial files exist for a FindSkills run</td>
           </tr>
         </tbody>
       </table>
 
       <div class="code-label">Example usage</div>
-      <div class="code-block"><span class="comment"># From the TopGun plugin directory</span>
-node ~/.claude/plugins/topgun/topgun-tools.cjs show-manifest
-node ~/.claude/plugins/topgun/topgun-tools.cjs list-registries
-node ~/.claude/plugins/topgun/topgun-tools.cjs clear-cache --older-than 48</div>
+      <div class="code-block"><span class="comment"># From the TopGun repo or an installed bundle</span>
+node bin/topgun-tools.cjs init
+node bin/topgun-tools.cjs keychain-set github_token &lt;your-token&gt;
+node bin/topgun-tools.cjs validate-partials --hash abc123</div>
 
       <div class="page-nav-bottom">
         <a href="../concepts/">
