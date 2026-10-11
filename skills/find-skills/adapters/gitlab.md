@@ -11,7 +11,7 @@
 Retrieve a GitLab token for higher rate limits:
 
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" keychain-get gitlab_token
+node "$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs" keychain-get gitlab_token
 ```
 
 - If a token is returned, add header: `PRIVATE-TOKEN: {token}`.

@@ -5,7 +5,7 @@ description: >
   "find the best skill for", "search skill registries", "install a skill safely",
   or mentions /topgun. Orchestrates FindSkills, CompareSkills, SecureSkills,
   and InstallSkills sub-agents to discover, evaluate, audit, and install
-  the best available Claude Code skill for any job.
+  the best available skill for any job.
 argument-hint: <job-description>
 allowed-tools: [Read, Write, Bash, Grep, Glob, Task, WebFetch]
 ---
@@ -16,32 +16,37 @@ You are the TopGun orchestrator. You sequence four sub-agents to find, compare, 
 
 ## Step 0: Initialize
 
-**0.1 Resolve TOPGUN_BIN.** The skill must work whether or not `$CLAUDE_PLUGIN_ROOT` is set in the shell session. Resolve a stable path to `topgun-tools.cjs` once at the top, then use `$TOPGUN_BIN` everywhere below:
+**0.1 Resolve TOPGUN_BIN.** The skill must work whether or not a host plugin-root env var is set in the shell session. Resolve a stable path to `topgun-tools.cjs` once at the top, then use `$TOPGUN_BIN` everywhere below:
 
 ```bash
 TOPGUN_TOOLS_REL="bin/topgun-tools.cjs"
-if [ -n "$CLAUDE_PLUGIN_ROOT" ] && [ -f "$CLAUDE_PLUGIN_ROOT/$TOPGUN_TOOLS_REL" ]; then
-  TOPGUN_BIN="$CLAUDE_PLUGIN_ROOT/$TOPGUN_TOOLS_REL"
+if [ -n "$CODEX_PLUGIN_ROOT" ] && [ -f "$CODEX_PLUGIN_ROOT/$TOPGUN_TOOLS_REL" ]; then
+  TOPGUN_BIN="$CODEX_PLUGIN_ROOT/$TOPGUN_TOOLS_REL"
 else
   # Fallback: read installed_plugins.json to find any installed copy of topgun.
   TOPGUN_BIN=$(node -e '
     const fs=require("fs"), path=require("path"), home=process.env.HOME;
-    const reg=path.join(home,".claude/plugins/installed_plugins.json");
-    if (!fs.existsSync(reg)) { console.error("topgun not installed"); process.exit(1); }
-    const r=JSON.parse(fs.readFileSync(reg,"utf8"));
-    const keys=Object.keys(r.plugins||{}).filter(k=>k.startsWith("topgun@"));
-    for (const k of keys) {
-      const inst=r.plugins[k][0];
-      const p=path.join(inst.installPath,"bin/topgun-tools.cjs");
-      if (fs.existsSync(p)) { console.log(p); process.exit(0); }
+    const registries=[
+      path.join(home,".codex/plugins/installed_plugins.json"),
+    ];
+    const keys=["topgun@alo-labs-codex","topgun@alo-labs-codex-local","topgun@alo-labs"];
+    for (const reg of registries) {
+      if (!fs.existsSync(reg)) continue;
+      const r=JSON.parse(fs.readFileSync(reg,"utf8"));
+      for (const k of keys) {
+        const inst=r.plugins?.[k]?.[0];
+        if (!inst?.installPath) continue;
+        const p=path.join(inst.installPath,"bin/topgun-tools.cjs");
+        if (fs.existsSync(p)) { console.log(p); process.exit(0); }
+      }
     }
     console.error("no usable topgun install"); process.exit(1);
   ')
   if [ -z "$TOPGUN_BIN" ]; then
-    echo "❌ TopGun is not installed. Run: /plugin install alo-labs/topgun"
+    echo "❌ TopGun is not installed. Run: codex plugin marketplace add https://github.com/alo-labs/codex-plugins.git"
     exit 1
   fi
-  export CLAUDE_PLUGIN_ROOT="$(dirname "$(dirname "$TOPGUN_BIN")")"
+  export CODEX_PLUGIN_ROOT="$(dirname "$(dirname "$TOPGUN_BIN")")"
 fi
 ```
 
@@ -98,7 +103,7 @@ Output: "State cleared. Starting fresh pipeline." Then proceed normally with the
 
 **`--force-audit` flag:** If present, set `force_audit=true`. Pass `--force` to the SecureSkills sub-agent prompt so it calls cache-lookup with `--force` and re-runs the audit even if a cached result exists.
 
-**`--auto-approve` flag:** If present, set `auto_approve=true`. The interactive approval gate in Step 6 will be skipped and installation will proceed automatically. Only use in trusted automated pipelines (e.g., `claude --print`).
+**`--auto-approve` flag:** If present, set `auto_approve=true`. The interactive approval gate in Step 6 will be skipped and installation will proceed automatically. Only use in trusted automated pipelines (e.g., `codex exec`).
 
 **`--registries` flag:** If present, extract the comma-separated registry list. Examples:
 - `/topgun find a deployment skill` → task = "find a deployment skill", registries = null (all)
@@ -423,18 +428,21 @@ Read current state to get install data:
 node "$TOPGUN_BIN" state-read
 ```
 
-Read the audit and comparison JSON files for scores:
+Read the exact audit and comparison files for scores:
 
 ```bash
-cat ~/.topgun/audit-*.json 2>/dev/null | tail -1
-cat ~/.topgun/comparison-*.json 2>/dev/null | tail -1
+STATE_JSON=$(node "$TOPGUN_BIN" state-read)
+AUDIT_PATH=$(printf '%s' "$STATE_JSON" | node -e 'let d="";process.stdin.on("data",c=>d+=c);process.stdin.on("end",()=>{const s=JSON.parse(d);console.log(s.audit_path||"")})')
+COMPARISON_PATH=$(printf '%s' "$STATE_JSON" | node -e 'let d="";process.stdin.on("data",c=>d+=c);process.stdin.on("end",()=>{const s=JSON.parse(d);console.log(s.comparison_path||"")})')
+[ -n "$AUDIT_PATH" ] && cat "$AUDIT_PATH"
+[ -n "$COMPARISON_PATH" ] && cat "$COMPARISON_PATH"
 ```
 
 Extract: `skill_name`, `source_registry`, `install_method` (from state), `capability` / `security` / `popularity` / `recency` scores (from comparison JSON), `pass_count` and `finding_count` (from audit JSON).
 
 Determine installed location label:
 - If `install_method = "plugin"` → display `plugin`
-- If `install_method = "local-copy"` → display `local ~/.claude/skills/`
+- If `install_method = "local-copy"` → display `local ~/.codex/skills/`
 
 Display the header with actual values:
 
@@ -445,7 +453,7 @@ Display the header with actual values:
  Skill:    {skill_name} ({source_registry})
  Score:    capability={X} / security={X} / popularity={X} / recency={X}
  Secured:  2 clean Sentinel passes (bundled SENTINEL v2.3.0)
- Installed: {plugin | local ~/.claude/skills/}
+ Installed: {plugin | local ~/.codex/skills/}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 

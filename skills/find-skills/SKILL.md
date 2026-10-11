@@ -17,16 +17,17 @@ installations and external registries. Follow all steps in order.
 
 Search locally installed skills **before** querying any external registry.
 
-1. Use Glob to find all SKILL.md files under `~/.claude/skills/`:
-   - Pattern: `~/.claude/skills/*/SKILL.md`
-2. Use Glob to find all SKILL.md files under `~/.claude/plugins/`:
-   - Pattern: `~/.claude/plugins/*/skills/*/SKILL.md`
+1. Use Glob to find all SKILL.md files under `~/.codex/skills/`:
+   - Pattern: `~/.codex/skills/*/SKILL.md`
+2. Use Glob to find all SKILL.md files under the Codex plugin cache:
+   - Pattern: `~/.codex/plugins/cache/*/*/*/skills/*/SKILL.md`
+   - This matches the live cache layout `cache/<publisher>/<plugin>/<version-or-alias>/skills/<skill>/SKILL.md`, including `current` and `local` aliases.
 3. For each file found, Read it and check whether the `name` or `description`
    fields semantically match the query. Simple substring or keyword match is
    sufficient.
 4. For each match, compute a `content_sha`:
    ```bash
-   node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" sha256 "<SKILL.md file contents>"
+   node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" sha256 "<SKILL.md file contents>"
    ```
 5. Add each match to results using the unified schema with `source_registry: "local"`.
 
@@ -46,7 +47,7 @@ per registry using the `Task` tool with `subagent_type: "general-purpose"` (v1.5
 this replaces the v1.3-v1.4 `child_process.spawn` subprocess path, which broke
 OAuth auth; see issue #3). All registries are searched simultaneously — no
 concurrency cap. Each sub-agent reads its adapter instruction file at
-`$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/{registry}.md`, executes the search
+`$CODEX_PLUGIN_ROOT/skills/find-skills/adapters/{registry}.md`, executes the search
 under the parent session's auth context, and writes a partial results file to
 `~/.topgun/registry-{hash}-{registry}.json`.
 
@@ -58,7 +59,7 @@ Each adapter must return the following contract object:
 ```json
 {
   "registry": "string",
-  "status": "ok" | "unavailable" | "error",
+  "status": "ok" | "failed" | "unavailable",
   "reason": "string or null",
   "results": [],
   "latency_ms": 0
@@ -87,12 +88,14 @@ Every result object — from any registry, including local — must conform to:
 ```json
 {
   "name": "string",
-  "description": "string",
-  "install_url": "string or null",
+  "description": "string or null",
+  "source_registry": "string",
+  "install_count": "number or null",
   "stars": "number or null",
+  "security_score": "number or null",
   "last_updated": "ISO string or null",
   "content_sha": "string or null",
-  "source_registry": "string",
+  "install_url": "string or null",
   "raw_metadata": {}
 }
 ```
@@ -106,22 +109,22 @@ being placed in context. See topgun-finder.md for the envelope format.
 
 | Registry | File | Tier |
 |----------|------|------|
-| skills.sh | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/skills-sh.md` | 1 — WebSearch (API 404) |
-| agentskill.sh | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/agentskill-sh.md` | 1 — WebFetch primary, CLI fallback |
-| Smithery | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/smithery.md` | 1 — confirmed REST API |
-| GitHub | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/github.md` | 1 — confirmed REST API |
-| GitLab | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/gitlab.md` | 1 — confirmed REST API |
-| npm | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/npm.md` | 2 — confirmed REST API |
-| LobeHub | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/lobehub.md` | 2 — WebSearch (API 403) |
-| SkillsMP | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/skillsmp.md` | 2 — confirmed REST API (active) |
-| ClawHub | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/clawhub.md` | 2 — WebSearch (no API) |
-| Glama.ai | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/glama.md` | 3 — confirmed REST API |
-| Hugging Face | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/huggingface.md` | 3 — confirmed REST API |
-| LangChain Hub | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/langchain-hub.md` | 3 — confirmed REST API |
-| Claude Plugins Official | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/claude-plugins-official.md` | 3 — static manifest |
-| Cursor Directory | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/cursor-directory.md` | 3 — GitHub Contents API |
-| MCP.so | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/mcp-so.md` | 3 — WebSearch (API 403) |
-| OpenTools.ai | `$CLAUDE_PLUGIN_ROOT/skills/find-skills/adapters/opentools.md` | 3 — WebFetch + relevance filter + WebSearch fallback |
+| skills.sh | `$CODEX_PLUGIN_ROOT/skills/find-skills/adapters/skills-sh.md` | 1 — WebSearch (API 404) |
+| agentskill.sh | `$CODEX_PLUGIN_ROOT/skills/find-skills/adapters/agentskill-sh.md` | 1 — WebFetch primary, CLI fallback |
+| Smithery | `$CODEX_PLUGIN_ROOT/skills/find-skills/adapters/smithery.md` | 1 — confirmed REST API |
+| GitHub | `$CODEX_PLUGIN_ROOT/skills/find-skills/adapters/github.md` | 1 — confirmed REST API |
+| GitLab | `$CODEX_PLUGIN_ROOT/skills/find-skills/adapters/gitlab.md` | 1 — confirmed REST API |
+| npm | `$CODEX_PLUGIN_ROOT/skills/find-skills/adapters/npm.md` | 2 — confirmed REST API |
+| LobeHub | `$CODEX_PLUGIN_ROOT/skills/find-skills/adapters/lobehub.md` | 2 — WebSearch (API 403) |
+| SkillsMP | `$CODEX_PLUGIN_ROOT/skills/find-skills/adapters/skillsmp.md` | 2 — confirmed REST API (active) |
+| ClawHub | `$CODEX_PLUGIN_ROOT/skills/find-skills/adapters/clawhub.md` | 2 — WebSearch (no API) |
+| Glama.ai | `$CODEX_PLUGIN_ROOT/skills/find-skills/adapters/glama.md` | 3 — confirmed REST API |
+| Hugging Face | `$CODEX_PLUGIN_ROOT/skills/find-skills/adapters/huggingface.md` | 3 — confirmed REST API |
+| LangChain Hub | `$CODEX_PLUGIN_ROOT/skills/find-skills/adapters/langchain-hub.md` | 3 — confirmed REST API |
+| Claude Plugins Official | `$CODEX_PLUGIN_ROOT/skills/find-skills/adapters/claude-plugins-official.md` | 3 — static manifest |
+| Cursor Directory | `$CODEX_PLUGIN_ROOT/skills/find-skills/adapters/cursor-directory.md` | 3 — GitHub Contents API |
+| MCP.so | `$CODEX_PLUGIN_ROOT/skills/find-skills/adapters/mcp-so.md` | 3 — WebSearch (API 403) |
+| OpenTools.ai | `$CODEX_PLUGIN_ROOT/skills/find-skills/adapters/opentools.md` | 3 — WebFetch + relevance filter + WebSearch fallback |
 
 ---
 
@@ -152,7 +155,7 @@ Hash: SHA-256 of the original task description
   "registries_searched": [
     {
       "registry": "name",
-      "status": "ok|unavailable|error",
+      "status": "ok|failed|unavailable",
       "reason": null,
       "latency_ms": 0,
       "result_count": 0
@@ -164,7 +167,7 @@ Hash: SHA-256 of the original task description
   "results": [
     {
       "name": "string",
-      "description": "string",
+      "description": "string or null",
       "source_registry": "string",
       "install_count": null,
       "stars": null,
@@ -197,5 +200,5 @@ Results: ~/.topgun/found-skills-{hash}.json
 Where:
 - `{total_results}` = total count of result objects after deduplication
 - `{registries_count}` = total number of registries searched (local + external)
-- `{unavailable_count}` = number of registries with unavailable/error status
+- `{unavailable_count}` = number of registries with unavailable/failed status
 - `{hash}` = the query hash

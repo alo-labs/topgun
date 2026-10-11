@@ -20,7 +20,7 @@ GET https://api.smith.langchain.com/api/v1/repos?q={query}&is_public=true&limit=
 Retrieve API key:
 
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs" keychain-get langsmith_api_key
+node "$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs" keychain-get langsmith_api_key
 ```
 
 If found, include `X-API-Key: {key}` header. Never log the key.

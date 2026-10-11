@@ -45,7 +45,7 @@ Reason: No valid candidates after security pre-filter
 Read state to get the found-skills file path:
 
 ```bash
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-read
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-read
 ```
 
 Read the `found-skills-{hash}.json` file identified in state. Each candidate has these fields:
@@ -290,7 +290,7 @@ Build the `shortlist` array from the sorted candidates. Each entry contains:
 Construct the full JSON output, then compute the hash of the query string:
 
 ```bash
-HASH=$(node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" sha256 "{original query string}")
+HASH=$(node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" sha256 "{original query string}")
 ```
 
 Write to `~/.topgun/comparison-${HASH}.json`:
@@ -422,9 +422,9 @@ Use the Write tool to write this JSON file to `~/.topgun/comparison-${HASH}.json
 ## Step 8 — Update state
 
 ```bash
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write comparison_path "~/.topgun/comparison-${HASH}.json"
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write winner_name "{winner.name}"
-node "${TOPGUN_BIN:-$CLAUDE_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write winner_registry "{winner.source_registry}"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write comparison_path "~/.topgun/comparison-${HASH}.json"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write winner_name "{winner.name}"
+node "${TOPGUN_BIN:-$CODEX_PLUGIN_ROOT/bin/topgun-tools.cjs}" state-write winner_registry "{winner.source_registry}"
 ```
 
 ## Step 9 — Output completion marker

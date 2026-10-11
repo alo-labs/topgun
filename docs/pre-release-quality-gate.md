@@ -40,7 +40,7 @@ Run `/engineering:code-review` on each file below. Record findings, fix all acce
 **`skills/topgun/SKILL.md`**
 - Verify the 4-stage orchestration flow (find → rank → audit → install) is described unambiguously
 - Confirm the ranking rubric (relevance, freshness, adoption, security posture) is complete and each dimension is well-defined
-- Verify the SENTINEL dispatch instruction points to `$CLAUDE_PLUGIN_ROOT/skills/sentinel/SKILL.md` (bundled, not external)
+- Verify the SENTINEL dispatch instruction points to `$CODEX_PLUGIN_ROOT/skills/sentinel/SKILL.md` (bundled, not external)
 - Confirm the install confirmation UX is described (user prompt before installation)
 - Verify the state file path (`~/.topgun/state.json`) is used consistently throughout
 
@@ -57,7 +57,7 @@ Run `/engineering:code-review` on each file below. Record findings, fix all acce
 - API key retrieval uses `topgun-tools.cjs keychain-get` — never hardcoded
 
 **`skills/secure-skills/SKILL.md`**
-- Verify it dispatches to bundled SENTINEL via `Read "$CLAUDE_PLUGIN_ROOT/skills/sentinel/SKILL.md"` (REQ-10)
+- Verify it dispatches to bundled SENTINEL via `Read "$CODEX_PLUGIN_ROOT/skills/sentinel/SKILL.md"` (REQ-10)
 - Confirm the fix loop: 2 consecutive clean passes required before `## SECURE COMPLETE`
 - Confirm SHA-256 integrity gating between passes (REQ-13)
 - Verify per-finding fingerprint tracking with 3-attempt cap (REQ-14)
@@ -88,7 +88,7 @@ Run `/engineering:code-review` on each file below. Record findings, fix all acce
 
 ### Pass 2 — Structure Review
 
-1. **Adapter contract completeness**: Every adapter in `skills/find-skills/adapters/` returns exactly the unified schema fields: `name`, `description`, `install_url`, `stars`, `last_updated`, `content_sha`, `install_count` (where available), `source_registry`, `raw_metadata`.
+1. **Adapter contract completeness**: Every adapter in `skills/find-skills/adapters/` returns exactly the unified 10-field schema: `name`, `description`, `source_registry`, `install_count`, `stars`, `security_score`, `last_updated`, `content_sha`, `install_url`, `raw_metadata`. Enrichment fields may be `null`, but the keys must always be present after normalization.
 
 2. **Skill file naming**: Every skill directory under `skills/` contains a `SKILL.md`. No orphaned adapter files without a corresponding directory in the adapters folder.
 
@@ -139,7 +139,7 @@ Audit the orchestration chain: `topgun → find-skills → adapters → secure-s
 - **Registry count**: The number 16 appears consistently in `skills/find-skills/SKILL.md`, `site/index.html`, and `docs/CHANGELOG.md`. No divergence.
 - **Adapter names**: The 16 registry names in `find-skills/SKILL.md`'s default list exactly match the 16 `.md` files in `skills/find-skills/adapters/`. No missing files, no extra files.
 - **Contract shape**: The unified contract `{registry, status, reason, results[], latency_ms}` is used identically in `find-skills/SKILL.md` and each adapter's Return Value section.
-- **SENTINEL reference**: `secure-skills/SKILL.md` references `$CLAUDE_PLUGIN_ROOT/skills/sentinel/SKILL.md` — not an external skill. No stale references to `/audit-security-of-skill`.
+- **SENTINEL reference**: `secure-skills/SKILL.md` references `$CODEX_PLUGIN_ROOT/skills/sentinel/SKILL.md` — not an external skill. No stale references to `/audit-security-of-skill`.
 - **Completion markers**: The 4 completion markers documented in `secure-skills/SKILL.md` (`SECURE COMPLETE`, `SECURE REJECTED`, `SECURE ABORTED`, `SECURE ESCALATED`) match those checked for in `topgun/SKILL.md`.
 - **No obsolete references**: Search all skills for removed commands, deprecated paths, or old external dependency references.
 
@@ -152,7 +152,7 @@ Audit all 16 active adapters for completeness and correctness:
 - Every adapter with a speculative endpoint has a Degradation Notice
 - The two adapters without public APIs (`mcp-so`, `opentools`) both have Degradation Notices and graceful-skip paths
 - `cursor-directory` filter rationale is documented (word-level matching, intentional)
-- `agentskill-sh` CLI fallback non-JSON error path returns `status: "error"`
+- `agentskill-sh` CLI fallback non-JSON error path returns `status: "failed"`
 - `claude-plugins-official` handles 4xx with `status: "unavailable"` (no retry)
 - `glama` description sanitization is present (truncate 500, strip HTML/markdown)
 
@@ -286,11 +286,11 @@ CI must pass before proceeding.
 
 **Goal**: No security issues in the skill instruction set. A compromised SKILL.md could cause Claude to exfiltrate data, bypass safety checks, or behave unpredictably.
 
-Run bundled SENTINEL via `Read "$CLAUDE_PLUGIN_ROOT/skills/sentinel/SKILL.md"` on `skills/topgun/SKILL.md` as the primary automated check. Then perform the following manual checks.
+Run bundled SENTINEL via `Read "$CODEX_PLUGIN_ROOT/skills/sentinel/SKILL.md"` on `skills/topgun/SKILL.md` as the primary automated check. Then perform the following manual checks.
 
 ### Target 1 — `skills/topgun/SKILL.md`
 
-This file controls Claude's behavior during every TopGun session. A malformed or manipulated SKILL.md could alter how Claude handles third-party skill content.
+This file controls the agent's behavior during every TopGun session. A malformed or manipulated SKILL.md could alter how the runtime handles third-party skill content.
 
 1. **Prompt injection surface**: Review every section for content that could be manipulated by external registry responses to alter Claude's behavior. The highest-risk surface is the adapter response processing — verify Claude treats registry API responses as DATA to be mapped, not as instructions to execute.
 
@@ -345,7 +345,7 @@ After all three targets are clean with no blocking issues:
 
 ## Release
 
-After all 4 markers are written to `~/.claude/.silver-bullet/state`:
+After all 4 markers are written to `~/.topgun/quality-gate.state`:
 
 ```bash
 # Verify all 4 markers are present

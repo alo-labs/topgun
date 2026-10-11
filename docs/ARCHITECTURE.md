@@ -6,7 +6,7 @@ Detailed phase-level designs live in `docs/specs/YYYY-MM-DD-<topic>-design.md`.
 
 ## System Overview
 
-TopGun is a Claude Code plugin that automates skill discovery, evaluation, and installation. When a user describes a task, TopGun searches 16 active registries in parallel, compares candidates on multiple dimensions, runs a two-pass security audit via bundled SENTINEL v2.3.0, and installs the approved skill — all without the user needing to know which registries exist or how to evaluate security manually. The system is structured as a four-stage sequential pipeline orchestrated by a single `/topgun` skill, with each stage producing a JSON artifact consumed by the next.
+TopGun is a dual-runtime plugin that automates skill discovery, evaluation, and installation for Codex and Claude-compatible hosts. When a user describes a task, TopGun searches 16 active registries in parallel, compares candidates on multiple dimensions, runs a two-pass security audit via bundled SENTINEL v2.3.0, and installs the approved skill — all without the user needing to know which registries exist or how to evaluate security manually. The system is structured as a four-stage sequential pipeline orchestrated by a single `/topgun` skill, with each stage producing a JSON artifact consumed by the next.
 
 ## Pipeline Stages
 
@@ -15,7 +15,7 @@ TopGun is a Claude Code plugin that automates skill discovery, evaluation, and i
 | Find | `topgun-finder` | `~/.topgun/found-skills-{hash}.json` |
 | Compare | `topgun-comparator` | `~/.topgun/comparison-{hash}.json` |
 | Secure | `topgun-securer` | `~/.topgun/audit-{hash}.json` |
-| Install | `topgun-installer` | installed to `~/.claude/skills/{name}/` |
+| Install | `topgun-installer` | installed to `~/.codex/skills/{name}/` |
 
 **Find** — dispatches one in-process `Task` sub-agent per registry from `topgun-finder` (in a single parallel batch), then aggregates 16 partial result files into the found-skills artifact. The aggregation write is enforced by a PreToolUse hook (see Registry Dispatch Architecture).
 
@@ -23,7 +23,7 @@ TopGun is a Claude Code plugin that automates skill discovery, evaluation, and i
 
 **Secure** — runs bundled SENTINEL v2.3.0 against the top-ranked candidate. Requires two consecutive clean passes. A skill that fails is never presented for installation.
 
-**Install** — presents the audit manifest to the user for explicit approval, installs the skill to `~/.claude/skills/{name}/`, and writes the audit trail.
+**Install** — presents the audit manifest to the user for explicit approval, installs the skill to `~/.codex/skills/{name}/`, and writes the audit trail.
 
 ## Component Model
 
@@ -38,7 +38,7 @@ TopGun is a Claude Code plugin that automates skill discovery, evaluation, and i
 | Claude plugin manifest | `.claude-plugin/plugin.json` | Claude-facing plugin manifest; points at shared `skills/`, `agents/`, and plugin-owned hooks |
 | Codex plugin manifest | `.codex-plugin/plugin.json` | Codex-facing plugin manifest; points at the same shared `skills/` tree |
 | Codex marketplace manifest | `.agents/plugins/marketplace.json` | Codex-facing marketplace metadata for the shared `.codex-plugin/` bundle |
-| Plugin hook manifest | `.claude-plugin/hooks/hooks.json` | PreToolUse:Write enforcement — blocks aggregation write if < 16 partials |
+| Plugin hook manifest | `hooks/hooks.json` (mirrored to `.claude-plugin/hooks/hooks.json`) | PreToolUse:Write enforcement — blocks aggregation write if < 16 partials |
 | Registry adapters | `skills/find-skills/adapters/` | 16 self-contained instruction files, one per active registry |
 | SENTINEL | `skills/sentinel/SKILL.md` | Bundled SENTINEL v2.3.0 security auditor |
 
@@ -66,13 +66,13 @@ This is the most architecturally significant component. The dispatch model has n
 | Layer | Mechanism | Can be bypassed by agent? |
 |-------|-----------|--------------------------|
 | Prompt instruction | Text in SKILL.md and `topgun-finder.md` | Yes — model can ignore |
-| PreToolUse hook | `validate-partials.sh` in `.claude-plugin/hooks/hooks.json` | No — OS-level interception |
+| PreToolUse hook | `validate-partials.sh` in `hooks/hooks.json` | No — OS-level interception |
 
 The hook is the only enforcement layer that cannot be bypassed by agent behavior. With v1.3's intermediate `validate-partials` Node.js self-check now removed (the binary still exposes the command, but the dispatch path no longer relies on it), the hook is the canonical guarantee.
 
 ### Auth inheritance — why in-process dispatch works
 
-A `Task` sub-agent runs inside the same Claude Code session as its parent and uses the same auth context: OAuth session tokens, API keys, or first-party credentials. A `child_process.spawn('claude', ...)` subprocess starts a fresh CLI invocation that re-authenticates from `ANTHROPIC_API_KEY` env var alone — OAuth refresh tokens, the Pro/Teams default, are not inheritable across process boundaries. v1.5 picks the model that works for the majority case.
+A `Task` sub-agent runs inside the same parent agent session and uses the same auth context: OAuth session tokens, API keys, or first-party credentials. A standalone CLI subprocess such as `child_process.spawn('claude', ...)` starts a fresh invocation that re-authenticates from environment alone, so OAuth refresh tokens are not inheritable across process boundaries. v1.5 picks the dispatch model that works for the majority case.
 
 ## State Machine
 
@@ -82,7 +82,7 @@ State is persisted at `~/.topgun/state.json` across agent handoffs.
 |-------|-------------|
 | `run_id` | Unique identifier for this invocation |
 | `task_description` | User's original request |
-| `current_stage` | One of: `find`, `compare`, `secure`, `install` |
+| `current_stage` | One of: `find`, `compare`, `secure`, `approve`, `install`, `complete`, `failed` |
 | `last_completed_stage` | Last stage that wrote a clean artifact |
 | `found_skills_path` | Absolute path to found-skills artifact |
 | `comparison_path` | Absolute path to comparison artifact |
@@ -97,6 +97,8 @@ bin/
   topgun-tools.cjs           # Binary: all non-LLM operations
   hooks/
     validate-partials.sh     # PreToolUse:Write enforcement hook
+hooks/
+  hooks.json                 # Root hook manifest used by Codex installs
 agents/
   topgun-finder.md           # Find agent (tools: Read, Write, Bash, Grep, Glob, Task, WebFetch, WebSearch)
   topgun-comparator.md       # Compare agent
@@ -112,7 +114,7 @@ skills/
   sentinel/SKILL.md          # Bundled SENTINEL v2.3.0
 .claude-plugin/
   plugin.json                # version, agents array, skills path
-  hooks/hooks.json           # Plugin-owned hook manifest
+  hooks/hooks.json           # Claude-compatible mirror of the hook manifest
   marketplace.json           # version (must match plugin.json)
 .codex-plugin/
   plugin.json                # Codex manifest pointing at the shared skills tree

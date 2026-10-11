@@ -77,12 +77,26 @@ describe('Test 2: Found-skills output schema validation', () => {
     'install_url', 'raw_metadata',
   ];
 
-  const REQUIRED_TOP_FIELDS = ['query', 'results', 'registries_searched', 'searched_at'];
+  const REQUIRED_TOP_FIELDS = [
+    'query', 'query_hash', 'searched_at', 'total_elapsed_ms', 'registries_searched',
+    'unavailable_count', 'unavailable_warning', 'dedup_removed', 'results', 'total_results',
+  ];
+  const REQUIRED_REGISTRY_FIELDS = ['registry', 'status', 'reason', 'latency_ms', 'result_count'];
 
   test('mock-found-skills.json has all required top-level fields', () => {
     const data = JSON.parse(fs.readFileSync(path.join(FIXTURES, 'mock-found-skills.json'), 'utf8'));
     for (const field of REQUIRED_TOP_FIELDS) {
       assert.ok(field in data, `missing top-level field: ${field}`);
+    }
+  });
+
+  test('mock-found-skills.json has structured registries_searched entries', () => {
+    const data = JSON.parse(fs.readFileSync(path.join(FIXTURES, 'mock-found-skills.json'), 'utf8'));
+    assert.ok(Array.isArray(data.registries_searched) && data.registries_searched.length > 0, 'registries_searched must be a non-empty array');
+    for (const registry of data.registries_searched) {
+      for (const field of REQUIRED_REGISTRY_FIELDS) {
+        assert.ok(field in registry, `registry entry "${registry.registry}" missing field: ${field}`);
+      }
     }
   });
 

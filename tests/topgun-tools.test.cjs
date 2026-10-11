@@ -11,8 +11,20 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 const { execFileSync, execSync } = require('node:child_process');
+const {
+  CANONICAL_PACKAGE_PREFIX,
+  collectTrustEntriesForSource,
+  seedHookTrustState,
+} = require('../bin/topgun-hook-trust.cjs');
 
 const TOOLS = path.join(__dirname, '..', 'bin', 'topgun-tools.cjs');
+
+function parseCliOutput(output) {
+  if (output.trim().startsWith('@file:')) {
+    return JSON.parse(fs.readFileSync(output.trim().slice(6), 'utf8'));
+  }
+  return JSON.parse(output);
+}
 
 function run(args, env = {}) {
   try {
@@ -20,12 +32,23 @@ function run(args, env = {}) {
       encoding: 'utf8',
       env: { ...process.env, ...env },
     });
-    if (result.trim().startsWith('@file:')) {
-      return JSON.parse(fs.readFileSync(result.trim().slice(6), 'utf8'));
-    }
-    return JSON.parse(result);
+    return parseCliOutput(result);
   } catch (err) {
-    throw new Error(`CLI error: ${err.stderr || err.message}`);
+    throw new Error(`CLI error: ${err.stderr || err.message}`, { cause: err });
+  }
+}
+
+function runAllowFailure(args, env = {}) {
+  try {
+    const result = execFileSync(process.execPath, [TOOLS, ...args], {
+      encoding: 'utf8',
+      env: { ...process.env, ...env },
+    });
+    return { code: 0, result: parseCliOutput(result) };
+  } catch (err) {
+    const stdout = typeof err.stdout === 'string' ? err.stdout : '';
+    if (!stdout) throw new Error(`CLI error: ${err.stderr || err.message}`, { cause: err });
+    return { code: err.status ?? 1, result: parseCliOutput(stdout) };
   }
 }
 
@@ -37,6 +60,51 @@ function makeInitHome() {
   const dir = makeTempHome();
   run(['init'], { HOME: dir });
   return dir;
+}
+
+const ACTIVE_REGISTRIES = [
+  'skills-sh',
+  'agentskill-sh',
+  'smithery',
+  'github',
+  'gitlab',
+  'glama',
+  'npm',
+  'lobehub',
+  'huggingface',
+  'langchain-hub',
+  'claude-plugins-official',
+  'cursor-directory',
+  'clawhub',
+  'mcp-so',
+  'opentools',
+  'skillsmp',
+];
+
+function parseHookTrustState(content) {
+  const state = new Map();
+  let currentKey = null;
+
+  for (const line of content.split('\n')) {
+    const trimmed = line.trim();
+    const sectionMatch = trimmed.match(/^\[hooks\.state\."(.+)"\]$/);
+    if (sectionMatch) {
+      currentKey = sectionMatch[1];
+      continue;
+    }
+
+    const hashMatch = currentKey && trimmed.match(/^trusted_hash = "(sha256:[0-9a-f]{64})"$/);
+    if (hashMatch) {
+      state.set(currentKey, hashMatch[1]);
+      continue;
+    }
+
+    if (trimmed.startsWith('[') && !trimmed.startsWith('[hooks.state.')) {
+      currentKey = null;
+    }
+  }
+
+  return state;
 }
 
 // ─── init ────────────────────────────────────────────────────────────────────
@@ -175,6 +243,116 @@ describe('init', () => {
 
     fs.rmSync(home, { recursive: true, force: true });
   });
+
+  test('seeds topgun trust from the package-local hook manifest during init', () => {
+    const home = makeTempHome();
+    const staleTopgunHash = 'sha256:' + 'deadbeef'.repeat(8);
+    const lowerConfigPath = path.join(home, '.codex', 'config.toml');
+
+    fs.mkdirSync(path.dirname(lowerConfigPath), { recursive: true });
+    fs.writeFileSync(lowerConfigPath, [
+      '[hooks.state]',
+      '[hooks.state."topgun@alo-labs-codex-local:hooks/hooks.json:pre_tool_use:0:0"]',
+      `trusted_hash = "${staleTopgunHash}"`,
+      '[hooks.state."topgun@alo-labs-codex:hooks/hooks.json:pre_tool_use:0:0"]',
+      'trusted_hash = "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"',
+      '',
+    ].join('\n'));
+
+    run(['init'], { HOME: home });
+
+    const packageHooksPath = path.join(__dirname, '..', 'hooks', 'hooks.json');
+    const expectedEntries = collectTrustEntriesForSource(packageHooksPath, CANONICAL_PACKAGE_PREFIX);
+    assert.equal(expectedEntries.length, 1, 'package-local hooks manifest should expose one trust entry');
+    const expectedHash = expectedEntries[0].digest;
+
+    const lowerTrustState = parseHookTrustState(fs.readFileSync(lowerConfigPath, 'utf8'));
+    const canonicalKey = `${CANONICAL_PACKAGE_PREFIX}:pre_tool_use:0:0`;
+
+    assert.equal(lowerTrustState.get(canonicalKey), expectedHash, 'lowercase Codex config should trust the package-local hook manifest');
+    assert.ok(![...lowerTrustState.keys()].some(key => key.startsWith('topgun@alo-labs-codex-local')), 'lowercase Codex config should remove the stale local alias trust prefix');
+    assert.ok(![...lowerTrustState.values()].includes(staleTopgunHash), 'lowercase Codex config should replace stale TopGun trust hashes');
+
+    fs.rmSync(home, { recursive: true, force: true });
+  });
+});
+
+describe('installer surface', () => {
+  test('topgun update and installer docs stay Codex-native', () => {
+    const files = [
+      'hooks/hooks.json',
+      '.claude-plugin/hooks/hooks.json',
+      'agents/topgun-finder.md',
+      'agents/topgun-comparator.md',
+      'agents/topgun-securer.md',
+      'skills/topgun-update/SKILL.md',
+      'skills/topgun/SKILL.md',
+      'skills/find-skills/SKILL.md',
+      'skills/install-skills/SKILL.md',
+      'skills/secure-skills/SKILL.md',
+      'skills/find-skills/adapters/github.md',
+      'skills/find-skills/adapters/gitlab.md',
+      'skills/find-skills/adapters/smithery.md',
+      'skills/find-skills/adapters/cursor-directory.md',
+      'skills/find-skills/adapters/huggingface.md',
+      'skills/find-skills/adapters/langchain-hub.md',
+      'skills/find-skills/adapters/skillsmp.md',
+      'skills/find-skills/adapters/npm.md',
+      'agents/topgun-installer.md',
+    ];
+
+    for (const relPath of files) {
+      const content = fs.readFileSync(path.join(__dirname, '..', relPath), 'utf8');
+      assert.ok(!content.includes('~/.claude/'), `${relPath} must not depend on ~/.claude/ paths`);
+      assert.ok(!content.includes('CLAUDE_PLUGIN_ROOT'), `${relPath} must not depend on CLAUDE_PLUGIN_ROOT`);
+    }
+
+    const updateSkill = fs.readFileSync(path.join(__dirname, '..', 'skills', 'topgun-update', 'SKILL.md'), 'utf8');
+    const finderAgent = fs.readFileSync(path.join(__dirname, '..', 'agents', 'topgun-finder.md'), 'utf8');
+    const findSkills = fs.readFileSync(path.join(__dirname, '..', 'skills', 'find-skills', 'SKILL.md'), 'utf8');
+    const installerAgent = fs.readFileSync(path.join(__dirname, '..', 'agents', 'topgun-installer.md'), 'utf8');
+    const topgunSkill = fs.readFileSync(path.join(__dirname, '..', 'skills', 'topgun', 'SKILL.md'), 'utf8');
+    const installSkill = fs.readFileSync(path.join(__dirname, '..', 'skills', 'install-skills', 'SKILL.md'), 'utf8');
+    const qualityGate = fs.readFileSync(path.join(__dirname, '..', 'docs', 'pre-release-quality-gate.md'), 'utf8');
+
+    assert.ok(updateSkill.includes('current alias'), 'topgun-update SKILL.md must mention the stable current alias');
+    assert.ok(updateSkill.includes('local snapshot'), 'topgun-update SKILL.md must mention the local snapshot bootstrap');
+    assert.ok(!updateSkill.includes('Restart Codex Desktop / Codex Code to activate.'), 'topgun-update SKILL.md must not require restart after refresh');
+    assert.ok(updateSkill.includes('no restart required'), 'topgun-update SKILL.md must explain that restart is not required');
+
+    for (const content of [finderAgent, findSkills]) {
+      assert.ok(content.includes('~/.codex/plugins/cache/*/*/*/skills/*/SKILL.md'), 'finder docs must search the live Codex plugin cache layout');
+      assert.ok(!content.includes('~/.codex/plugins/*/skills/*/SKILL.md'), 'finder docs must not use the stale flat plugin glob');
+    }
+    assert.ok(findSkills.includes('"install_count": "number or null"'), 'find-skills SKILL.md must document install_count in the unified schema');
+    assert.ok(findSkills.includes('"security_score": "number or null"'), 'find-skills SKILL.md must document security_score in the unified schema');
+    assert.ok(findSkills.includes('"description": "string or null"'), 'find-skills SKILL.md must document nullable descriptions after normalization');
+    assert.ok(
+      finderAgent.includes('"source_registry": "local",\n  "install_count": null,'),
+      'topgun-finder local result example must include install_count'
+    );
+    assert.ok(
+      finderAgent.includes('"stars": null,\n  "security_score": null,'),
+      'topgun-finder local result example must include security_score'
+    );
+    assert.ok(
+      finderAgent.includes('results items: {"name":"","description":"","source_registry":"{registry}","install_count":null,"stars":null,"security_score":null'),
+      'topgun-finder adapter contract example must include install_count and security_score'
+    );
+    assert.ok(qualityGate.includes('security_score'), 'pre-release-quality-gate.md must audit security_score as part of the unified schema');
+    assert.ok(!qualityGate.includes('install_count` (where available)'), 'pre-release-quality-gate.md must treat install_count as a required normalized key');
+
+    for (const content of [installerAgent, topgunSkill]) {
+      assert.ok(!content.includes('tail -1'), 'installer/orchestrator docs must not read JSON by tailing the last line');
+      assert.ok(content.includes('audit_path'), 'installer/orchestrator docs must read audit_path from state');
+      assert.ok(content.includes('comparison_path'), 'installer/orchestrator docs must read comparison_path from state');
+    }
+
+    assert.ok(installerAgent.includes('registry.plugins[pluginKey]'), 'installer manual fix must preserve the installed_plugins.json map shape');
+    assert.ok(!installerAgent.includes('plugins.push('), 'installer manual fix must not treat installed_plugins.json as an array');
+    assert.ok(installerAgent.includes('registry.skills.push({'), 'installer installed.json update must append into the skills array');
+    assert.ok(installSkill.includes('~/.codex/skills/{skill_name}/'), 'install-skills summary must point local-copy fallback at ~/.codex/skills');
+  });
 });
 
 // ─── state-read / state-write ─────────────────────────────────────────────────
@@ -212,6 +390,104 @@ describe('state-read / state-write', () => {
     run(['state-write', 'current_stage', 'find'], { HOME: home });
     const statePath = path.join(home, '.topgun', 'state.json');
     assert.ok(fs.existsSync(statePath));
+    fs.rmSync(home, { recursive: true, force: true });
+  });
+});
+
+describe('validate-partials', () => {
+  test('defaults to the 16 active registries when --expected is omitted', () => {
+    const home = makeTempHome();
+    const hash = 'default-registry-set';
+    const topgunHome = path.join(home, '.topgun');
+    fs.mkdirSync(topgunHome, { recursive: true });
+
+    for (const registry of ACTIVE_REGISTRIES) {
+      fs.writeFileSync(path.join(topgunHome, `registry-${hash}-${registry}.json`), '{}');
+    }
+
+    const res = run(['validate-partials', '--hash', hash], { HOME: home });
+    assert.equal(res.expected, ACTIVE_REGISTRIES.length);
+    assert.equal(res.found, ACTIVE_REGISTRIES.length);
+    assert.equal(res.valid, true);
+    assert.deepEqual(res.missing, []);
+
+    fs.rmSync(home, { recursive: true, force: true });
+  });
+
+  test('missing registry list contains only active registries', () => {
+    const home = makeTempHome();
+    const hash = 'missing-registry-set';
+    const topgunHome = path.join(home, '.topgun');
+    fs.mkdirSync(topgunHome, { recursive: true });
+
+    for (const registry of ACTIVE_REGISTRIES.filter(name => name !== 'skillsmp')) {
+      fs.writeFileSync(path.join(topgunHome, `registry-${hash}-${registry}.json`), '{}');
+    }
+
+    const { code, result: res } = runAllowFailure(['validate-partials', '--hash', hash], { HOME: home });
+    assert.equal(code, 1);
+    assert.equal(res.expected, ACTIVE_REGISTRIES.length);
+    assert.equal(res.found, ACTIVE_REGISTRIES.length - 1);
+    assert.equal(res.valid, false);
+    assert.deepEqual(res.missing, ['skillsmp']);
+    assert.ok(!res.missing.includes('osm'));
+    assert.ok(!res.missing.includes('vskill'));
+
+    fs.rmSync(home, { recursive: true, force: true });
+  });
+});
+
+describe('hook trust seeding', () => {
+  test('trusts a mirrored user-config hook file from that file, not the package manifest', () => {
+    const home = makeTempHome();
+    const packageRoot = path.join(__dirname, '..');
+    const packageHooksPath = path.join(packageRoot, 'hooks', 'hooks.json');
+    const mirrorPath = path.join(home, '.codex', 'hooks.json');
+    const mirrorPrefix = 'topgun@alo-labs-codex:user-config/hooks.json';
+    const mirrorCommand = `bash "${path.join(packageRoot, 'bin', 'hooks', 'validate-partials.sh')}"`;
+
+    fs.mkdirSync(path.dirname(mirrorPath), { recursive: true });
+    fs.writeFileSync(mirrorPath, JSON.stringify({
+      hooks: {
+        PreToolUse: [
+          {
+            matcher: 'Write',
+            hooks: [
+              {
+                type: 'command',
+                command: mirrorCommand,
+                timeout: 10,
+              },
+            ],
+          },
+        ],
+      },
+    }, null, 2));
+
+    const expectedPackageEntries = collectTrustEntriesForSource(packageHooksPath, CANONICAL_PACKAGE_PREFIX);
+    const expectedMirrorEntries = collectTrustEntriesForSource(mirrorPath, mirrorPrefix);
+    assert.equal(expectedPackageEntries.length, 1, 'package-local source should still expose one trust entry');
+    assert.equal(expectedMirrorEntries.length, 1, 'mirrored user-config source should expose one trust entry');
+    assert.notEqual(expectedPackageEntries[0].digest, expectedMirrorEntries[0].digest, 'mirror trust hash must differ from the package-local hash when the source command differs');
+
+    const configPath = path.join(home, '.codex', 'config.toml');
+    seedHookTrustState({
+      packageRoot,
+      configPaths: [configPath],
+      sourceSpecs: [
+        { prefix: CANONICAL_PACKAGE_PREFIX, sourcePath: packageHooksPath },
+        { prefix: mirrorPrefix, sourcePath: mirrorPath },
+      ],
+    });
+
+    const trustState = parseHookTrustState(fs.readFileSync(configPath, 'utf8'));
+    const packageKey = expectedPackageEntries[0].key;
+    const mirrorKey = expectedMirrorEntries[0].key;
+
+    assert.equal(trustState.get(packageKey), expectedPackageEntries[0].digest, 'package-local prefix should trust the package-local manifest');
+    assert.equal(trustState.get(mirrorKey), expectedMirrorEntries[0].digest, 'mirror prefix should trust the mirrored user-config file');
+    assert.notEqual(trustState.get(packageKey), trustState.get(mirrorKey), 'distinct prefixes should not reuse the same trust hash');
+
     fs.rmSync(home, { recursive: true, force: true });
   });
 });
@@ -393,9 +669,38 @@ describe('schemas', () => {
 
   test('schemas found-skills returns correct structure', () => {
     const schema = run(['schemas', 'found-skills']);
+    assert.ok(schema.properties.query_hash);
+    assert.ok(schema.properties.total_elapsed_ms);
+    assert.ok(schema.properties.unavailable_count);
+    assert.ok(schema.properties.unavailable_warning);
+    assert.ok(schema.properties.dedup_removed);
+    assert.ok(schema.properties.total_results);
+    assert.ok(schema.properties.registries_searched);
     assert.ok(schema.properties.results);
     assert.ok(schema.required.includes('query'));
+    assert.ok(schema.required.includes('query_hash'));
+    assert.ok(schema.required.includes('registries_searched'));
+    assert.ok(schema.required.includes('total_results'));
     assert.ok(schema.required.includes('results'));
+    assert.deepEqual(
+      schema.properties.registries_searched.items.required,
+      ['registry', 'status', 'reason', 'latency_ms', 'result_count']
+    );
+    assert.deepEqual(
+      schema.properties.registries_searched.items.properties.status.enum,
+      ['ok', 'failed', 'unavailable']
+    );
+    assert.deepEqual(
+      schema.properties.results.items.required,
+      [
+        'name', 'description', 'source_registry', 'install_count', 'stars',
+        'security_score', 'last_updated', 'content_sha', 'install_url', 'raw_metadata'
+      ]
+    );
+    assert.deepEqual(schema.properties.results.items.properties.description.type, ['string', 'null']);
+    assert.deepEqual(schema.properties.results.items.properties.install_count.type, ['number', 'null']);
+    assert.deepEqual(schema.properties.results.items.properties.stars.type, ['number', 'null']);
+    assert.deepEqual(schema.properties.results.items.properties.install_url.type, ['string', 'null']);
   });
 
   test('schemas comparison-results returns candidate schema', () => {

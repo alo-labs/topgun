@@ -2,7 +2,7 @@
 name: secure-skills
 description: >
   Sub-skill of TopGun. Security-audits a skill via the bundled SENTINEL
-  skill at $CLAUDE_PLUGIN_ROOT/skills/sentinel/SKILL.md, fixes findings,
+  skill at $CODEX_PLUGIN_ROOT/skills/sentinel/SKILL.md, fixes findings,
   and produces a secured copy. Not normally invoked directly. The topgun
   orchestrator dispatches this via the topgun-securer agent.
 ---
@@ -16,7 +16,7 @@ description: >
 - Wraps external SKILL.md content in `<structural-envelope>` tags with source attribution and SHA-256
 - Pre-filters executable body sections for phone-home patterns (curl, wget, fetch) per REQ-15
 - Inspects allowed-tools frontmatter for dangerous permissions (Bash, Computer, wildcard)
-- Invokes **bundled SENTINEL v2.3.0** via `Read "$CLAUDE_PLUGIN_ROOT/skills/sentinel/SKILL.md"` and follows its workflow (no external dependency, version pinned with the plugin release) per REQ-10
+- Invokes **bundled SENTINEL v2.3.0** via `Read "$CODEX_PLUGIN_ROOT/skills/sentinel/SKILL.md"` and follows its workflow (no external dependency, version pinned with the plugin release) per REQ-10
 - Runs fix loop until 2 consecutive clean Sentinel passes on identical content (REQ-12)
 - SHA-256 integrity gating between passes — hash computed over the full SKILL.md content before each pass; if the hash differs between consecutive passes, the audit is aborted immediately (REQ-13)
 - Per-finding fingerprint tracking with 3-attempt loop cap (REQ-14)

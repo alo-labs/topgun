@@ -178,7 +178,7 @@ describe('Scenario 2: Resume from compare stage — skip FindSkills', () => {
 
 // ─── Scenario 3: Registry unavailable — warning at 3+ ─────────────────────────
 
-describe('Scenario 3: Registry unavailable — 4 out of 11 registries timeout', () => {
+describe('Scenario 3: Registry unavailable — 4 registries unavailable', () => {
   test('4 unavailable registries triggers unavailable_warning (REQ-06)', () => {
     const mockFoundWithUnavailable = {
       query: 'kubernetes deployment',
@@ -357,7 +357,7 @@ describe('Scenario 6: Plugin install fails, local-copy fallback', () => {
     fs.rmSync(home, { recursive: true, force: true });
   });
 
-  test('installed.json is updated with install_method: local_copy', () => {
+  test('installed.json is updated with install_method: local-copy', () => {
     const { home, topgunHome } = makeTempTopgunHome();
 
     run(['init'], home);
@@ -371,8 +371,8 @@ describe('Scenario 6: Plugin install fails, local-copy fallback', () => {
           source_registry: 'skills-sh',
           content_sha: 'b94d27b9934d3e08a52e52d7da7dabfac484efe04e751d0c7e8b9a28f359c012',
           installed_at: new Date().toISOString(),
-          install_method: 'local_copy',
-          local_path: path.join(os.homedir(), '.claude', 'skills', 'kube-deploy', 'SKILL.md'),
+          install_method: 'local-copy',
+          install_path: path.join(os.homedir(), '.codex', 'skills', 'kube-deploy', 'SKILL.md'),
         },
       ],
       updated_at: new Date().toISOString(),
@@ -381,8 +381,8 @@ describe('Scenario 6: Plugin install fails, local-copy fallback', () => {
 
     const installed = JSON.parse(fs.readFileSync(installedPath, 'utf8'));
     assert.ok(Array.isArray(installed.skills) && installed.skills.length > 0);
-    assert.equal(installed.skills[0].install_method, 'local_copy');
-    assert.ok(installed.skills[0].local_path.includes('.claude/skills'));
+    assert.equal(installed.skills[0].install_method, 'local-copy');
+    assert.ok(installed.skills[0].install_path.includes('.codex/skills'));
 
     fs.rmSync(home, { recursive: true, force: true });
   });
@@ -400,10 +400,7 @@ describe('Scenario 6: Plugin install fails, local-copy fallback', () => {
   test('orchestrator SKILL.md documents install_method label for local-copy', () => {
     const skillContent = fs.readFileSync(path.join(ROOT, 'skills', 'topgun', 'SKILL.md'), 'utf8');
     // The skill must reference both install methods
-    assert.ok(
-      skillContent.includes('local-copy') || skillContent.includes('local_copy') || skillContent.includes('local-'),
-      'SKILL.md must document local-copy install method'
-    );
+    assert.ok(skillContent.includes('local-copy'), 'SKILL.md must document local-copy install method');
   });
 
   test('invalid stage value in state is detected as security concern (T-06-04)', () => {

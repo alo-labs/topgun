@@ -161,8 +161,8 @@ phase's work -- without invoking any of them yet.
 designated points later in the workflow.
 
 Scan installed skills from two sources:
-1. `~/.claude/skills/` -- flat `.md` files
-2. `~/.claude/plugins/cache/` -- glob `*/*/*/skills/*/SKILL.md` (layout: publisher/plugin/version/skills/skill-name)
+1. `~/.codex/skills/` -- glob `*/SKILL.md` (layout: skill-name/SKILL.md)
+2. `~/.codex/plugins/cache/` -- glob `*/*/*/skills/*/SKILL.md` (layout: publisher/plugin/version-or-alias/skills/skill-name)
 
 Cross-reference the combined list against `all_tracked` in `.silver-bullet.json` and the
 current task description. Surface candidates:
